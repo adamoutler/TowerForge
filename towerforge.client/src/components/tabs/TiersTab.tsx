@@ -1,11 +1,12 @@
 // ============================================================
 //  TowerForge Companion — Tiers Tab
-//  Track highest wave reached per tier.
+//  Track highest wave reached per tier, and the Dissonant Boosts per tier.
 // ============================================================
 
 import { useGameStore } from '../../store/useGameStore';
 import NumericInput from '../common/NumericInput';
 import { MAX_TIER } from '../../constants/gameData';
+import DissonancePanel from './DissonancePanel';
 
 export default function TiersTab() {
     const profile = useGameStore(s => s.profile);
@@ -142,6 +143,8 @@ export default function TiersTab() {
                     )}
                 </div>
             </div>
+
+            <DissonancePanel />
 
         </div>
     );

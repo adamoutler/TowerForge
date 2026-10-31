@@ -320,6 +320,7 @@ export default function App() {
                 ...(imp.uws ? ['• Ultimate weapons and UW+ levels'] : []),
                 ...(imp.cards ? [`• Cards: stars, masteries and presets${imp.cardSlots > 0 ? ` (${imp.cardSlots} slots)` : ''}`] : []),
                 ...(imp.bannedPerks ? ['• Banned perks'] : []),
+                ...(imp.dissonance ? ['• Dissonant Boosts: your best wave per tier on each track'] : []),
                 ...(imp.labs ? [`• ${Object.keys(imp.labs).length} labs${imp.labsRunning?.length ? `, ${imp.labsRunning.length} being researched` : ''}`] : []),
                 ...(imp.modules ? [
                     `• Modules: ${imp.modules.state.library.length} unique modules, ${imp.modules.state.loadouts.length} presets, assist slots and slot levels`,

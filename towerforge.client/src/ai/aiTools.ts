@@ -30,6 +30,8 @@ import { buildRunLengthModel, deathWave, killedBy, pathRunGains } from '../engin
 import { activeBattleReport, extraDamage, runKey } from '../engine/battleReport';
 import type { BattleReport } from '../engine/battleReport';
 import { defaultBattleIndex } from '../engine/gameExport';
+import { DISSONANCE_TRACKS, TRACK_LABEL, TRACK_STAT, dissonanceFactor, hasDissonance, trackBoost } from '../engine/dissonance';
+import { buildEdpsCalibration, edpsScore } from '../engine/edps';
 import { formatGameNumber } from '../engine/gameNumbers';
 import { formatLabTime } from '../engine/upgradeCosts';
 import { activeLoadout } from '../engine/statHelpers';
@@ -162,6 +164,13 @@ export function accountSummary(s: AiAccount, now = Date.now(), tourney?: AiTourn
             return max ? [`${n} ${s.labData[n]}/${max}`] : [];
         });
         lines.push(`Labs: ${labs.length} researched, ${maxed} maxed${key.length ? `; ${key.join(', ')}` : ''}.`);
+    }
+    // Campaign only: whether Dissonant Boosts count in tournaments isn't confirmed.
+    const farmRun = s.importedBattles[defaultBattleIndex(s.importedBattles)];
+    if (!tourney && farmRun && hasDissonance(s.dissonanceWaves)) {
+        const waves = s.dissonanceWaves;
+        const tracks = DISSONANCE_TRACKS.map(t => `${TRACK_LABEL[t]} ×${trackBoost(waves, t, farmRun.tier, s.labData).total.toFixed(2)} on ${TRACK_STAT[t]}`);
+        lines.push(`Dissonant Boosts on T${farmRun.tier}, where they farm: ${tracks.join(', ')}; each tier has its own.`);
     }
     const relics = Object.values(RELICS).flat().filter(([k]) => (s.relicData?.[k] ?? 0) !== 0)
         .map(([k, name, , , unit]) => `${name} ${s.relicData[k] > 0 && unit !== 's' ? '+' : ''}${s.relicData[k]}${unit}`);
@@ -792,6 +801,21 @@ export function runsReport(s: AiAccount, kind: AiRunKind = 'any'): ToolResult {
 }
 
 // ── Another tier ──────────────────────────────────────────────
+// Each tier has its own Dissonant Boosts: what another tier's do to damage and
+// coins against the tier the runs were on. 1s without Dissonance data.
+function tierBoosts(s: AiAccount, from: number, run: BattleReport | undefined) {
+    const waves = s.dissonanceWaves;
+    if (!hasDissonance(waves)) return { damage: () => 1, coins: () => 1, note: '' };
+    const snap = snapshotFromState(s);
+    const at = (tier: number) => ({ ...snap, dissonance: { waves, tier } });
+    const calib = run ? buildEdpsCalibration(at(from), run) : null;
+    return {
+        damage: (tier: number) => (calib ? edpsScore(at(tier), calib) / edpsScore(at(from), calib) : dissonanceFactor(at(tier), 'attack') / dissonanceFactor(at(from), 'attack')),
+        coins: (tier: number) => dissonanceFactor(at(tier), 'utility') / dissonanceFactor(at(from), 'utility'),
+        note: " Each tier's own Dissonant Boosts are counted, on damage and on coins.",
+    };
+}
+
 // Your last campaign deaths: the basic enemy's health where each run ended
 // (Run Length), and the wave a run on another tier reaches that health with
 // the same damage and the same level skip. Health only — enemies on a higher
@@ -800,7 +824,8 @@ export function tierOutlook(s: AiAccount, target: number): ToolResult {
     const model = buildRunLengthModel(s.importedBattles);
     if (!model) return { title: 'Another tier', text: 'No campaign deaths with level skips saved yet, so there is nothing to measure from.' };
     const to = Math.max(1, Math.min(24, Math.round(target || model.tier + 1)));
-    const waves = model.used.map(d => deathWave(d.enemyHealth!, to, Math.max(0, 1 - d.healthLevel! / d.run.wave)));
+    const boosts = tierBoosts(s, model.tier, model.used[0].run);
+    const waves = model.used.map(d => deathWave(d.enemyHealth! * boosts.damage(to), to, Math.max(0, 1 - d.healthLevel! / d.run.wave)));
     const avg = Math.round(waves.reduce((a, w) => a + w, 0) / waves.length);
     const from = model.used.map(d => d.run.wave);
     const out = [
@@ -917,11 +942,12 @@ export function farmTiersReport(s: AiAccount): ToolResult {
     const unlocked = Math.max(runLength.tier, s.profile.highestTier ?? runLength.tier);
     const tiers = [runLength.tier - 1, runLength.tier, runLength.tier + 1, runLength.tier + 2]
         .filter(t => t >= 1 && t <= Math.min(MAX_TIER, unlocked));
+    const boosts = tierBoosts(s, runLength.tier, runLength.used[0].run);
     const rows = tiers.map(tier => {
         const waves = runLength.used.map(d => (tier === runLength.tier ? d.run.wave
-            : deathWave(d.enemyHealth!, tier, Math.max(0, 1 - d.healthLevel! / d.run.wave))));
+            : deathWave(d.enemyHealth! * boosts.damage(tier), tier, Math.max(0, 1 - d.healthLevel! / d.run.wave))));
         const wave = Math.round(waves.reduce((a, w) => a + w, 0) / waves.length);
-        return projectRun(coins.calibration, settings, wave, tier);
+        return projectRun(coins.calibration, settings, wave, tier, boosts.coins(tier));
     });
     const best = rows.reduce((a, r) => (r.coinsPerHour > a.coinsPerHour ? r : a));
     const now = rows.find(r => r.tier === runLength.tier)!;
@@ -934,6 +960,7 @@ export function farmTiersReport(s: AiAccount): ToolResult {
             ...rows.map(row),
             `How: each tier's waves from the enemy health where your last ${runLength.used.length} runs on T${runLength.tier} ended, and coins from Coins per Run's model of your runs at that wave and tier.`
                 + ' Only enemy health is compared: enemies on higher tiers also hit harder, so runs there may end sooner.'
+                + boosts.note
                 + (unlocked < runLength.tier + 2 ? ` Tiers past T${unlocked} aren't unlocked yet.` : ''),
         ].join('\n'),
     };

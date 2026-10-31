@@ -34,6 +34,7 @@ import {
 } from './moduleEffects';
 import { activeCard as activeCardIn, cardValue, labMult as labMultIn, masteredCardMult } from './statHelpers';
 import type { BattleReport } from './battleReport';
+import { dissonanceFactor } from './dissonance';
 import type { OptimizerSnapshot } from './optimizer';
 import { bountyExtra, fetchRate, summonExtra } from './guardian';
 import { SKIN_COIN_BONUS } from '../constants/guardianData';
@@ -230,7 +231,8 @@ export function readFarmInputs(snap: OptimizerSnapshot): FarmInputs {
     const kps = mb.run?.killsPerSec ?? 8;
     const skins = snap.guardian?.unlocked ? 1 + SKIN_COIN_BONUS * snap.guardian.skinsOwned : 1;
     return {
-        base: base * skins, mult, reach, uptime, gilded: gildedSniperChance(mb), gtDuration, comboLevel, critCoin, coinsPerWave, waveSkip,
+        // The Utility Dissonant Boost multiplies kill coins (TheTowerSDK: eEcon's Disco).
+        base: base * skins * dissonanceFactor(snap, 'utility'), mult, reach, uptime, gilded: gildedSniperChance(mb), gtDuration, comboLevel, critCoin, coinsPerWave, waveSkip,
         bounty: bountyExtra(snap.guardian, snap.presetIdx, kps),
         summon: summonExtra(snap.guardian, snap.presetIdx, kps),
         fetch: fetchRate(snap.guardian, snap.presetIdx),

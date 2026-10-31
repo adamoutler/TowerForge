@@ -9,6 +9,8 @@
 import { useMemo, useState } from 'react';
 import { useGameStore } from '../../store/useGameStore';
 import { defaultBattleIndex, isRealRun } from '../../engine/gameExport';
+import { isDissonantRun } from '../../engine/battleReport';
+import { hasDissonance, trackBoost } from '../../engine/dissonance';
 import { buildRunModel, projectRun, runSettingsFromCards } from '../../engine/runCoins';
 import type { RunModelSettings } from '../../engine/runCoins';
 import { formatGameNumber } from '../../engine/gameNumbers';
@@ -23,11 +25,13 @@ export default function RunCoinsTab() {
     const battles = useGameStore(s => s.importedBattles);
     const cardData = useGameStore(s => s.cardData);
     const preset = useGameStore(s => s.activePreset);
+    const dissonanceWaves = useGameStore(s => s.dissonanceWaves);
+    const labData = useGameStore(s => s.labData);
 
     // Card defaults from the current preset; the run may have used another, so both are editable.
     const defaults = runSettingsFromCards(cardData, preset);
 
-    const candidates = battles.map((b, i) => ({ b, i })).filter(({ b }) => isRealRun(b) && !b.tournament);
+    const candidates = battles.map((b, i) => ({ b, i })).filter(({ b }) => isRealRun(b) && !b.tournament && !isDissonantRun(b));
     const [tuning, setTuning] = useState(() => defaultBattleIndex(battles));
     const [introSprint, setIntroSprint] = useState(defaults.introSprintWaves);
     const [waMastery, setWaMastery] = useState<number | null>(defaults.waMastery);
@@ -36,7 +40,11 @@ export default function RunCoinsTab() {
 
     const settings: RunModelSettings = useMemo(() => ({ introSprintWaves: introSprint, waMastery }), [introSprint, waMastery]);
     const model = useMemo(() => buildRunModel(battles, tuning, settings), [battles, tuning, settings]);
-    const projection = model ? projectRun(model.calibration, settings, target.wave, target.tier) : null;
+    // Another tier pays its own Dissonant Boost on coins.
+    const coinBoost = model && hasDissonance(dissonanceWaves)
+        ? trackBoost(dissonanceWaves, 'utility', target.tier, labData).total / trackBoost(dissonanceWaves, 'utility', model.calibration.tier, labData).total
+        : 1;
+    const projection = model ? projectRun(model.calibration, settings, target.wave, target.tier, coinBoost) : null;
 
     if (candidates.length === 0) {
         return (

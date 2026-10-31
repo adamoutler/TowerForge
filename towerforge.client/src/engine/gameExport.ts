@@ -15,6 +15,7 @@
 // ============================================================
 
 import type { BattleField, BattleReport } from './battleReport';
+import { isDissonantRun } from './battleReport';
 import { MAX_TIER, WS_STATS, WS_ENH, UWS, LABS, RELICS } from '../constants/gameData';
 import {
     GAME_CARDS, MASTERY_LAB_START, MASTERY_LAB_CARDS, CARD_PRESET_SLOTS, GAME_PERKS, GAME_LABS, GAME_LAB_GROUPS,
@@ -27,7 +28,7 @@ import type {
     Currencies, TierWaves, WSPreset, WSCategory, EnhData, EnhCategoryData, UWData,
     CardData, CardEntry, LabData, ModuleState, ModuleEntry, ModuleType, ModuleRarity,
     SubSlot, Loadout, LoadoutSlots, AssistData, League, GuardianData, GuardianPreset,
-    BotLoadouts, LabProgress, LabRunning, TourneyRecord, WsUnlocked,
+    BotLoadouts, DissonanceWaves, LabProgress, LabRunning, TourneyRecord, WsUnlocked,
 } from '../types/gameTypes';
 import { BOTS_CONFIG } from '../constants/botData';
 import { RELIC_CATALOG } from '../constants/relicCatalog';
@@ -67,6 +68,7 @@ export interface GameImport {
     bots: BotImport | null;            // bot levels and which are active, per preset
     labsRunning: LabRunning[] | null;
     labProgress: LabProgress | null;   // labs whose next level is under way or part done
+    dissonance: DissonanceWaves | null;   // best Dissonant Run wave per tier on each track
     labSlots: number | null;           // lab slots owned: LabsUnlocked (bought) + the free one
     tourneyRecords: TourneyRecord[] | null;   // TournamentRecords (29.1.3+); null when the file has none
     relics: RelicImport | null;
@@ -642,6 +644,7 @@ export function parseGameExport(raw: Raw): GameImport {
         bots: parseBots(raw),
         labsRunning: parseLabsRunning(raw),
         labProgress: parseLabProgress(raw),
+        dissonance: parseDissonance(raw),
         // LabsUnlocked counts the slots bought with gems, not the free first one:
         // the owner's 4 with 5 labs running, a newer account's 2 with 3 (2026-10-28).
         labSlots: typeof raw.LabsUnlocked === 'number' ? clamp(raw.LabsUnlocked + 1, 1, 5) : null,
@@ -812,6 +815,19 @@ function parseLabsRunning(raw: Raw): LabRunning[] | null {
     return out;
 }
 
+// Dissonant Boosts: each track's best wave, indexed by tier number. Checked on
+// the owner's Dissonant Boosts panel (2026-10-31): T13–T17 on all four tracks
+// match the export (a tier without a run reads 0, "—" on the panel).
+function parseDissonance(raw: Raw): DissonanceWaves | null {
+    if (!Array.isArray(raw.DissonanceDamageBoost)) return null;
+    return {
+        attack: arr(raw.DissonanceDamageBoost).map(num),
+        defense: arr(raw.DissonanceHealthBoost).map(num),
+        utility: arr(raw.DissonanceCoinBoost).map(num),
+        uw: arr(raw.DissonanceUltDamageBoost).map(num),
+    };
+}
+
 // How far each lab's next level has got: ResearchPercentComplete by lab
 // number, kept when a lab is stopped; ResearchLevel doesn't count that level.
 // Checked on the owner's export (2026-10-21): on all 4 running labs with a
@@ -886,7 +902,7 @@ export const isRealRun = (b: BattleReport) => b.wave > 1 && b.totalEnemies > 0;
 // tier they run most), so short test starts and tournaments are skipped.
 // Battle history is stored oldest → newest. -1 when nothing qualifies.
 export function defaultBattleIndex(battles: BattleReport[]): number {
-    const runs = battles.map((b, i) => ({ b, i })).filter(({ b }) => !b.tournament && isRealRun(b));
+    const runs = battles.map((b, i) => ({ b, i })).filter(({ b }) => !b.tournament && !isDissonantRun(b) && isRealRun(b));
     if (runs.length === 0) return -1;
 
     const countByTier = new Map<number, number>();

@@ -66,6 +66,7 @@ import {
     uniq, sharpFortitudeMult, harmonyConductorReduction, negativeMassReduction, primordialCollapseReduction,
 } from './moduleEffects';
 import type { BattleReport } from './battleReport';
+import { dissonanceFactor } from './dissonance';
 import type { OptimizerSnapshot } from './optimizer';
 import { runMix } from './battleConditions';
 import { botStatValue, touchesOf } from './edps';
@@ -205,6 +206,7 @@ export function readEhpInputs(snap: OptimizerSnapshot): EhpInputs {
     }
     mult(parts.health, 'Health enhancement', enh('defense', 'Health'));
     mult(parts.health, 'Relics', 1 + relic('rHP') / 100);
+    mult(parts.health, 'Dissonant Boost', dissonanceFactor(snap, 'defense'), snap.dissonance && `Defense, Boost + Echo on T${snap.dissonance.tier}`);
     mult(parts.health, 'Perk: Max Health ×1.20', perkMult('health', 0.2), PERK_NOTE);
     if (taken('to_regen')) mult(parts.health, 'Trade-off: Regen ×8 / Max Health −60%', 0.4, TRADEOFF_NOTE);
     if (taken('to_coins')) mult(parts.health, 'Trade-off: Coins ×1.8 / Max Health −70%', 0.3, TRADEOFF_NOTE);

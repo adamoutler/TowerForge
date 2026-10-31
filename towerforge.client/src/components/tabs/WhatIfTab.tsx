@@ -86,6 +86,7 @@ export default function WhatIfTab() {
     const relicData = useGameStore(s => s.relicData);
     const botData = useGameStore(s => s.botData);
     const labProgress = useGameStore(s => s.labProgress);
+    const dissonanceWaves = useGameStore(s => s.dissonanceWaves);
     const moduleState = useGameStore(s => s.moduleState);
     const battleReportText = useGameStore(s => s.battleReportText);
     const importedBattles = useGameStore(s => s.importedBattles);
@@ -96,9 +97,9 @@ export default function WhatIfTab() {
 
     const account: AccountState = useMemo(() => ({
         activePreset, profile, perkData, wsData, enhData, labData, cardData, uwData, relicData, botData,
-        moduleState, battleReportText, importedBattles, battleReportChoice, guardianData, labProgress,
+        moduleState, battleReportText, importedBattles, battleReportChoice, guardianData, labProgress, dissonanceWaves,
     }), [activePreset, profile, perkData, wsData, enhData, labData, cardData, uwData, relicData, botData,
-        moduleState, battleReportText, importedBattles, battleReportChoice, guardianData, labProgress]);
+        moduleState, battleReportText, importedBattles, battleReportChoice, guardianData, labProgress, dissonanceWaves]);
 
     // Hybrid reads as the build its runs behave like (accountModels.effectiveBuild).
     const build = useMemo(() => effectiveBuild(profile.build as BuildType, importedBattles), [profile.build, importedBattles]);

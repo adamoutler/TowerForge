@@ -67,7 +67,8 @@ describe('what a part-done lab costs', () => {
         expect(labLevelCost('Damage Lab', 42, labs, {}, progress)!.hours).toBeCloseTo(labLevelCost('Damage Lab', 42, labs, {})!.hours, 9);
     });
 
-    it('keeps a stopped level\'s coins (not confirmed either way), and a running one\'s are paid', () => {
+    // Stopping a lab refunds its coins and restarting buys it again (owner, 2026-10-31).
+    it('keeps a stopped level\'s coins, and a running one\'s are paid', () => {
         expect(labLevelCost('Damage Lab', 41, labs, {}, { 'Damage Lab': { toLevel: 41, done: 0.25 } })!.coins).toBe(whole.coins);
         expect(labLevelCost('Damage Lab', 41, labs, {}, { 'Damage Lab': { toLevel: 41, done: 0.25, running: true } })!.coins).toBe(0);
     });

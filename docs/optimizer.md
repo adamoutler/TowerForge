@@ -158,9 +158,21 @@ What each currency buys (wiki Currencies page) and how it's ranked:
   ranks higher per hour, marked "75% done". The level being researched right
   now isn't offered, since it's no longer a choice: the Optimizer offers the one
   after it, its gain from there and its full time. A stopped level keeps its
-  coins (whether restarting charges them again isn't confirmed); a running
-  one's are paid. The progress counts only for that level, so it stops counting
-  once the lab's level changes.
+  coins, since stopping refunds them and restarting buys the lab again (owner,
+  2026-10-31); a running one's are paid. The progress counts only for that
+  level, so it stops counting once the lab's level changes.
+- Dissonant Echo labs (`engine/dissonance.ts`; formula checked on the game's
+  panel: game-export-format.md): each model multiplies its stat by Boost + Echo
+  on the tier the chosen run was on, so the runs' calibration already holds
+  today's boost and only the change counts. Attack on tower damage (and so the
+  UWs built on it), UW on every UW's damage, Utility on kill coins, Defense on
+  health, as TheTowerSDK's eDamage, eEcon and eHP have them; no screen shows
+  this split, so it's the SDK's reading. A level adds (top − 1) × 0.5% × every
+  other tier's share, so it's worth most on an account with many full tiers.
+  On the owner's account (2026-10-31) they rank first for waves and coins and
+  fourth for survival. Tournament runs leave the boost out until it's confirmed
+  to apply there. Ask AI's tier comparisons and Coins per Run's target tier
+  count each tier's own boost.
 - Module slot shards: SDK's table starts at level 2; the wiki's Modules/Cost
   gives level 1 as 7 shards + 10K coins, and its totals then match
   (3,136,095 shards to 300).

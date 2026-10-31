@@ -404,6 +404,7 @@ export interface AppState {
     guardianData: GuardianData;
     labsRunning: LabRunning[];    // labs being researched at the last import (29.1.3+ exports)
     labProgress: LabProgress;     // labs whose next level is under way or part done, at the last import
+    dissonanceWaves: DissonanceWaves;   // best Dissonant Run wave per tier on each track
     tourneyLog: TourneyLog;       // each tournament run's battle conditions, as the player ticked them
     tourneyRecords: TourneyRecord[];   // every tournament played (TournamentRecords, 29.1.3+), oldest first
     vaultLevels: Record<string, number>;   // Vault upgrade levels by the game's vault id (Vault.UpgradesLevel); "g<group>" = 1 for an unlocked section (constants/vaultData.ts)
@@ -426,6 +427,11 @@ export interface TourneyRecord {
     wave: number;
     rank: number;      // 0 = not placed yet
 }
+
+// Dissonant Boosts: the best Dissonant Run wave on each track, indexed by tier
+// number (engine/dissonance.ts).
+export type DissonanceTrack = 'attack' | 'defense' | 'utility' | 'uw';
+export type DissonanceWaves = Record<DissonanceTrack, number[]>;
 
 // How far a lab's next level has got (ResearchPercentComplete). Tied to that
 // level: once the lab's level changes, by an edit or an Optimizer step, the

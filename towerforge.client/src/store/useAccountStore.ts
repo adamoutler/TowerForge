@@ -23,7 +23,7 @@ import { clearShareClaims, getShareClaims } from '../engine/shareApi';
 
 // Store slices that make up a player's saved stats (mirrors exportData()).
 const SYNCED_SLICES = [
-    'profile', 'perkData', 'tierWaves', 'wsData', 'enhData', 'labData', 'labProgress',
+    'profile', 'perkData', 'tierWaves', 'wsData', 'enhData', 'labData', 'labProgress', 'dissonanceWaves',
     'cardData', 'uwData', 'relicData', 'botData', 'botLoadouts', 'moduleState', 'battleReportText',
     'currencies', 'importedBattles', 'battleReportChoice', 'guardianData', 'tourneyLog', 'tourneyRecords', 'vaultLevels',
 ] as const;

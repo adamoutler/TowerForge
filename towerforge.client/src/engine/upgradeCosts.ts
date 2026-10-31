@@ -141,9 +141,9 @@ export function labSpeed(labs: LabData, relics: Record<string, number>, lab?: st
 
 // Coins and research time for `level` (1 = the first level) of a lab; null
 // when the catalog doesn't have that level. A level already under way costs
-// the time it has left, and no coins once it's running (`progress`). Whether
-// restarting a stopped lab charges its coins again isn't confirmed, so a
-// stopped level keeps its price.
+// the time it has left (`progress`). Its coins are paid while it's running;
+// stopping a lab refunds them and restarting it buys it again (owner,
+// 2026-10-31), so a stopped level keeps its price.
 export function labLevelCost(
     lab: string, level: number, labs: LabData, relics: Record<string, number>, progress?: LabProgress,
 ): LabLevelCost | null {

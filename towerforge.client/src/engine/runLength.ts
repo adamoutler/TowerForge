@@ -35,6 +35,7 @@
 // ============================================================
 
 import type { BattleReport } from './battleReport';
+import { isDissonantRun } from './battleReport';
 import { baseEnemyDamage, baseEnemyHealth } from './enemyStats';
 import type { EnemyType } from './enemyStats';
 
@@ -147,7 +148,7 @@ export function buildRunLengthModel(runs: BattleReport[], pick: RunPick = {}): R
     const stat = pick.stat ?? 'health';
     if (stat === 'attack' && tournament) return null;
     const deaths = runEnds(runs).filter(e =>
-        e.killer !== null && valueOf(e, stat) !== null && e.run.tournament === tournament && e.run.wave > 1);
+        e.killer !== null && valueOf(e, stat) !== null && e.run.tournament === tournament && e.run.wave > 1 && !isDissonantRun(e.run));
     if (deaths.length === 0) return null;
     // The usual tier: the most waves played to a death, so a string of quick
     // tries at a higher tier doesn't outweigh the runs you really play.

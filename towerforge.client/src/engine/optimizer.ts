@@ -147,6 +147,7 @@ import type { EhpCalibration } from './ehp';
 import { edpsScore, edpsWaves } from './edps';
 import { healthSkipChance, skipSources } from './levelSkip';
 import type { SkipKind } from './levelSkip';
+import type { DissonanceAt } from './dissonance';
 import { attackLabCut, healthLabCut } from './enemyStats';
 import { assistLevelCost } from './assistModules';
 import type { EnemyType } from './enemyStats';
@@ -183,6 +184,7 @@ export interface OptimizerSnapshot {
     wsData: WSPreset[];
     labData: LabData;
     labProgress?: LabProgress;   // next levels under way or part done; omitted = none
+    dissonance?: DissonanceAt;   // Dissonant Boosts and the tier they're read at; omitted = none
     cardData: CardData;
     perkData: PerkData;
     uwData: UWData;

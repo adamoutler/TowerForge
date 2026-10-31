@@ -24,6 +24,7 @@
 // ============================================================
 
 import type { BattleReport } from './battleReport';
+import { isDissonantRun } from './battleReport';
 import type { CardData } from '../types/gameTypes';
 import { activeCard, cardValue } from './statHelpers';
 
@@ -140,9 +141,10 @@ export interface RunProjection {
 }
 
 // A run to `wave` on `tier`, by the calibrated model.
-export function projectRun(c: RunCalibration, s: RunModelSettings, wave: number, tier: number): RunProjection {
+// `coinBoost`: the tier's Dissonant Boost on coins against the run's (1 on the same tier).
+export function projectRun(c: RunCalibration, s: RunModelSettings, wave: number, tier: number, coinBoost = 1): RunProjection {
     const sums = spawnSums(wave, s);
-    const tierRatio = (TIER_COIN_MULT[tier] ?? 1) / (TIER_COIN_MULT[c.tier] ?? 1);
+    const tierRatio = (TIER_COIN_MULT[tier] ?? 1) / (TIER_COIN_MULT[c.tier] ?? 1) * coinBoost;
     const kill = c.coinsPerUnit * (c.growth === 'wave' ? sums.weighted : sums.flat) * tierRatio;
     const waves = c.waveCoins * sums.waves * tierRatio;
     const fromKillsAndWaves = kill * (1 + c.comboShare + c.critShare) + waves;
@@ -170,7 +172,7 @@ export interface RunCheck {
 // different enemy curve and timer, so they're left out).
 export function checkRuns(c: RunCalibration, s: RunModelSettings, runs: BattleReport[], tuning: number): RunCheck[] {
     return runs.flatMap((run, index) => {
-        if (index === tuning || run.tournament || run.wave <= s.introSprintWaves || run.coinsEarned <= 0) return [];
+        if (index === tuning || run.tournament || isDissonantRun(run) || run.wave <= s.introSprintWaves || run.coinsEarned <= 0) return [];
         const p = projectRun(c, s, run.wave, run.tier);
         return [{
             index, run,

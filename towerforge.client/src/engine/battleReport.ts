@@ -176,6 +176,13 @@ export function runDrops(run: BattleReport): [string, number][] {
     ];
 }
 
+// A Dissonant Run plays with a workshop tab locked, so it says nothing about
+// the build and stays out of calibration and run length. DissonanceType is 0
+// on all 30 runs of the owner's export, none of them Dissonant (their wave
+// tables didn't move); that anything else marks one is the code's assumption
+// until an export holds a real Dissonant Run.
+export const isDissonantRun = (run: BattleReport) => typeof run.raw?.DissonanceType === 'number' && run.raw.DissonanceType > 0;
+
 // A run's identity across imports (also keys the tournament log).
 export const runKey = (b: BattleReport) =>
     [b.tier, b.wave, Math.round(b.gameTimeSec), Math.round(b.realTimeSec), b.tournament ? 1 : 0].join('|');

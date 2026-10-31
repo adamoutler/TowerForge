@@ -26,6 +26,7 @@ import type { RunLengthModel, RunStat } from './runLength';
 import { buildRunModel, projectRun, runSettingsFromCards } from './runCoins';
 import type { RunProjection } from './runCoins';
 import { defaultBattleIndex } from './gameExport';
+import { hasDissonance } from './dissonance';
 import { conditioned, leagueConditions } from './battleConditions';
 import type { TourneyConditions } from './battleConditions';
 import { LEAGUE_HEAT } from '../constants/tournamentData';
@@ -33,7 +34,7 @@ import { LEAGUE_HEAT } from '../constants/tournamentData';
 export type AccountState = Pick<AppState,
     'activePreset' | 'profile' | 'perkData' | 'wsData' | 'enhData' | 'labData' | 'cardData' | 'uwData'
     | 'relicData' | 'botData' | 'moduleState' | 'battleReportText' | 'importedBattles' | 'battleReportChoice'>
-    & Partial<Pick<AppState, 'guardianData' | 'vaultLevels' | 'tierWaves' | 'labProgress'>>;
+    & Partial<Pick<AppState, 'guardianData' | 'vaultLevels' | 'tierWaves' | 'labProgress' | 'dissonanceWaves'>>;
 
 const copy = <T>(v: T): T => JSON.parse(JSON.stringify(v));
 
@@ -43,6 +44,14 @@ export const chosenReport = (s: AccountState): BattleReport | null =>
 
 // The account as the optimizer scores it, for the active preset.
 export function snapshotFromState(s: AccountState): OptimizerSnapshot {
+    // Dissonant Boosts at the tier the model calibrates on. Whether they count in
+    // tournaments isn't confirmed, so a tournament run leaves them out and
+    // tournament picks stay as they were.
+    const run = chosenReport(s);
+    const boostTier = run?.tier || s.profile.highestTier || 0;
+    const dissonance = hasDissonance(s.dissonanceWaves) && !run?.tournament && boostTier > 0
+        ? { waves: copy(s.dissonanceWaves), tier: boostTier }
+        : undefined;
     // Run rates (boss/elite kills, packages, cash…) from the chosen report
     // drive several unique module effects.
     const modBonuses = readActiveModuleBonuses(
@@ -59,6 +68,7 @@ export function snapshotFromState(s: AccountState): OptimizerSnapshot {
         enhData: copy(enhForPreset(s.enhData, s.activePreset)),
         labData: copy(s.labData),
         labProgress: s.labProgress ? copy(s.labProgress) : undefined,
+        dissonance,
         cardData: copy(s.cardData),
         perkData: copy(s.perkData),
         uwData: copy(s.uwData),

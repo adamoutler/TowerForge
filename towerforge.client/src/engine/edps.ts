@@ -77,6 +77,7 @@ import { HEALTH_MULT, SPEED_RATIO, healthLabCut } from './enemyStats';
 import type { EnemyType } from './enemyStats';
 import type { BattleReport } from './battleReport';
 import { extraDamage } from './battleReport';
+import { dissonanceFactor } from './dissonance';
 import { BOTS_CONFIG } from '../constants/botData';
 import type { OptimizerSnapshot } from './optimizer';
 
@@ -203,12 +204,16 @@ const calcCLChanceQtyParts = (uwData: OptimizerSnapshot['uwData'], mb: Optimizer
 export function edpsParts(snap: OptimizerSnapshot, ttt?: number): EdpsParts {
     const { presetIdx, wsData, labData, cardData, uwData, modBonuses, moduleState, relicData, enhData, botData } = snap;
     const refTTT = ttt ?? calcTTT(presetIdx, wsData, labData, cardData, uwData, modBonuses).ttt;
-    const ctx = buildDamageContext(presetIdx, wsData, labData, cardData, relicData, enhData, modBonuses, moduleState, botData);
+    const base = buildDamageContext(presetIdx, wsData, labData, cardData, relicData, enhData, modBonuses, moduleState, botData);
+    // Dissonant Boosts: Attack on tower damage (and so what's built on it), UW
+    // on every UW's damage (TheTowerSDK: eDamage's towerDamage and UW halves).
+    const ctx = { ...base, towerDamage: base.towerDamage * dissonanceFactor(snap, 'attack') };
     const damageMeter = calcDamageMeter(presetIdx, wsData, labData, enhData, relicData);
     const range = calcTowerRange(presetIdx, wsData, labData, cardData);
     const sl = calcSpotlightMult(uwData, modBonuses, damageMeter, range);
     const taken = calcDamageTakenMult(uwData, modBonuses, refTTT, presetIdx, wsData, labData);
-    const uwShared = calcCoreUWDamageMult(moduleState, labData) * (1 + (relicData['rUWDmg'] ?? 0) / 100) * sl * taken;
+    const uwShared = calcCoreUWDamageMult(moduleState, labData) * (1 + (relicData['rUWDmg'] ?? 0) / 100) * sl * taken
+        * dissonanceFactor(snap, 'uw');
     const uw = (abbr: 'CL' | 'SM' | 'DW' | 'ILM' | 'PS') =>
         calcUWDPS(abbr, uwData, modBonuses, refTTT, presetIdx, wsData, labData, cardData, ctx) * uwShared;
     const flame = flameBotPerPass(snap, ctx.towerDamage * ctx.critMult, refTTT) * sl * taken;

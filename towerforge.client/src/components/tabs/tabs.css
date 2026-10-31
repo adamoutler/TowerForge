@@ -7123,3 +7123,124 @@ button.grdg-chip {
     flex-wrap: wrap;
     gap: 8px;
 }
+
+/* ── Dissonant Boosts (Tiers tab) ── */
+.diss-echo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 14px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--text-dim);
+}
+
+.diss-echo-title {
+    font-weight: 700;
+    color: var(--text-bright);
+}
+
+.diss-echo-track strong {
+    font-family: var(--font-mono);
+    color: var(--select);
+}
+
+.diss-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+    .diss-table th {
+        text-align: left;
+        font-weight: 600;
+        color: var(--text-dim);
+        padding: 4px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .diss-table td {
+        padding: 5px 4px;
+        border-bottom: 1px solid var(--line-soft);
+        font-family: var(--font-mono);
+        color: var(--text);
+    }
+
+    .diss-table td:first-child {
+        font-family: inherit;
+    }
+
+.diss-now {
+    margin-bottom: 14px;
+}
+
+.diss-stat {
+    display: block;
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.diss-views {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+/* Fixed columns: four tracks have to fit at 375px. */
+.diss-tiers {
+    table-layout: fixed;
+}
+
+    .diss-tiers th:first-child {
+        width: 30px;
+    }
+
+.diss-tiers tr.now td {
+    background: color-mix(in srgb, var(--select) 12%, transparent);
+}
+
+.diss-tiers td {
+    vertical-align: top;
+}
+
+.diss-tiers input.diss-wave {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 1px 2px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--panel-line);
+    border-radius: 0;
+    color: var(--text-bright);
+    font-size: 12px;
+    text-align: left;
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+    .diss-tiers input.diss-wave::-webkit-outer-spin-button,
+    .diss-tiers input.diss-wave::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .diss-tiers input.diss-wave:focus {
+        box-shadow: none;
+        border-bottom-color: var(--select);
+    }
+
+.diss-boost {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--gold);
+}
+
+.diss-note {
+    margin: 10px 0 0;
+    font-size: 12px;
+    color: var(--text-dim);
+}
