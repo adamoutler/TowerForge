@@ -183,6 +183,29 @@ export function runDrops(run: BattleReport): [string, number][] {
 // until an export holds a real Dissonant Run.
 export const isDissonantRun = (run: BattleReport) => typeof run.raw?.DissonanceType === 'number' && run.raw.DissonanceType > 0;
 
+// The share of a run's enemies each weapon touched, biggest first (under 0.5%
+// left out). The game counts an enemy once per weapon: on the owner's runs
+// these stop at about 100% however many hits a weapon lands, 103% at most.
+const REACH_LINES: [string, string][] = [
+    ['Orbs', 'OrbHits'], ['Chain Lightning', 'EnemiesHitByChainLightningThisRound'], ['Poison Swamp', 'EnemiesHitByPoisonSwampThisRound'],
+    ['Smart Missiles', 'EnemiesHitBySmartMissilesThisRound'], ['Inner Land Mines', 'EnemiesHitByInnerLandMinesThisRound'],
+    ['Black Hole', 'EnemiesHitByBlackHoleThisRound'], ['Chrono Field', 'EnemiesHitByChronoFieldThisRound'],
+    ['Death Ray', 'EnemiesHitByDeathRayThisRound'], ['Tower shots', 'EnemiesHitByProjectilesThisRound'],
+    ['Land Mines', 'EnemiesHitByLandMineThisRound'], ['Thorns', 'EnemiesHitByThornsThisRound'],
+    ['Flame Bot', 'EnemiesHitByFlameBotThisRound'], ['Thunder Bot', 'EnemiesHitByThunderBotThisRound'],
+    ['Attack chip', 'EnemiesHitByAttackChipThisRound'],
+];
+export function enemiesReached(run: BattleReport): [string, number][] {
+    if (!(run.totalEnemies > 0)) return [];
+    return REACH_LINES.flatMap(([name, key]): [string, number][] => {
+        const hits = run.raw?.[key];
+        const share = typeof hits === 'number' ? Math.min(1, hits / run.totalEnemies) : 0;
+        return share >= 0.005 ? [[name, share]] : [];
+    }).sort((a, b) => b[1] - a[1]);
+}
+export const enemiesReachedText = (run: BattleReport, joiner: string) =>
+    enemiesReached(run).map(([name, share]) => `${name} ${Math.round(share * 100)}%`).join(joiner);
+
 // A run's identity across imports (also keys the tournament log).
 export const runKey = (b: BattleReport) =>
     [b.tier, b.wave, Math.round(b.gameTimeSec), Math.round(b.realTimeSec), b.tournament ? 1 : 0].join('|');

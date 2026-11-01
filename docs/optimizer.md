@@ -111,7 +111,8 @@ What each currency buys (wiki Currencies page) and how it's ranked:
   their levels show no gain: battle reports record Flame Bot kills and hits
   and Thunder Bot stuns (TheTowerSDK's battle field list), but no bot
   damage, so there's no share of damage to calibrate them from; Thunder
-  Bot's stuns would need a stun-uptime model in TTT. Flame Bot's Damage
+  Bot's stuns would need a stun-uptime model in TTT, for a small effect: it
+  reaches 2–4% of the owner's enemies (2026-11-01, game-export-format.md). Flame Bot's Damage
   Reduction counts for survival since 2026-10-23 (below). Bot+ unlocks (1,250 stones each, once all five bots are owned) are in
   the stone path since 2026-10-23, scored by what the ability does at level
   0 — only Echoing Shot gains anything so far.

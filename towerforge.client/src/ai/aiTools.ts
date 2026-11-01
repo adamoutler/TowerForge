@@ -27,7 +27,7 @@ import { buildTournamentModel, heatOf, newestTournament, tournamentWhatIf, withT
 import { leagueMoves, leagueStats, placed } from '../engine/tourneyHistory';
 import type { Ticks } from '../engine/tournamentModel';
 import { buildRunLengthModel, deathWave, killedBy, pathRunGains } from '../engine/runLength';
-import { activeBattleReport, extraDamage, runKey } from '../engine/battleReport';
+import { activeBattleReport, enemiesReachedText, extraDamage, runKey } from '../engine/battleReport';
 import type { BattleReport } from '../engine/battleReport';
 import { defaultBattleIndex } from '../engine/gameExport';
 import { DISSONANCE_TRACKS, TOURNAMENT_TIER, TRACK_LABEL, TRACK_STAT, dissonanceFactor, hasDissonance, trackBoost } from '../engine/dissonance';
@@ -807,10 +807,14 @@ export function runsReport(s: AiAccount, kind: AiRunKind = 'any'): ToolResult {
         out.push(`Coins on the newest campaign run (T${coinRun.tier} W${coinRun.wave.toLocaleString()}): Golden Combo ${pct(coinLines.combo)}, Wave Skip ${pct(coinLines.skip)}, kill coins ${pct(coinLines.kill)}.`
             + (effects.length ? ` Each bonus's average × on kill coins: ${effects.join(', ')}.` : ''));
     }
-    // What blocked the enemy damage, in the game's own lines.
+    // What blocked the enemy damage and what each weapon reached, in the game's own lines.
     for (const [name, run] of [['campaign', campaign.find(r => r.wave > 100)], ['tournament', tourney.find(r => r.wave > 10)]] as const) {
-        const l = run && damageLayers(run);
-        if (!run || !l || l.defPct === null) continue;
+        if (!run) continue;
+        const reached = enemiesReachedText(run, ', ');
+        const stuns = typeof run.raw?.ThunderBotStuns === 'number' ? run.raw.ThunderBotStuns : 0;
+        if (reached) out.push(`Enemies each weapon reached on the newest ${name} run (W${run.wave.toLocaleString()}): ${reached}.${stuns > 0 ? ` Thunder Bot stunned ${stuns.toLocaleString()} times.` : ''}`);
+        const l = damageLayers(run);
+        if (!l || l.defPct === null) continue;
         const cuts: [string, number][] = [['Chrono Field', l.chrono], ['Chain Thunder', l.chainThunder], ['Flame Bot', l.flame], ['Primordial Collapse', l.primordial], ['Negative Mass Projector', l.negativeMass], ['Defense %', l.defPct]];
         out.push(`Damage blocked on the newest ${name} run (W${run.wave.toLocaleString()}), each a share of what reached it: ${cuts.filter(([, v]) => v >= 0.0005).map(([n, v]) => `${n} ${(v * 100).toFixed(1)}%`).join(', ')}. ${(l.landed / l.total * 100).toFixed(1)}% of all the enemy damage landed.`);
     }

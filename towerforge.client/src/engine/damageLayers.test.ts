@@ -5,6 +5,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { damageLayers } from './damageLayers';
+import { enemiesReached, enemiesReachedText } from './battleReport';
 import { buildEhpCalibration, chronoInRun, cutsRatio, defPctInRun, ehpScore } from './ehp';
 import type { EhpInputs } from './ehp';
 import { readActiveModuleBonuses } from './modBonuses';
@@ -151,7 +152,36 @@ describe('Chain Thunder in the survival model', () => {
     });
 });
 
+// A Tier 23 tournament on the owner's account, W245.
+const REACH = {
+    TotalEnemies: 10100, EnemiesHitByChainLightningThisRound: 10000, EnemiesHitByBlackHoleThisRound: 7575, OrbHits: 7272,
+    EnemiesHitByDeathRayThisRound: 4444, EnemiesHitByFlameBotThisRound: 404, EnemiesHitByThunderBotThisRound: 303,
+    EnemiesHitByThornsThisRound: 10, ThunderBotStuns: 354,
+};
+
+describe('enemies reached', () => {
+    it('lists each weapon\'s share of the enemies, biggest first, small ones left out', () => {
+        expect(enemiesReached(run(REACH)).map(([n]) => n)).toEqual(['Chain Lightning', 'Black Hole', 'Orbs', 'Death Ray', 'Flame Bot', 'Thunder Bot']);
+        expect(enemiesReachedText(run(REACH), ' · ')).toBe('Chain Lightning 99% · Black Hole 75% · Orbs 72% · Death Ray 44% · Flame Bot 4% · Thunder Bot 3%');
+    });
+
+    it('stops at everyone: short runs count a little over', () => {
+        expect(enemiesReached(run({ TotalEnemies: 100, EnemiesHitByChronoFieldThisRound: 103 }))).toEqual([['Chrono Field', 1]]);
+    });
+
+    it('is empty without the lines or the enemies', () => {
+        expect(enemiesReached(run({}))).toEqual([]);
+        expect(enemiesReached(run({ TotalEnemies: 0, OrbHits: 5 }))).toEqual([]);
+    });
+});
+
 describe('Ask AI', () => {
+    it('reads what each weapon reached and Thunder Bot\'s stuns', () => {
+        const s = useGameStore.getState();
+        const text = runsReport({ ...s, importedBattles: [{ ...run(REACH), time: 1, wave: 245, tournament: true }] }).text;
+        expect(text).toMatch(/Enemies each weapon reached on the newest tournament run \(W245\): Chain Lightning 99%, Black Hole 75%, Orbs 72%, Death Ray 44%, Flame Bot 4%, Thunder Bot 3%\. Thunder Bot stunned 354 times\./);
+    });
+
     it('reads what blocked the damage', () => {
         const s = useGameStore.getState();
         const text = runsReport({ ...s, importedBattles: [{ ...run(FARM), time: 2, wave: 9302 }, { ...run(TOURNEY), time: 1, wave: 245, tournament: true }] }).text;
