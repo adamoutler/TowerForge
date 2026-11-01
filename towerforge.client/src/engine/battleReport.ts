@@ -9,7 +9,7 @@
 //  so values are stored per section.
 // ============================================================
 
-import { parseGameNumber } from './gameNumbers';
+import { formatGameNumber, parseGameNumber } from './gameNumbers';
 
 // "1d 14h 30m 17s" → seconds.
 export function parseDuration(raw: string): number {
@@ -205,6 +205,38 @@ export function enemiesReached(run: BattleReport): [string, number][] {
 }
 export const enemiesReachedText = (run: BattleReport, joiner: string) =>
     enemiesReached(run).map(([name, share]) => `${name} ${Math.round(share * 100)}%`).join(joiner);
+
+// What made the kills, biggest first (under 0.5% left out). The lines add up
+// to all the run's enemies on the owner's runs, finished or still going.
+const KILL_LINES: [string, string][] = [
+    ['Orbs', 'DestroyedByOrbs'], ['Chain Lightning', 'DestroyedByChainLightning'], ['Poison Swamp', 'DestroyedByPoisonSwamp'],
+    ['Smart Missiles', 'DestroyedBySmartMissiles'], ['Inner Land Mines', 'DestroyedByInnerLandMines'], ['Tower shots', 'DestroyedByProjectiles'],
+    ['Black Hole', 'DestroyedByBlackHole'], ['Death Wave', 'DestroyedByDeathWave'], ['Death Ray', 'DestroyedByDeathRay'], ['Land Mines', 'DestroyedByLandMine'],
+    ['Thorns', 'DestroyedByThorns'], ['Flame Bot', 'DestroyedByFlameBot'], ['Death Penalty', 'DestroyedByDeathPenalty'], ['Other', 'DestroyedByOther'],
+];
+export function killsBySource(run: BattleReport): [string, number][] {
+    if (!(run.totalEnemies > 0)) return [];
+    return KILL_LINES.flatMap(([name, key]): [string, number][] => {
+        const kills = run.raw?.[key];
+        const share = typeof kills === 'number' ? kills / run.totalEnemies : 0;
+        return share >= 0.005 ? [[name, share]] : [];
+    }).sort((a, b) => b[1] - a[1]);
+}
+export const killsBySourceText = (run: BattleReport, joiner: string) =>
+    killsBySource(run).map(([name, share]) => `${name} ${Math.round(share * 100)}%`).join(joiner);
+
+// Cash in a run, and the free upgrades it rolled.
+export function runCashText(run: BattleReport, joiner: string): string {
+    const n = (key: string) => { const v = run.raw?.[key]; return typeof v === 'number' ? v : 0; };
+    const parts: string[] = [];
+    if (n('CashEarned') > 0) parts.push(formatGameNumber(n('CashEarned')));
+    if (n('CashFromGoldenTower') > 0) parts.push(`Golden Tower ${formatGameNumber(n('CashFromGoldenTower'))}`);
+    if (n('InterestEarned') > 0) parts.push(`interest ${formatGameNumber(n('InterestEarned'))}`);
+    if (n('FreeAttackUpgrades') + n('FreeDefenseUpgrades') + n('FreeUtilityUpgrades') > 0) {
+        parts.push(`free upgrades: ${n('FreeAttackUpgrades')} Attack, ${n('FreeDefenseUpgrades')} Defense, ${n('FreeUtilityUpgrades')} Utility`);
+    }
+    return parts.join(joiner);
+}
 
 // A run's identity across imports (also keys the tournament log).
 export const runKey = (b: BattleReport) =>

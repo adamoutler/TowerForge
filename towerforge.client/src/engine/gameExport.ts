@@ -28,7 +28,7 @@ import type {
     Currencies, TierWaves, WSPreset, WSCategory, EnhData, EnhCategoryData, UWData,
     CardData, CardEntry, LabData, ModuleState, ModuleEntry, ModuleType, ModuleRarity,
     SubSlot, Loadout, LoadoutSlots, AssistData, League, GuardianData, GuardianPreset,
-    BotLoadouts, DissonanceWaves, LabProgress, LabRunning, TourneyRecord, WsUnlocked,
+    BotLoadouts, DissonanceWaves, LabProgress, LabRunning, LiveRun, TourneyRecord, WsUnlocked,
 } from '../types/gameTypes';
 import { BOTS_CONFIG } from '../constants/botData';
 import { RELIC_CATALOG } from '../constants/relicCatalog';
@@ -36,6 +36,7 @@ import { CHIPS } from '../constants/guardianData';
 import { vaultGroupKey } from '../constants/vaultData';
 import { vaultCardSlots } from './vault';
 import { parseCareer, parseIncomePoint } from './career';
+import { liveBattle } from './liveRun';
 import type { Career, IncomePoint } from './career';
 
 type Raw = Record<string, unknown>;
@@ -73,6 +74,7 @@ export interface GameImport {
     dissonance: DissonanceWaves | null;   // best Dissonant Run wave per tier on each track
     career: Career | null;             // lifetime totals, yearly recap, per-tier bests, research history
     incomePoint: IncomePoint | null;   // the earned totals at this export, for income between imports
+    liveRun: LiveRun | null;           // the run in progress when the game exported
     labSlots: number | null;           // lab slots owned: LabsUnlocked (bought) + the free one
     tourneyRecords: TourneyRecord[] | null;   // TournamentRecords (29.1.3+); null when the file has none
     relics: RelicImport | null;
@@ -511,6 +513,15 @@ function battleFields(b: Raw): Record<string, BattleField> {
     return out;
 }
 
+// The run in progress, read like a finished one. It needs a wave and a date,
+// so a file from before the export's date or with an empty run gives none.
+function parseLiveRun(raw: Raw): LiveRun | null {
+    const b = liveBattle(raw);
+    const at = dateMs(raw.ExportedAt);
+    if (!b || !at || !(num(b.Wave) > 0)) return null;
+    return { at, report: battleToReport(b), perks: num(raw.PerksPickedCount) };
+}
+
 // One BattleHistory entry → the same shape a pasted Battle Report produces.
 function battleToReport(b: Raw): BattleReport {
     const total = num(b.TotalEnemies);
@@ -651,6 +662,7 @@ export function parseGameExport(raw: Raw): GameImport {
         dissonance: parseDissonance(raw),
         career: parseCareer(raw),
         incomePoint: parseIncomePoint(raw),
+        liveRun: parseLiveRun(raw),
         // LabsUnlocked counts the slots bought with gems, not the free first one:
         // the owner's 4 with 5 labs running, a newer account's 2 with 3 (2026-10-28).
         labSlots: typeof raw.LabsUnlocked === 'number' ? clamp(raw.LabsUnlocked + 1, 1, 5) : null,
@@ -907,6 +919,19 @@ export const isRealRun = (b: BattleReport) => b.wave > 1 && b.totalEnemies > 0;
 // full-length run on the player's usual farming tier (the non-tournament
 // tier they run most), so short test starts and tournaments are skipped.
 // Battle history is stored oldest → newest. -1 when nothing qualifies.
+// How the last long campaign runs on a tier ended: the middle of up to five.
+export function lastFinishedOn(battles: BattleReport[], tier: number): { runs: number; wave: number; coins: number; coinsPerHour: number } | null {
+    const recent = battles.filter(r => r.tier === tier && !r.tournament && !isDissonantRun(r) && r.wave > 100).slice(-5);
+    if (!recent.length) return null;
+    const middle = (values: number[]) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
+    return {
+        runs: recent.length,
+        wave: middle(recent.map(r => r.wave)),
+        coins: middle(recent.map(r => r.coinsEarned)),
+        coinsPerHour: middle(recent.map(r => r.coinsPerHour)),
+    };
+}
+
 export function defaultBattleIndex(battles: BattleReport[]): number {
     const runs = battles.map((b, i) => ({ b, i })).filter(({ b }) => !b.tournament && !isDissonantRun(b) && isRealRun(b));
     if (runs.length === 0) return -1;

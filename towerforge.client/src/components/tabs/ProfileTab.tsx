@@ -6,6 +6,7 @@
 import { useGameStore } from '../../store/useGameStore';
 import type { BuildType, League } from '../../types/gameTypes';
 import { MAX_TIER, presetLabel } from '../../constants/gameData';
+import LiveRunPanel from './LiveRunPanel';
 import './tabs.css';
 
 export default function ProfileTab() {
@@ -14,6 +15,8 @@ export default function ProfileTab() {
 
     return (
         <div className="tab-pane-profile">
+
+            <LiveRunPanel />
 
             {/* ── Player Info ── */}
             <div className="section">

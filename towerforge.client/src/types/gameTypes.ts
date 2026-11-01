@@ -43,6 +43,13 @@ export type TabName =
     | 'bots' | 'modules' | 'guardian' | 'optimizer' | 'enemies' | 'runcoins' | 'runlength' | 'whatif' | 'tournament' | 'creators' | 'share' | 'account'
     | 'ai' | 'tourneyhistory' | 'importguide' | 'vault' | 'career';
 
+// The run in progress when the game exported.
+export interface LiveRun {
+    at: number;           // the export's date, in ms
+    report: BattleReport;
+    perks: number;        // perks picked so far
+}
+
 // ── Workshop Types ────────────────────────────────────────────
 export type WSCategory = 'attack' | 'defense' | 'utility';
 
@@ -408,6 +415,7 @@ export interface AppState {
     dissonanceWaves: DissonanceWaves;   // best Dissonant Run wave per tier on each track
     career: Career | null;        // lifetime totals, yearly recap, per-tier bests, research history, at the last import
     incomeLog: IncomePoint[];     // the game's earned totals at each import, oldest first (engine/career.ts)
+    liveRun: LiveRun | null;      // the run in progress at the last import (engine/liveRun.ts)
     tourneyLog: TourneyLog;       // each tournament run's battle conditions, as the player ticked them
     tourneyRecords: TourneyRecord[];   // every tournament played (TournamentRecords, 29.1.3+), oldest first
     vaultLevels: Record<string, number>;   // Vault upgrade levels by the game's vault id (Vault.UpgradesLevel); "g<group>" = 1 for an unlocked section (constants/vaultData.ts)

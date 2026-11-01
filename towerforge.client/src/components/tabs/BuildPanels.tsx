@@ -6,7 +6,8 @@
 
 import { useState } from 'react';
 import { useGameStore } from '../../store/useGameStore';
-import { enemiesReachedText, extraDamage, activeBattleReport, parseBattleReport } from '../../engine/battleReport';
+import { extraDamage, activeBattleReport, parseBattleReport } from '../../engine/battleReport';
+import RunLines from '../common/RunLines';
 import type { BattleReport } from '../../engine/battleReport';
 import { isRealRun } from '../../engine/gameExport';
 import { formatGameNumber } from '../../engine/gameNumbers';
@@ -121,11 +122,7 @@ export function BattleReportPanel({ purpose }: { purpose: 'farming' | 'ehp' | 'e
                             ].filter(([, v]) => v != null).map(([k, v]) => `${k} ${pct(v as number)}`).join(' · ')}
                         </p>
                         )}
-                        {enemiesReachedText(report, ' · ') && (
-                            <p style={{ fontSize: '12px', color: 'var(--text-dim)', marginTop: '6px', lineHeight: 1.6 }}>
-                                Enemies reached: {enemiesReachedText(report, ' · ')}
-                            </p>
-                        )}
+                        <RunLines run={report} />
                         <div className="flex-row" style={{ marginTop: '8px' }}>
                             <button className="btn btn-dim" onClick={() => { setDraft(text); setEditing(true); }}>
                                 Replace Report

@@ -27,7 +27,7 @@ import { buildTournamentModel, heatOf, newestTournament, tournamentWhatIf, withT
 import { leagueMoves, leagueStats, placed } from '../engine/tourneyHistory';
 import type { Ticks } from '../engine/tournamentModel';
 import { buildRunLengthModel, deathWave, killedBy, pathRunGains } from '../engine/runLength';
-import { activeBattleReport, enemiesReachedText, extraDamage, runKey } from '../engine/battleReport';
+import { activeBattleReport, enemiesReachedText, extraDamage, killsBySourceText, runKey } from '../engine/battleReport';
 import type { BattleReport } from '../engine/battleReport';
 import { defaultBattleIndex } from '../engine/gameExport';
 import { DISSONANCE_TRACKS, TOURNAMENT_TIER, TRACK_LABEL, TRACK_STAT, dissonanceFactor, hasDissonance, trackBoost } from '../engine/dissonance';
@@ -36,6 +36,7 @@ import { coinSources } from '../engine/coinSources';
 import { damageLayers } from '../engine/damageLayers';
 import { incomeSummary } from '../engine/career';
 import type { IncomePoint } from '../engine/career';
+import type { LiveRun } from '../types/gameTypes';
 import { FARM_EFFECT_LABELS } from '../engine/farming';
 import type { FarmEffect } from '../engine/farming';
 import { formatGameNumber } from '../engine/gameNumbers';
@@ -61,7 +62,7 @@ import { HEAT_CONDITIONS } from '../constants/tournamentData';
 
 // Everything the tools read: the account plus a few things the pages keep.
 export type AiAccount = AccountState & Pick<AppState,
-    'currencies' | 'labsRunning' | 'tourneyLog' | 'tierWaves' | 'botLoadouts'> & Partial<Pick<AppState, 'tourneyRecords' | 'vaultLevels'>> & { incomeLog?: IncomePoint[] };
+    'currencies' | 'labsRunning' | 'tourneyLog' | 'tierWaves' | 'botLoadouts'> & Partial<Pick<AppState, 'tourneyRecords' | 'vaultLevels'>> & { incomeLog?: IncomePoint[]; liveRun?: LiveRun | null };
 
 // The Tournament page's settings (components/common/tourneySim.ts).
 export interface AiTourneySettings {
@@ -775,6 +776,10 @@ export function runsReport(s: AiAccount, kind: AiRunKind = 'any'): ToolResult {
     const tourney = all.filter(r => r.tournament);
     const campaign = all.filter(r => !r.tournament);
     const out: string[] = [`Saved runs: ${all.length} (${campaign.length} campaign, ${tourney.length} tournament). Each import adds the game's latest runs.`];
+    if (s.liveRun) {
+        const r = s.liveRun.report;
+        out.push(`A run was in progress at the last import: T${r.tier} W${r.wave.toLocaleString()}, ${(r.gameTimeSec / 3600).toFixed(1)} h of game time, ${formatGameNumber(r.coinsEarned)} coins, ${s.liveRun.perks} perks picked.`);
+    }
     // Where the damage comes from, campaign against tournaments.
     const farmTier = campaign.length ? [...campaign.reduce((m, r) => m.set(r.tier, (m.get(r.tier) ?? 0) + 1), new Map<number, number>())]
         .sort((a, b) => b[1] - a[1])[0][0] : null;
@@ -820,6 +825,8 @@ export function runsReport(s: AiAccount, kind: AiRunKind = 'any'): ToolResult {
         const reached = enemiesReachedText(run, ', ');
         const stuns = typeof run.raw?.ThunderBotStuns === 'number' ? run.raw.ThunderBotStuns : 0;
         if (reached) out.push(`Enemies each weapon reached on the newest ${name} run (W${run.wave.toLocaleString()}): ${reached}.${stuns > 0 ? ` Thunder Bot stunned ${stuns.toLocaleString()} times.` : ''}`);
+        const kills = killsBySourceText(run, ', ');
+        if (kills) out.push(`Kills on the newest ${name} run (W${run.wave.toLocaleString()}): ${kills}.`);
         const l = damageLayers(run);
         if (!l || l.defPct === null) continue;
         const cuts: [string, number][] = [['Chrono Field', l.chrono], ['Chain Thunder', l.chainThunder], ['Flame Bot', l.flame], ['Primordial Collapse', l.primordial], ['Negative Mass Projector', l.negativeMass], ['Defense %', l.defPct]];

@@ -7415,3 +7415,26 @@ p.ehpl-note {
     font-size: 10px;
     color: var(--text-dim);
 }
+
+
+/* ── More from a run ──────────────────────────────────────── */
+.runl {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-dim);
+}
+
+    .runl summary {
+        cursor: pointer;
+        color: var(--accent);
+    }
+
+    .runl p {
+        margin: 6px 0 0;
+        line-height: 1.6;
+    }
+
+    .runl strong {
+        font-weight: 600;
+        color: var(--text);
+    }

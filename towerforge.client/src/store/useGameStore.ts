@@ -33,7 +33,7 @@ import type {
     SlotLevels,
     AssistEntry,
     TabName,
-    DissonanceTrack, DissonanceWaves, GuardianData, LabProgress, LabRunning, TourneyLog, TourneyLogEntry, TourneyRecord,
+    DissonanceTrack, DissonanceWaves, GuardianData, LabProgress, LabRunning, LiveRun, TourneyLog, TourneyLogEntry, TourneyRecord,
 } from '../types/gameTypes';
 import { mergeBattles } from '../engine/battleReport';
 import { addIncomePoint } from '../engine/career';
@@ -95,6 +95,7 @@ const KEYS = {
     dissonance: 'tc_dissonance',
     career: 'tc_career',
     incomeLog: 'tc_income_log',
+    liveRun: 'tc_live_run',
     tourneyLog: 'tc_tourney_log',
     tourneyRecords: 'tc_tourney_records',
     vault: 'tc_vault',
@@ -369,6 +370,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     dissonanceWaves: emptyDissonance(),
     career: null,
     incomeLog: [],
+    liveRun: null,
     tourneyLog: {},
     tourneyRecords: [],
     vaultLevels: {},
@@ -413,6 +415,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         const dissonanceWaves = loadKey<DissonanceWaves>(KEYS.dissonance, emptyDissonance());
         const career = loadKey<Career | null>(KEYS.career, null);
         const incomeLog = loadKey<IncomePoint[]>(KEYS.incomeLog, []);
+        const liveRun = loadKey<LiveRun | null>(KEYS.liveRun, null);
         const tourneyLog = loadKey<TourneyLog>(KEYS.tourneyLog, {});
         const tourneyRecords = loadKey<TourneyRecord[]>(KEYS.tourneyRecords, []);
         const vaultLevels = loadKey<Record<string, number>>(KEYS.vault, {});
@@ -421,7 +424,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             profile, tierWaves, wsData, enhData,
             labData, cardData, uwData, relicData,
             perkData, botData, botLoadouts, moduleState, battleReportText, currencies, importedBattles, battleReportChoice,
-            guardianData, labsRunning, labProgress, dissonanceWaves, career, incomeLog, tourneyLog, tourneyRecords, vaultLevels,
+            guardianData, labsRunning, labProgress, dissonanceWaves, career, incomeLog, liveRun, tourneyLog, tourneyRecords, vaultLevels,
         });
     },
 
@@ -537,7 +540,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             profile,
             importedBattles: battles,
             battleReportChoice: choice,
-            wsData, enhData, uwData, cardData, perkData, labData, moduleState, guardianData, botData, botLoadouts, labsRunning, labProgress, dissonanceWaves, career, incomeLog,
+            wsData, enhData, uwData, cardData, perkData, labData, moduleState, guardianData, botData, botLoadouts, labsRunning, labProgress, dissonanceWaves, career, incomeLog, liveRun: imp.liveRun,
             tourneyRecords, relicData, vaultLevels: imp.vault ?? s.vaultLevels,
         });
         saveKey(KEYS.tourneyRecords, tourneyRecords);
@@ -551,6 +554,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         saveKey(KEYS.dissonance, dissonanceWaves);
         saveKey(KEYS.career, career);
         saveKey(KEYS.incomeLog, incomeLog);
+        saveKey(KEYS.liveRun, imp.liveRun);
         saveKey(KEYS.currencies, imp.currencies);
         saveKey(KEYS.tiers, tierWaves);
         saveKey(KEYS.profile, profile);
@@ -928,6 +932,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             dissonanceWaves: emptyDissonance(),
             career: null,
             incomeLog: [],
+            liveRun: null,
             tourneyLog: {},
             tourneyRecords: [],
             vaultLevels: {},
@@ -949,6 +954,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             dissonanceWaves: s.dissonanceWaves,
             career: s.career,
             incomeLog: s.incomeLog,
+            liveRun: s.liveRun,
             cardData: s.cardData,
             uwData: s.uwData,
             relicData: s.relicData,
@@ -983,6 +989,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 dissonanceWaves: data.dissonanceWaves ?? emptyDissonance(),
                 career: data.career ?? null,
                 incomeLog: data.incomeLog ?? [],
+                liveRun: data.liveRun ?? null,
                 cardData,
                 uwData: data.uwData ?? defaultUWData,
                 relicData: data.relicData ?? {},
@@ -1010,6 +1017,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                     tc_dissonance: data.dissonanceWaves ?? emptyDissonance(),
                     tc_career: data.career ?? null,
                     tc_income_log: data.incomeLog ?? [],
+                    tc_live_run: data.liveRun ?? null,
                     tc_cards: cardData,
                     tc_uw: data.uwData,
                     tc_relics: data.relicData,
