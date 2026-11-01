@@ -35,6 +35,8 @@ import { RELIC_CATALOG } from '../constants/relicCatalog';
 import { CHIPS } from '../constants/guardianData';
 import { vaultGroupKey } from '../constants/vaultData';
 import { vaultCardSlots } from './vault';
+import { parseCareer, parseIncomePoint } from './career';
+import type { Career, IncomePoint } from './career';
 
 type Raw = Record<string, unknown>;
 
@@ -69,6 +71,8 @@ export interface GameImport {
     labsRunning: LabRunning[] | null;
     labProgress: LabProgress | null;   // labs whose next level is under way or part done
     dissonance: DissonanceWaves | null;   // best Dissonant Run wave per tier on each track
+    career: Career | null;             // lifetime totals, yearly recap, per-tier bests, research history
+    incomePoint: IncomePoint | null;   // the earned totals at this export, for income between imports
     labSlots: number | null;           // lab slots owned: LabsUnlocked (bought) + the free one
     tourneyRecords: TourneyRecord[] | null;   // TournamentRecords (29.1.3+); null when the file has none
     relics: RelicImport | null;
@@ -645,6 +649,8 @@ export function parseGameExport(raw: Raw): GameImport {
         labsRunning: parseLabsRunning(raw),
         labProgress: parseLabProgress(raw),
         dissonance: parseDissonance(raw),
+        career: parseCareer(raw),
+        incomePoint: parseIncomePoint(raw),
         // LabsUnlocked counts the slots bought with gems, not the free first one:
         // the owner's 4 with 5 labs running, a newer account's 2 with 3 (2026-10-28).
         labSlots: typeof raw.LabsUnlocked === 'number' ? clamp(raw.LabsUnlocked + 1, 1, 5) : null,

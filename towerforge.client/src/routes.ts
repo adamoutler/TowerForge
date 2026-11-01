@@ -14,6 +14,7 @@ import type { TabName } from './types/gameTypes';
 export const TAB_PATHS: Record<TabName, string> = {
     profile: '/',
     tiers: '/tiers',
+    career: '/career',
     share: '/share',
     account: '/account',
     importguide: '/import-guide',

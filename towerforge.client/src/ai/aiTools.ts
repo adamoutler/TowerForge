@@ -34,6 +34,8 @@ import { DISSONANCE_TRACKS, TOURNAMENT_TIER, TRACK_LABEL, TRACK_STAT, dissonance
 import { buildEdpsCalibration, edpsScore } from '../engine/edps';
 import { coinSources } from '../engine/coinSources';
 import { damageLayers } from '../engine/damageLayers';
+import { incomeSummary } from '../engine/career';
+import type { IncomePoint } from '../engine/career';
 import { FARM_EFFECT_LABELS } from '../engine/farming';
 import type { FarmEffect } from '../engine/farming';
 import { formatGameNumber } from '../engine/gameNumbers';
@@ -59,7 +61,7 @@ import { HEAT_CONDITIONS } from '../constants/tournamentData';
 
 // Everything the tools read: the account plus a few things the pages keep.
 export type AiAccount = AccountState & Pick<AppState,
-    'currencies' | 'labsRunning' | 'tourneyLog' | 'tierWaves' | 'botLoadouts'> & Partial<Pick<AppState, 'tourneyRecords' | 'vaultLevels'>>;
+    'currencies' | 'labsRunning' | 'tourneyLog' | 'tierWaves' | 'botLoadouts'> & Partial<Pick<AppState, 'tourneyRecords' | 'vaultLevels'>> & { incomeLog?: IncomePoint[] };
 
 // The Tournament page's settings (components/common/tourneySim.ts).
 export interface AiTourneySettings {
@@ -101,6 +103,11 @@ export function accountSummary(s: AiAccount, now = Date.now(), tourney?: AiTourn
     const best = Object.entries(s.tierWaves ?? {}).map(([t, w]) => [Number(t), Number(w)] as const)
         .filter(([, w]) => w > 0).sort((a, b) => b[0] - a[0]).slice(0, 4);
     if (best.length) lines.push(`Best waves: ${best.map(([t, w]) => `T${t} W${w.toLocaleString()}`).join(', ')}.`);
+    const income = incomeSummary(s.incomeLog ?? []);
+    if (income?.windowDays) {
+        const earned = income.rows.filter(r => r.perDay).map(r => `${r.label} ${(r.perDay! >= 1e4 ? formatGameNumber(r.perDay!) : Math.round(r.perDay!).toLocaleString())}`);
+        lines.push(`Earned per day over the last ${income.windowDays.toFixed(1)} d (the game's totals between imports): ${earned.join(', ')}.`);
+    }
 
     const c = s.currencies;
     if (c) lines.push(`Holding: ${num(c.coins)} coins, ${c.stones.toLocaleString()} stones, ${c.gems.toLocaleString()} gems, `

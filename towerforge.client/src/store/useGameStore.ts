@@ -36,6 +36,8 @@ import type {
     DissonanceTrack, DissonanceWaves, GuardianData, LabProgress, LabRunning, TourneyLog, TourneyLogEntry, TourneyRecord,
 } from '../types/gameTypes';
 import { mergeBattles } from '../engine/battleReport';
+import { addIncomePoint } from '../engine/career';
+import type { Career, IncomePoint } from '../engine/career';
 import { loadoutForPreset } from '../engine/statHelpers';
 import { emptyDissonance } from '../engine/dissonance';
 import { mergeTourneyRecords } from '../engine/tourneyHistory';
@@ -91,6 +93,8 @@ const KEYS = {
     labsRunning: 'tc_labs_running',
     labProgress: 'tc_lab_progress',
     dissonance: 'tc_dissonance',
+    career: 'tc_career',
+    incomeLog: 'tc_income_log',
     tourneyLog: 'tc_tourney_log',
     tourneyRecords: 'tc_tourney_records',
     vault: 'tc_vault',
@@ -363,6 +367,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     labsRunning: [],
     labProgress: {},
     dissonanceWaves: emptyDissonance(),
+    career: null,
+    incomeLog: [],
     tourneyLog: {},
     tourneyRecords: [],
     vaultLevels: {},
@@ -405,6 +411,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         const labsRunning = loadKey<LabRunning[]>(KEYS.labsRunning, []);
         const labProgress = loadKey<LabProgress>(KEYS.labProgress, {});
         const dissonanceWaves = loadKey<DissonanceWaves>(KEYS.dissonance, emptyDissonance());
+        const career = loadKey<Career | null>(KEYS.career, null);
+        const incomeLog = loadKey<IncomePoint[]>(KEYS.incomeLog, []);
         const tourneyLog = loadKey<TourneyLog>(KEYS.tourneyLog, {});
         const tourneyRecords = loadKey<TourneyRecord[]>(KEYS.tourneyRecords, []);
         const vaultLevels = loadKey<Record<string, number>>(KEYS.vault, {});
@@ -413,7 +421,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             profile, tierWaves, wsData, enhData,
             labData, cardData, uwData, relicData,
             perkData, botData, botLoadouts, moduleState, battleReportText, currencies, importedBattles, battleReportChoice,
-            guardianData, labsRunning, labProgress, dissonanceWaves, tourneyLog, tourneyRecords, vaultLevels,
+            guardianData, labsRunning, labProgress, dissonanceWaves, career, incomeLog, tourneyLog, tourneyRecords, vaultLevels,
         });
     },
 
@@ -517,6 +525,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         const labsRunning = imp.labsRunning ?? [];
         const labProgress = imp.labProgress ?? {};
         const dissonanceWaves = imp.dissonance ?? s.dissonanceWaves;
+        const career = imp.career ?? s.career;
+        const incomeLog = imp.incomePoint ? addIncomePoint(s.incomeLog, imp.incomePoint) : s.incomeLog;
         // Relics: the totals of the relics owned (older saves typed them in).
         const relicData = imp.relics ? imp.relics.totals : s.relicData;
         // Every tournament: kept across imports (older files don't have them).
@@ -527,7 +537,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             profile,
             importedBattles: battles,
             battleReportChoice: choice,
-            wsData, enhData, uwData, cardData, perkData, labData, moduleState, guardianData, botData, botLoadouts, labsRunning, labProgress, dissonanceWaves,
+            wsData, enhData, uwData, cardData, perkData, labData, moduleState, guardianData, botData, botLoadouts, labsRunning, labProgress, dissonanceWaves, career, incomeLog,
             tourneyRecords, relicData, vaultLevels: imp.vault ?? s.vaultLevels,
         });
         saveKey(KEYS.tourneyRecords, tourneyRecords);
@@ -539,6 +549,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         saveKey(KEYS.labsRunning, labsRunning);
         saveKey(KEYS.labProgress, labProgress);
         saveKey(KEYS.dissonance, dissonanceWaves);
+        saveKey(KEYS.career, career);
+        saveKey(KEYS.incomeLog, incomeLog);
         saveKey(KEYS.currencies, imp.currencies);
         saveKey(KEYS.tiers, tierWaves);
         saveKey(KEYS.profile, profile);
@@ -914,6 +926,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
             labsRunning: [],
             labProgress: {},
             dissonanceWaves: emptyDissonance(),
+            career: null,
+            incomeLog: [],
             tourneyLog: {},
             tourneyRecords: [],
             vaultLevels: {},
@@ -933,6 +947,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
             labData: s.labData,
             labProgress: s.labProgress,
             dissonanceWaves: s.dissonanceWaves,
+            career: s.career,
+            incomeLog: s.incomeLog,
             cardData: s.cardData,
             uwData: s.uwData,
             relicData: s.relicData,
@@ -965,6 +981,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 labData: data.labData ?? {},
                 labProgress: data.labProgress ?? {},
                 dissonanceWaves: data.dissonanceWaves ?? emptyDissonance(),
+                career: data.career ?? null,
+                incomeLog: data.incomeLog ?? [],
                 cardData,
                 uwData: data.uwData ?? defaultUWData,
                 relicData: data.relicData ?? {},
@@ -990,6 +1008,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
                     tc_labs: data.labData,
                     tc_lab_progress: data.labProgress ?? {},
                     tc_dissonance: data.dissonanceWaves ?? emptyDissonance(),
+                    tc_career: data.career ?? null,
+                    tc_income_log: data.incomeLog ?? [],
                     tc_cards: cardData,
                     tc_uw: data.uwData,
                     tc_relics: data.relicData,

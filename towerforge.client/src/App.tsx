@@ -47,6 +47,7 @@ import './styles/app.css';
 
 // Pages most visits never open load on first use, keeping the main bundle small.
 const OptimizerTab = lazy(() => import('./components/tabs/OptimizerTab'));
+const CareerTab = lazy(() => import('./components/tabs/CareerTab'));
 const CreatorCodesTab = lazy(() => import('./components/tabs/CreatorCodesTab'));
 const EnemyStatsTab = lazy(() => import('./components/tabs/EnemyStatsTab'));
 const RunCoinsTab = lazy(() => import('./components/tabs/RunCoinsTab'));
@@ -75,6 +76,7 @@ const TAB_GROUPS: TabGroup[] = [
         id: 'player', label: 'Player', tabs: [
             { id: 'profile', label: 'Profile' },
             { id: 'tiers', label: 'Tiers' },
+            { id: 'career', label: 'Career' },
             { id: 'share', label: 'Share' },
             { id: 'account', label: 'Account' },
             { id: 'importguide', label: 'Import Guide' },
@@ -380,6 +382,7 @@ export default function App() {
             );
             case 'perks': return <PerksTab />;
             case 'tiers': return <TiersTab />;
+            case 'career': return <CareerTab />;
             case 'workshop': return <WorkshopTab />;
             case 'labs': return <LabsTab />;
             case 'cards': return <CardsTab />;
