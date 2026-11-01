@@ -32,6 +32,9 @@ import type { BattleReport } from '../engine/battleReport';
 import { defaultBattleIndex } from '../engine/gameExport';
 import { DISSONANCE_TRACKS, TOURNAMENT_TIER, TRACK_LABEL, TRACK_STAT, dissonanceFactor, hasDissonance, trackBoost } from '../engine/dissonance';
 import { buildEdpsCalibration, edpsScore } from '../engine/edps';
+import { coinSources } from '../engine/coinSources';
+import { FARM_EFFECT_LABELS } from '../engine/farming';
+import type { FarmEffect } from '../engine/farming';
 import { formatGameNumber } from '../engine/gameNumbers';
 import { formatLabTime } from '../engine/upgradeCosts';
 import { activeLoadout } from '../engine/statHelpers';
@@ -756,6 +759,8 @@ const NO_DAMAGE: Partial<Record<string, string>> = {
     CF: 'it slows enemies',
 };
 
+const COIN_LINE_ORDER: FarmEffect[] = ['gt', 'bh', 'gb', 'sl', 'dw', 'orb'];
+
 export function runsReport(s: AiAccount, kind: AiRunKind = 'any'): ToolResult {
     const all = [...s.importedBattles].sort((a, b) => (b.time ?? 0) - (a.time ?? 0));
     if (!all.length) return { title: 'Your runs', text: 'No runs saved yet: import your game data to add your battle history.' };
@@ -789,6 +794,18 @@ export function runsReport(s: AiAccount, kind: AiRunKind = 'any'): ToolResult {
     const small = owned.filter(u => !NO_DAMAGE[u.a] && !sources.has(u.n)).map(u => u.n);
     if (noDamage.length) out.push(`Ultimate Weapons you own that deal no damage of their own: ${noDamage.join(', ')}.`);
     if (small.length && (cSh.length || tSh.length)) out.push(`Ultimate Weapons you own under 1% of the damage in these runs: ${small.join(', ')}.`);
+    // Where the coins come from, in the game's own lines.
+    const coinRun = campaign.find(r => r.wave > 100);
+    const coinLines = coinRun && coinSources(coinRun);
+    if (coinRun && coinLines) {
+        const pct = (v: number) => `${Math.round(v / coinLines.total * 100)}%`;
+        const effects = COIN_LINE_ORDER.flatMap(e => {
+            const f = coinLines.factor[e];
+            return f ? [`${FARM_EFFECT_LABELS[e]} ×${f.toFixed(f >= 10 ? 1 : 2)}`] : [];
+        });
+        out.push(`Coins on the newest campaign run (T${coinRun.tier} W${coinRun.wave.toLocaleString()}): Golden Combo ${pct(coinLines.combo)}, Wave Skip ${pct(coinLines.skip)}, kill coins ${pct(coinLines.kill)}.`
+            + (effects.length ? ` Each bonus's average × on kill coins: ${effects.join(', ')}.` : ''));
+    }
     const list = (kind === 'tournament' ? tourney : kind === 'campaign' ? campaign : all).slice(0, 12);
     out.push(`${kind === 'any' ? 'Newest runs' : `Newest ${kind} runs`}:`);
     for (const r of list) {

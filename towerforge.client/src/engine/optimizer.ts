@@ -902,9 +902,9 @@ export function buildCandidates(
 
     // ── Bots (medals) ──────────────────────────────────────────
     // Every stat of every owned bot, and its Bot+ ability once unlocked,
-    // one level a step. Only the stats a model reads score (Amplify Bot and
-    // Bot Bot bonus for damage, Golden Bot for coins, Echoing Shot for tower
-    // shots); the rest show no gain and drop out.
+    // one level a step. Only the stats a model reads score (Amplify Bot for
+    // damage, Golden Bot for coins, Bot Bot for whichever of them runs, Echoing
+    // Shot for tower shots); the rest show no gain and drop out.
     if (cat === 'bots') {
         for (const bot of BOTS_CONFIG) {
             const entry = snap.botData?.[bot.name];

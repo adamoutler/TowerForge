@@ -11,6 +11,9 @@ import { useGameStore } from '../../store/useGameStore';
 import { defaultBattleIndex, isRealRun } from '../../engine/gameExport';
 import { isDissonantRun } from '../../engine/battleReport';
 import { hasDissonance, trackBoost } from '../../engine/dissonance';
+import { coinSources } from '../../engine/coinSources';
+import { FARM_EFFECT_LABELS } from '../../engine/farming';
+import type { FarmEffect } from '../../engine/farming';
 import { buildRunModel, projectRun, runSettingsFromCards } from '../../engine/runCoins';
 import type { RunModelSettings } from '../../engine/runCoins';
 import { formatGameNumber } from '../../engine/gameNumbers';
@@ -183,7 +186,61 @@ export default function RunCoinsTab() {
                 </>
             )}
 
+            {tuningRun && <CoinLines run={tuningRun} />}
             <RunDrops runs={candidates.map(c => c.b)} />
+        </div>
+    );
+}
+
+// The Battle Report's coin lines for the tuning run (engine/coinSources.ts).
+const EFFECT_ORDER: FarmEffect[] = ['gt', 'bh', 'gb', 'sl', 'dw', 'orb'];
+const EFFECT_KILLS: Record<FarmEffect, keyof BattleReport['killedWithEffect']> = {
+    gt: 'goldenTower', bh: 'blackHole', gb: 'goldenBot', sl: 'spotlight', dw: 'deathWave', orb: 'orbs',
+};
+
+function CoinLines({ run }: { run: BattleReport }) {
+    const s = coinSources(run);
+    if (!s) return null;
+    const share = (v: number) => `${(v / s.total * 100).toFixed(1)}%`;
+    const parts: [string, number][] = [
+        ['Golden Combo', s.combo], ['Wave Skip', s.skip], ['Kill coins', s.kill], ['Guardian Fetch', s.fetched],
+    ];
+    const effects = EFFECT_ORDER.filter(e => s.coins[e] > 0);
+    return (
+        <div className="section" style={{ marginTop: '12px' }}>
+            <div className="section-head"><h3>Where this run&apos;s coins came from</h3></div>
+            <div className="section-body en-table-wrap">
+                <table className="en-table">
+                    <thead><tr><th>T{run.tier} W{run.wave.toLocaleString()}</th><th>Coins</th><th>Share</th></tr></thead>
+                    <tbody>
+                        {parts.filter(([, v]) => v / s.total >= 0.0005).map(([name, v]) => (
+                            <tr key={name}><td>{name}</td><td>{fmt(v)}</td><td>{share(v)}</td></tr>
+                        ))}
+                    </tbody>
+                </table>
+                {effects.length > 0 && (
+                    <table className="en-table" style={{ marginTop: '10px' }}>
+                        <thead><tr><th>On kill coins</th><th>Kills covered</th><th>Average</th></tr></thead>
+                        <tbody>
+                            {effects.map(e => {
+                                const kills = run.killedWithEffect[EFFECT_KILLS[e]];
+                                const f = s.factor[e];
+                                return (
+                                    <tr key={e}>
+                                        <td>{FARM_EFFECT_LABELS[e]}</td>
+                                        <td>{kills === null ? '—' : `${Math.round(kills * 100)}%`}</td>
+                                        <td>{f === null ? '—' : `×${f.toFixed(f >= 10 ? 1 : 2)}`}</td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                )}
+                <p className="en-note">
+                    From the game&apos;s Battle Report. Each bonus multiplies the kill coins, so the average is what that
+                    bonus did across the whole run, whichever kills it covered. Golden Bot&apos;s includes Bot Bot.
+                </p>
+            </div>
         </div>
     );
 }

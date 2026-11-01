@@ -22,7 +22,7 @@ import { calcCardMasteryBonuses } from './modBonuses';
 import { moduleMaxLevel } from '../constants/moduleRarities';
 import { amplifyingStrikeMult, projectFundingMult, restorativeBonusASMult, beingAnnihilatorBonus, superCritShare } from './moduleEffects';
 import { packageChancePct } from './ttt';
-import { botPlusValue, isBotPlusOwned } from '../constants/botData';
+import { BOTS_CONFIG, botPlusValue, isBotPlusOwned } from '../constants/botData';
 
 import {
     MODULE_BASE_STATS,
@@ -47,52 +47,25 @@ import type {
 } from '../types/gameTypes';
 import { activeCard, activeLoadout, cardValue, masteredCardMult } from './statHelpers';
 
-// ── Bot Bonus Multiplier ─────────────────────────────────────────
+// ── Bot Bonus Multiplier ─────────────────────────────────
 // Amplify Bot provides the DPS bonus; Bot Bot multiplies it if within range.
 // Formula: DPS boost = Amplify Bot bonus × Bot Bot bonus
-// Returns combined multiplicative bonus or 1 if no bots are active.
+// Bot Bot "increases the bonus of other bots in range" (wiki), so without
+// Amplify Bot it adds nothing to the tower. It's counted as always in range;
+// its coin side is in engine/farming.ts.
 // Echoing Shot (Amplify Bot+) isn't damage: it multiplies tower bullets —
 // see echoingShotBullets.
 function getBotBonusMult(botData: BotData): number {
     if (!botData) return 1;
-
-    const AMPLIFY_BOT_VALUES = [
-        '3.9x', '4.3x', '4.7x', '5.1x', '5.5x', '5.9x', '6.3x', '6.7x', '7.1x', '7.5x',
-        '7.9x', '8.3x', '8.7x', '9.1x', '9.5x', '9.9x', '10.3x', '10.7x', '11.1x', '11.5x',
-        '11.9x', '12.3x', '12.7x', '13.1x', '13.5x', '13.9x', '14.3x', '14.7x', '15.1x', '15.5x',
-    ];
-
-    const BOT_BOT_VALUES = [
-        '1.05x', '1.10x', '1.15x', '1.20x', '1.25x', '1.30x', '1.35x', '1.40x', '1.45x', '1.50x',
-        '1.55x', '1.60x', '1.65x', '1.70x', '1.75x', '1.80x', '1.85x', '1.90x', '1.95x', '2.00x',
-        '2.05x', '2.10x', '2.15x', '2.20x', '2.25x', '2.30x', '2.35x', '2.40x', '2.45x', '2.50x',
-    ];
-
-    const ampEntry = botData['Amplify Bot'];
-    const botBotEntry = botData['Bot Bot'];
-
-    let ampMult = 1;
-    let botBotMult = 1;
-
-    // Get Amplify Bot bonus
-    if (ampEntry?.owned) {
-        const medals = ampEntry.medals ?? [];
-        const bonusLv = medals[2] ?? 0;
-        if (bonusLv > 0 && bonusLv <= AMPLIFY_BOT_VALUES.length) {
-            ampMult = parseFloat(AMPLIFY_BOT_VALUES[bonusLv - 1]);
-        }
-    }
-
-    // Get Bot Bot multiplier (applies to Amplify Bot)
-    if (botBotEntry?.owned) {
-        const medals = botBotEntry.medals ?? [];
-        const bonusLv = medals[2] ?? 0;
-        if (bonusLv > 0 && bonusLv <= BOT_BOT_VALUES.length) {
-            botBotMult = parseFloat(BOT_BOT_VALUES[bonusLv - 1]);
-        }
-    }
-
-    return ampMult * botBotMult;
+    const bonus = (name: string): number => {
+        const entry = botData[name];
+        const stat = BOTS_CONFIG.find(b => b.name === name)?.stats.find(st => st.label === 'Bonus');
+        if (!entry?.owned || !stat) return 1;
+        const lv = entry.medals?.[2] ?? 0;
+        return parseFloat(lv > 0 ? stat.values[Math.min(lv, stat.values.length) - 1] : stat.lv0) || 1;
+    };
+    const amplify = bonus('Amplify Bot');
+    return amplify > 1 ? amplify * bonus('Bot Bot') : 1;
 }
 
 // ── Echoing Shot (Amplify Bot+) ──────────────────────────────────

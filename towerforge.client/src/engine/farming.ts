@@ -35,6 +35,7 @@ import {
 import { activeCard as activeCardIn, cardValue, labMult as labMultIn, masteredCardMult } from './statHelpers';
 import type { BattleReport } from './battleReport';
 import { dissonanceFactor } from './dissonance';
+import { coinSources } from './coinSources';
 import type { OptimizerSnapshot } from './optimizer';
 import { bountyExtra, fetchRate, summonExtra } from './guardian';
 import { SKIN_COIN_BONUS } from '../constants/guardianData';
@@ -65,6 +66,8 @@ export interface FarmInputs {
     bounty: number;                        // Guardian Bounty: extra share of kill coins
     summon: number;                        // Guardian Summon: extra kills, as a share
     fetch: number;                         // Guardian Fetch: finds per second
+    botBot: number;                        // Bot Bot's Bonus on Golden Bot; 1 = no Bot Bot
+    botBotReach: number;                   // its uptime × range, as Golden Bot's reach
 }
 
 export interface FarmCalibration {
@@ -74,6 +77,7 @@ export interface FarmCalibration {
     shares: { kill: number; crit: number; cpw: number; fetch: number };  // of non-wave-skip income, excluding Golden Combo
     comboShare: number;                    // Golden Combo share of non-wave-skip income
     comboKillsPerSec: number;              // kills per GT-second feeding Golden Combo
+    botBotOverlap: number;                 // share of Golden Bot's kills Bot Bot boosts, at the anchor
     waveSkipExtra: number;                 // wave-skip coins ÷ all other coins
     coinsPerHour: number | null;           // real-time coins/hour from the report
 }
@@ -87,6 +91,21 @@ function botStat(values: string[], lv0: string, level: number): number {
 
 const activeCard = (snap: OptimizerSnapshot, name: string) => activeCardIn(snap.cardData, snap.presetIdx, name);
 const labMult = (snap: OptimizerSnapshot, name: string, neutral: number) => labMultIn(snap.labData, name, neutral);
+
+// Bot Bot "increases the bonus of other bots in range" (wiki), so Golden Bot pays
+// more than its own Bonus where the two overlap. The owner's runs show it (coin
+// lines, engine/coinSources.ts): their farm preset's Golden Bot pays ×13.7 on
+// every long run, ×8 × (1 + 71% × (×2 − 1)); on another preset, base ×2 with the
+// same Bot Bot pays about ×4. The overlap is read from the run; without coin
+// lines it's the owner's, rounded. That it grows with Bot Bot's uptime × range
+// like the other coverages is the code's assumption.
+const BOT_BOT_USUAL_OVERLAP = 0.7;
+
+function withBotBot(x: FarmInputs, overlap: number, anchor?: FarmInputs): FarmInputs {
+    if (x.botBot <= 1 || overlap <= 0) return x;
+    const reach = anchor && anchor.botBotReach > 0 ? x.botBotReach / anchor.botBotReach : 1;
+    return { ...x, mult: { ...x.mult, gb: x.mult.gb * (1 + clamp01(overlap * reach) * (x.botBot - 1)) } };
+}
 
 // Effective cooldown, shared with the GC model (Multiverse Nexus, sub-effects, packages).
 function effCooldown(snap: OptimizerSnapshot, abbr: 'GT' | 'BH' | 'DW', rawCD: number): number {
@@ -214,6 +233,22 @@ export function readFarmInputs(snap: OptimizerSnapshot): FarmInputs {
         reach.gb = uptime.gb * range;
     }
 
+    // Bot Bot, for what it adds to Golden Bot.
+    const bbCfg = BOTS_CONFIG.find(bot => bot.name === 'Bot Bot');
+    const bbEntry = snap.botData?.['Bot Bot'];
+    let botBot = 1;
+    let botBotReach = 0;
+    if (bbCfg && isBotEntryOwned(bbEntry)) {
+        const med = bbEntry?.medals ?? [];
+        const [durS, cdS, bonusS, rangeS] = bbCfg.stats;
+        const dur = botStat(durS.values, durS.lv0, med[0] ?? 0) + labValue('Bot Bot Duration', snap.labData['Bot Bot Duration'] ?? 0);
+        const cd = botStat(cdS.values, cdS.lv0, med[1] ?? 0) + labValue('Bot Bot Cooldown', snap.labData['Bot Bot Cooldown'] ?? 0);
+        botBot = botStat(bonusS.values, bonusS.lv0, med[2] ?? 0);
+        const range = botStat(rangeS.values, rangeS.lv0, med[3] ?? 0) + (snap.relicData['rBotRange'] ?? 0)
+            + vaultBotRange(snap.vault) + singularityHarnessRange(mb);
+        botBotReach = Math.min(1, dur / Math.max(1, cd)) * range;
+    }
+
     // Orbs — Extra Orb mastery adds an orb kill coin bonus.
     const orb = activeCard(snap, 'Extra Orb');
     mult.orb = orb?.mastery ?? 1;
@@ -236,6 +271,7 @@ export function readFarmInputs(snap: OptimizerSnapshot): FarmInputs {
         bounty: bountyExtra(snap.guardian, snap.presetIdx, kps),
         summon: summonExtra(snap.guardian, snap.presetIdx, kps),
         fetch: fetchRate(snap.guardian, snap.presetIdx),
+        botBot, botBotReach,
     };
 }
 
@@ -254,7 +290,7 @@ function stripGilded(cov: number, uptime: number, g: number): number {
 // and the always-on multiplier, for a snapshot calibrated on `calib`.
 export function coinFactors(snap: OptimizerSnapshot, calib: FarmCalibration): { base: number } & Record<FarmEffect, number> {
     const a = calib.anchor;
-    const x = readFarmInputs(snap);
+    const x = withBotBot(readFarmInputs(snap), calib.botBotOverlap, a);
     const out = { base: x.base } as { base: number } & Record<FarmEffect, number>;
     for (const e of FARM_EFFECTS) {
         const ratio = a.reach[e] > 0 ? x.reach[e] / a.reach[e] : 1;
@@ -300,10 +336,11 @@ function estimateCoverage(x: FarmInputs, snap: OptimizerSnapshot): Record<FarmEf
 
 // ── Calibration ───────────────────────────────────────────────
 export function buildFarmCalibration(snap: OptimizerSnapshot, report: BattleReport | null): FarmCalibration {
-    const anchor = readFarmInputs(snap);
-    const est = estimateCoverage(anchor, snap);
+    const inputs = readFarmInputs(snap);
+    const est = estimateCoverage(inputs, snap);
 
     if (!report) {
+        const anchor = withBotBot(inputs, BOT_BOT_USUAL_OVERLAP);
         const comboKillsPerSec = 5;   // typical; refined by a Battle Report
         const coverage = est;
         const w = gtIncomeShare(anchor, coverage);
@@ -317,6 +354,7 @@ export function buildFarmCalibration(snap: OptimizerSnapshot, report: BattleRepo
             shares: { kill, crit, cpw: 0, fetch: 0 },
             comboShare: kill * w * b,
             comboKillsPerSec,
+            botBotOverlap: BOT_BOT_USUAL_OVERLAP,
             waveSkipExtra: 1.1 * anchor.waveSkip,
             coinsPerHour: null,
         };
@@ -331,6 +369,13 @@ export function buildFarmCalibration(snap: OptimizerSnapshot, report: BattleRepo
         gb: k.goldenBot ?? est.gb,
         orb: k.orbs ?? est.orb,
     };
+
+    // What Golden Bot paid in this run, against its own Bonus and Bot Bot's.
+    const gbFactor = coinSources(report)?.factor.gb ?? null;
+    const botBotOverlap = gbFactor && coverage.gb > 0 && inputs.mult.gb > 0 && inputs.botBot > 1
+        ? clamp01(((1 + (gbFactor - 1) / coverage.gb) / inputs.mult.gb - 1) / (inputs.botBot - 1))
+        : BOT_BOT_USUAL_OVERLAP;
+    const anchor = withBotBot(inputs, botBotOverlap);
 
     const c = report.coins;
     const nonSkip = Math.max(1, report.coinsEarned - c.waveSkip);
@@ -357,6 +402,7 @@ export function buildFarmCalibration(snap: OptimizerSnapshot, report: BattleRepo
         shares: { kill, crit, cpw, fetch },
         comboShare,
         comboKillsPerSec,
+        botBotOverlap,
         waveSkipExtra: c.waveSkip / nonSkip,
         coinsPerHour: report.coinsPerHour || null,
     };
@@ -366,7 +412,7 @@ export function buildFarmCalibration(snap: OptimizerSnapshot, report: BattleRepo
 // Relative coins per hour; the calibration anchor scores exactly 1.
 export function coinRate(snap: OptimizerSnapshot, calib: FarmCalibration): number {
     const a = calib.anchor;
-    const x = readFarmInputs(snap);
+    const x = withBotBot(readFarmInputs(snap), calib.botBotOverlap, a);
 
     const cov = {} as Record<FarmEffect, number>;
     for (const e of FARM_EFFECTS) {

@@ -16,7 +16,7 @@ reports set the baseline, so even unmodeled effects are already in it; only
 | Rend Armor | ◐ | In the tower-shots share; Rend chance/mult upgrades aren't modeled on their own. Not worth it yet: on the site's saved runs (2026-10-23, 278 runs past W1000) Rend dealt a median 0.02% of Glass Cannon damage (most 0.4%), tower shots under 1.5% — its upgrades wouldn't move a ranking. Wiki: chance 0.1% a level (30%), +0.001× a stack (0.3×), stacks to 800% (Rend Armor Max lab to 1550%), the enhancement multiplies all three to ×5 |
 | All 9 UWs + UW+ | ✅ | uwdps.ts; Golden Tower for coins only |
 | Flame Bot | ✅ | From the run's FlameBotDamage (2026-10-18): ×Damage × tower damage × crits ÷ cooldown; burn stacks and Wild Fire (Bot+) not modeled. Its Damage Reduction counts for eHP survival (2026-10-23), by the share of hits the run shows it covering |
-| Amplify Bot, Bot Bot | ✅ | Tower damage multiplier |
+| Amplify Bot, Bot Bot | ✅ | Tower damage multiplier; Bot Bot only with Amplify Bot running (2026-11-01). Bot Bot on Golden Bot's coins: see Economy |
 | Echoing Shot (Amplify Bot+) | ◐ | Its 1,250-stone unlock is in the stone path (2026-10-23). Since 2026-10-19: tower shots × the bullets each counts as (3 + level, up to 12), always on like Amplify Bot's Bonus (uptime and range aren't modeled). The wiki's 1/3 boost for UW projectiles isn't modeled |
 | Other Bot+ abilities: Wild Fire, Titan Shock, Bonus Cells, Maximum Power | ✗ | Levels entered or imported (v29 tables, 2026-10-19) but not valued: Wild Fire's Enflamed bonus lasts by Flame Bot damage, Titan Shock needs enemy attack speed, Bonus Cells needs elite cells per run, and how Maximum Power boosts the other abilities (whole value or the part above 1) isn't confirmed |
 | Death Ray card | ◐ | Read from runs and shown; kills what it touches (not bosses or protected enemies), so it isn't flat damage. Since 2026-10-23 its touches follow beam time (card stars) × (1 + Double Death Ray chance, 1% a lab level — wiki), for Glass Cannon waves and for eHP (fewer enemies reach the tower). Its mastery isn't counted (effect not documented) |
@@ -55,7 +55,7 @@ reports set the baseline, so even unmodeled effects are already in it; only
 
 | System | Status | Notes |
 |---|---|---|
-| Coins per kill and wave, tier multiplier, Golden Tower / Combo, Black Hole, Spotlight, Death Wave, Golden Bot coin bonuses, Wave Skip, Critical Coin | ✅ | farming.ts + runCoins.ts, calibrated on your runs |
+| Coins per kill and wave, tier multiplier, Golden Tower / Combo, Black Hole, Spotlight, Death Wave, Golden Bot coin bonuses, Wave Skip, Critical Coin | ✅ | farming.ts + runCoins.ts, calibrated on your runs. Checked against the game's coin lines (2026-11-01): within 1% on Golden Tower, Black Hole, Spotlight and Death Wave, 5% on Orbs. Golden Bot now counts Bot Bot, overlap read from the run |
 | Coins per run and per hour as runs get longer | ✅ | Coins per Run projection |
 | Cells, gems, medals, reroll and module shards per run | ◐ | Read from your runs (2026-10-18, Coins per Run page). Elite cells in What If (2026-10-23, cells.ts): the run's cells per elite = (k × Cells/Kill Bonus + Cells card) × card mastery (wiki Currencies), so the enhancement, card and mastery lab move the right part, at the same waves. The DW cell lab and Golden Bot+ Bonus Cells stay in k (not valued); cells aren't an Optimizer goal |
 | Guardian fetch | ✅ | In the run drops; its coins are a separate share of the run's coins, scaled by the Fetch chip's finds per second |

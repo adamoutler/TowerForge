@@ -100,8 +100,14 @@ What each currency buys (wiki Currencies page) and how it's ranked:
   the assist runs at 1% Mult Efficiency), Cannon 213 / 210 (+2.95%), Core
   211 / 210 (+1.81%), Generator 224 / 194 (+0.43%). Assumption: Restore
   gives back what levels cost at today's prices (the totals above agree).
-- **Bots**: only stats a model reads score — Amplify Bot and Bot Bot bonus
-  (damage), Golden Bot (coins). Flame and Thunder Bot aren't modeled, so
+- **Bots**: only stats a model reads score — Amplify Bot (damage), Golden Bot
+  (coins), and Bot Bot for whichever of the two runs: wiki, "increases the
+  bonus of other bots in range", so without Amplify Bot it adds no tower damage
+  (2026-11-01; the code used to add it anyway, from an old table). On coins it
+  multiplies Golden Bot's Bonus over the share of its kills it overlaps, read
+  from the run's `GoldenBotCoinsEarned` (game-export-format.md, Battle history);
+  Bot Bot's uptime × range moves that share, the code's assumption. Flame and
+  Thunder Bot aren't modeled, so
   their levels show no gain: battle reports record Flame Bot kills and hits
   and Thunder Bot stuns (TheTowerSDK's battle field list), but no bot
   damage, so there's no share of damage to calibrate them from; Thunder
