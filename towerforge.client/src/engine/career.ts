@@ -31,6 +31,22 @@ export interface IncomePoint {
     earned: Record<IncomeKey, number>;
 }
 
+// Epic pity and a pull's price (TheTowerSDK, from v29's ModuleManager).
+export const EPIC_PITY_PULLS = 150;
+export const GEMS_PER_PULL = 20;
+
+export interface CareerModules {
+    epicPity: number;      // pulls since the last Epic (ModulePity)
+    common: number;        // modules pulled, by rarity
+    rare: number;
+    epic: number;
+    rerolls: number;       // rerolls across every module owned
+    mostRerolled: number;  // the most on one module
+    slotCoins: number;     // spent levelling the four module slots
+    slotShards: number;
+    dice: number;          // reroll dice ever earned
+}
+
 // One year of the game's recap: numbers by the game's own field names.
 export type CareerYear = Record<string, number> & { Year: number };
 
@@ -42,6 +58,7 @@ export interface Career {
     tierCoins: number[];              // best coins in a run, by tier number
     tierCells: number[];              // best cells in a run, by tier number
     labs: [number, number, number][]; // levels finished, oldest first: seconds, lab number, level
+    modules?: CareerModules;
 }
 
 const MAX_INCOME_POINTS = 200;
@@ -66,6 +83,26 @@ function yearFrom(raw: unknown): CareerYear | null {
     return year as CareerYear;
 }
 
+function modulesFrom(raw: Record<string, unknown>): CareerModules {
+    const n = (k: string) => (typeof raw[k] === 'number' ? raw[k] as number : 0);
+    const list = (k: string) => (Array.isArray(raw[k]) ? raw[k] as unknown[] : []);
+    const assist = list('AssistModuleSlots').map(s => (isObj(s) ? s.EquippedModule : null));
+    const rerolls = [...list('ModuleInventory'), ...list('ModuleEquipped'), ...assist]
+        .map(m => (isObj(m) && typeof m.RerollCounter === 'number' ? m.RerollCounter : 0));
+    const total = (values: number[]) => values.reduce((sum, v) => sum + v, 0);
+    return {
+        epicPity: n('ModulePity'),
+        common: n('CommonModulesObtained'),
+        rare: n('RareModulesObtained'),
+        epic: n('EpicModulesObtained'),
+        rerolls: total(rerolls),
+        mostRerolled: rerolls.length ? Math.max(...rerolls) : 0,
+        slotCoins: total(numbers(raw.SlotCoinsSpent)),
+        slotShards: total(numbers(raw.SlotShardsSpent)),
+        dice: n('ModuleRerollCurrencyLifetime'),
+    };
+}
+
 // Null for a file before the game kept these.
 export function parseCareer(raw: Record<string, unknown>): Career | null {
     if (typeof raw.TotalCoinsEarned !== 'number') return null;
@@ -88,6 +125,7 @@ export function parseCareer(raw: Record<string, unknown>): Career | null {
         tierCoins: numbers(raw.HighestCoinsEarnedThisTier),
         tierCells: numbers(raw.HighestCellsEarnedThisTier),
         labs,
+        modules: modulesFrom(raw),
     };
 }
 

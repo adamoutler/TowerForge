@@ -64,6 +64,17 @@ describe('parseCareer', () => {
         expect(labsByMonth(c.labs)).toEqual([['2024-10', 1], ['2026-11', 1]]);
     });
 
+    it('adds up the module extras', () => {
+        const m = parseCareer({
+            TotalCoinsEarned: 5, ModulePity: 75, CommonModulesObtained: 9, RareModulesObtained: 8, EpicModulesObtained: 7,
+            SlotCoinsSpent: [1, 2, 3, 4], SlotShardsSpent: [10, 20], ModuleRerollCurrencyLifetime: 1000,
+            ModuleInventory: [{ RerollCounter: 100 }, { RerollCounter: 0 }, { Guid: 'none' }],
+            ModuleEquipped: [{ RerollCounter: 1142 }],
+            AssistModuleSlots: [{ EquippedModule: { RerollCounter: 4659 } }, { EquippedModule: null }, {}],
+        })!.modules!;
+        expect(m).toEqual({ epicPity: 75, common: 9, rare: 8, epic: 7, rerolls: 5901, mostRerolled: 4659, slotCoins: 10, slotShards: 30, dice: 1000 });
+    });
+
     it('is null for a file before the game kept them', () => {
         expect(parseCareer({})).toBeNull();
     });

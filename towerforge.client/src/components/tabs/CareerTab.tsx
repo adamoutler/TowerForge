@@ -2,14 +2,14 @@
 //  TowerForge Companion — Career Tab
 //  What the game's file says about the whole account: what the player earns
 //  between imports, lifetime totals, the game's yearly recap, best coins and
-//  cells per tier, research history and records from the saved runs
+//  cells per tier, modules, research history and records from the saved runs
 //  (engine/career.ts).
 // ============================================================
 
 import { useMemo, useState } from 'react';
 import { useGameStore } from '../../store/useGameStore';
 import { formatGameNumber } from '../../engine/gameNumbers';
-import { incomeSummary, labsByMonth, runRecords } from '../../engine/career';
+import { EPIC_PITY_PULLS, GEMS_PER_PULL, incomeSummary, labsByMonth, runRecords } from '../../engine/career';
 import type { Career, CareerYear } from '../../engine/career';
 import { GAME_LABS, GAME_LEAGUES } from '../../constants/gameExportMaps';
 
@@ -240,6 +240,32 @@ function TierBests({ career }: { career: Career }) {
     );
 }
 
+function Modules({ career }: { career: Career }) {
+    const m = career.modules;
+    if (!m) return null;
+    const left = Math.max(0, EPIC_PITY_PULLS - m.epicPity);
+    return (
+        <div className="section">
+            <div className="section-head"><h3>Modules</h3></div>
+            <div className="section-body">
+                <Pills pills={[
+                    ['Epic pity', `${m.epicPity} of ${EPIC_PITY_PULLS} pulls`],
+                    ['To a sure Epic', `${(left * GEMS_PER_PULL).toLocaleString()} gems`],
+                    ['Common pulled', big(m.common)],
+                    ['Rare pulled', big(m.rare)],
+                    ['Epic pulled', big(m.epic)],
+                    ['Gems on modules', big(career.totals.GemsSpentOnModules ?? 0)],
+                    ['Rerolls', big(m.rerolls)],
+                    ['Most on one module', big(m.mostRerolled)],
+                    ['Dice earned', big(m.dice)],
+                    ['Slot coins', big(m.slotCoins)],
+                    ['Slot shards', big(m.slotShards)],
+                ]} />
+            </div>
+        </div>
+    );
+}
+
 function Research({ career }: { career: Career }) {
     const months = useMemo(() => labsByMonth(career.labs), [career.labs]);
     if (!career.labs.length) return null;
@@ -324,6 +350,7 @@ export default function CareerTab() {
             <Lifetime career={career} />
             <Years career={career} />
             <TierBests career={career} />
+            <Modules career={career} />
             <Research career={career} />
             <Records />
         </div>
