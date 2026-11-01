@@ -119,7 +119,9 @@ describe('a tournament question', () => {
     const q = 'What should I do to perform better and get more keys in the Legend tournament?';
     const route: RouteChoice = { tool: 'upgrades', currency: 'any', goal: 'default', changes: [], search: '', runs: 'tournament', tier: 0, budget: 0 };
 
-    it('looks at the picks for tournament runs and where the player stands, whichever tool was picked', () => {
+    // Six full Optimizer lookups, about 5 s while the other test files run: past
+    // Vitest's default limit often enough to stop a deploy now and then.
+    it('looks at the picks for tournament runs and where the player stands, whichever tool was picked', { timeout: 20_000 }, () => {
         const account = load('late');
         const titles = (r: RouteChoice) => lookUp(r, q, { account, tourney }).map(x => x.title);
         expect(titles(route)).toEqual(['Optimizer — stones, coins, lab research (tournaments)', 'Tournament']);
