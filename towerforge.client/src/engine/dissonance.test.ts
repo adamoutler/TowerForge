@@ -1,9 +1,6 @@
 // Dissonant Boosts: anchored on the owner's Dissonant Boosts panel (screens of
-// 2026-10-31, all three views, T13–T17) with the wave tables of their export
-// of 2026-10-21. Every wave on those screens matches that export. The UW Echo
-// lab finished Lv 14 after it (the panel's 7.5%). Echo Only on Attack T13–T16
-// and on Utility also read tiers above T17, which the screens don't show and
-// which may have moved since, so those cells aren't pinned exactly.
+// 2026-10-31, all three views, T13–T17) with the wave tables and Echo labs of
+// their export of 2026-11-01. All 20 waves and all 59 boost cells match.
 
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useGameStore } from '../store/useGameStore';
@@ -13,7 +10,7 @@ import type { OptimizerSnapshot } from './optimizer';
 import { applyGoal, chosenReport, runModels, snapshotFromState } from './accountModels';
 import { buildRunLengthModel } from './runLength';
 import { buildRunModel, projectRun, runSettingsFromCards } from './runCoins';
-import { hasDissonance, trackBoost } from './dissonance';
+import { TOURNAMENT_TIER, hasDissonance, trackBoost } from './dissonance';
 import { BENCH_ACCOUNTS } from '../ai/bench/benchAccounts';
 import { accountSummary, farmTiersReport, tierOutlook } from '../ai/aiTools';
 import type { AiAccount } from '../ai/aiTools';
@@ -22,10 +19,10 @@ import type { BuildType, DissonanceTrack, DissonanceWaves } from '../types/gameT
 import { battle, makeExport } from '../test/makeExport';
 
 const WAVES: DissonanceWaves = {
-    attack: [0, 5502, 7864, 5007, 5011, 5001, 5002, 5150, 5005, 5708, 5638, 5470, 5214, 6580, 5003, 6942, 5636, 3828, 2585],
+    attack: [0, 5502, 7864, 5007, 5011, 5001, 5002, 5150, 5005, 5708, 5638, 5470, 5214, 6580, 5003, 6942, 5636, 3828, 2585, 89],
     defense: [0, 5289, 6115, 6626, 6299, 9052, 6912, 5469, 5054, 5001, 5084, 5026, 8628, 5194, 5141, 0, 4918, 3466],
-    utility: [0, 5550, 9642, 5067, 5126, 5222, 5005, 5120, 5002, 5034, 5625, 6423, 5668, 5112, 5012, 5231, 5003, 5153, 5289, 3785, 2496, 1027, 251],
-    uw: [0, 6098, 4583, 5017, 5203, 5659, 5045, 5226, 5002, 5002, 5419, 5446, 5096, 6372, 4669, 3993, 2904, 1566, 333, 0, 11],
+    utility: [0, 5550, 9642, 5067, 5126, 5222, 5005, 5120, 5002, 5034, 5625, 6423, 5668, 5112, 5012, 5231, 5003, 5153, 5289, 4316, 2496, 1027, 251],
+    uw: [0, 6098, 4583, 5017, 5203, 5659, 5045, 5226, 5002, 5002, 5419, 5446, 5096, 6372, 4669, 3993, 2904, 1566, 339, 0, 11],
 };
 const LABS = { 'Dissonant Echo-Atk': 12, 'Dissonant Echo-Def': 8, 'Dissonant Echo-Util': 12, 'Dissonant Echo-UW': 14 };
 
@@ -47,10 +44,13 @@ describe('the Dissonant Boosts panel', () => {
         }
     });
 
-    it('reads Echo Only on Defense and UW, and adds it to the boost', () => {
+    it('reads Echo Only and Boost + Echo on every cell', () => {
+        // Tier → [Echo Only, Boost + Echo].
+        const attack = { 13: [4.15, 9.15], 14: [4.15, 9.15], 15: [4.15, 9.15], 16: [4.15, 9.15], 17: [4.24, 7.75] };
         const defense = { 13: [2.61, 7.61], 14: [2.61, 7.61], 15: [2.79, 3.79], 16: [2.61, 7.50], 17: [2.69, 5.80] };
+        const utility = { 13: [2.36, 5.36], 14: [2.36, 5.36], 15: [2.36, 5.36], 16: [2.36, 5.36], 17: [2.36, 5.36] };
         const uw = { 13: [4.18, 9.18], 14: [4.22, 8.77], 15: [4.28, 7.98], 16: [4.37, 6.91], 17: [4.44, 5.97] };
-        for (const [track, table] of [['defense', defense], ['uw', uw]] as const) {
+        for (const [track, table] of [['attack', attack], ['defense', defense], ['utility', utility], ['uw', uw]] as const) {
             for (const [tier, [echo, total]] of Object.entries(table)) {
                 expect(at(track, Number(tier)).echo).toBeCloseTo(echo, 2);
                 expect(at(track, Number(tier)).total).toBeCloseTo(total, 2);
@@ -58,12 +58,15 @@ describe('the Dissonant Boosts panel', () => {
         }
     });
 
-    it('reads Attack, within the rounding the tiers above T17 can move', () => {
-        expect(at('attack', 17).echo).toBeCloseTo(4.24, 2);
-        expect(at('attack', 17).total).toBeCloseTo(7.75, 2);
-        // 9.15 and 4.15 on the panel; 4.1449 from the export's T18.
-        expect(Math.abs(at('attack', 13).echo - 4.15)).toBeLessThan(0.006);
-        expect(Math.abs(at('attack', 13).total - 9.15)).toBeLessThan(0.006);
+    // Owner, 2026-11-01: "Dissonant Echos do count in tournaments but that is all".
+    it('counts Echo alone in tournaments, from every tier', () => {
+        const t = at('attack', TOURNAMENT_TIER);
+        expect(t.boost).toBe(1);
+        expect(t.total).toBeCloseTo(1 + t.echo, 9);
+        expect(t.echo).toBeGreaterThan(at('attack', 13).echo);    // T13's share isn't left out
+        expect(t.total).toBeCloseTo(5.41, 2);
+        expect(at('defense', TOURNAMENT_TIER).total).toBeCloseTo(3.79, 2);
+        expect(at('uw', TOURNAMENT_TIER).total).toBeCloseTo(5.48, 2);
     });
 
     it('matches the wiki\'s milestones: ×5 or ×3 at wave 5000, and past it nothing more', () => {
@@ -145,11 +148,15 @@ describe('the Echo labs in the Optimizer', () => {
         expect(gain(snap, 'Dissonant Echo-Atk')).toBeCloseTo(0, 9);
     });
 
-    it('stay out of tournament runs until that\'s confirmed', () => {
+    it('count on a tournament run, through Echo alone', () => {
         const account = load('late', WAVES);
         const idx = account.importedBattles.findIndex(b => b.tournament);
         expect(idx).toBeGreaterThanOrEqual(0);
-        expect(snapshotFromState({ ...account, battleReportText: '', battleReportChoice: idx }).dissonance).toBeUndefined();
+        const tournament = { ...account, battleReportText: '', battleReportChoice: idx };
+        const snap = scored(tournament, 'waves');
+        expect(snap.dissonance?.tier).toBe(TOURNAMENT_TIER);
+        expect(gain(snap, 'Dissonant Echo-Atk')).toBeGreaterThan(0);
+        expect(gain(snap, 'Dissonant Echo-UW')).toBeGreaterThan(0);
     });
 });
 
@@ -179,11 +186,13 @@ describe('comparing tiers', () => {
 });
 
 describe('the account summary', () => {
-    it('gives the farm tier\'s boosts for campaign questions only', () => {
+    it('gives the farm tier\'s boosts, and Echo alone for tournament questions', () => {
         const account = load('late', WAVES);
         expect(accountSummary(account)).toMatch(/Dissonant Boosts on T18, where they farm: Attack ×[\d.]+ on damage, Defense ×[\d.]+ on health, Utility ×[\d.]+ on coins, UW ×[\d.]+ on UW damage; each tier has its own\./);
-        expect(accountSummary(account, Date.now(), { league: '', week: {}, recent: {} })).not.toMatch(/Dissonant Boosts/);
-        expect(accountSummary(load('late'))).not.toMatch(/Dissonant Boosts/);
+        const tourney = accountSummary(account, Date.now(), { league: '', week: {}, recent: {} });
+        expect(tourney).not.toMatch(/Dissonant Boosts/);
+        expect(tourney).toMatch(/In tournaments only Dissonant Echo counts, not a tier's own boost: Attack ×[\d.]+ on damage, Defense ×[\d.]+ on health, UW ×[\d.]+ on UW damage\./);
+        expect(accountSummary(load('late'))).not.toMatch(/Dissonant/);
     });
 });
 

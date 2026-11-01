@@ -9,7 +9,7 @@ import { useMemo, useState } from 'react';
 import { useGameStore } from '../../store/useGameStore';
 import { defaultBattleIndex } from '../../engine/gameExport';
 import {
-    BOOST_FULL_WAVE, DISSONANCE_TRACKS, DISSONANCE_UNLOCK, ECHO_LABS, TRACK_LABEL, TRACK_STAT, echoShare, trackBoost,
+    BOOST_FULL_WAVE, DISSONANCE_TRACKS, DISSONANCE_UNLOCK, ECHO_LABS, TOURNAMENT_TIER, TRACK_LABEL, TRACK_STAT, echoShare, trackBoost,
 } from '../../engine/dissonance';
 import { milestoneReached } from '../../engine/statHelpers';
 import { LABS, MAX_TIER } from '../../constants/gameData';
@@ -139,8 +139,11 @@ export default function DissonancePanel() {
                 <p className="diss-note">
                     Each box is that tier&apos;s best Dissonant Run wave. The boost on a tier counts when you play that
                     tier; Echo adds part of every other tier&apos;s. The Optimizer ranks the Echo labs from these, and
-                    comparing tiers counts each tier&apos;s own boost. Tournaments don&apos;t count them yet: whether they
-                    apply there isn&apos;t confirmed.
+                    comparing tiers counts each tier&apos;s own boost.
+                </p>
+                <p className="diss-note">
+                    In tournaments only Echo counts, not a tier&apos;s own boost: {DISSONANCE_TRACKS.filter(t => t !== 'utility')
+                        .map(t => `${TRACK_LABEL[t]} ${times(trackBoost(waves, t, TOURNAMENT_TIER, labData).total)}`).join(' · ')}.
                 </p>
             </div>
         </div>

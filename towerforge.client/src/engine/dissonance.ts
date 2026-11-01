@@ -10,9 +10,10 @@
 //    Total = Boost + Echo
 //
 //  TheTowerSDK's formula, with the wiki's Boost and ×5 / ×3 tops. Checked on
-//  the owner's Dissonant Boosts panel (2026-10-31, anchors in
-//  dissonance.test.ts). Which stat each boost multiplies comes from the SDK
-//  and TTG's v28 notes, not from a screen.
+//  the owner's Dissonant Boosts panel: all 59 boost cells on their screens of
+//  2026-10-31 (anchors in dissonance.test.ts). In tournaments only Echo counts
+//  (owner, 2026-11-01). Which stat each boost multiplies comes from the SDK and
+//  TTG's v28 notes, not from a screen.
 //  Pure functions — no store imports.
 // ============================================================
 
@@ -62,6 +63,11 @@ export function trackBoost(waves: DissonanceWaves, track: DissonanceTrack, tier:
     const echo = (TOP[track] - 1) * others * echoShare(labs, track);
     return { wave, boost, echo, total: boost + echo };
 }
+
+// Tournaments count Echo and no tier's own boost: tier 0 holds no run, so every
+// real tier counts as "another tier" (that this includes the tier the tournament
+// reports is the code's reading).
+export const TOURNAMENT_TIER = 0;
 
 // The tier a model's boost is read at.
 export interface DissonanceAt {

@@ -30,7 +30,7 @@ import { buildRunLengthModel, deathWave, killedBy, pathRunGains } from '../engin
 import { activeBattleReport, extraDamage, runKey } from '../engine/battleReport';
 import type { BattleReport } from '../engine/battleReport';
 import { defaultBattleIndex } from '../engine/gameExport';
-import { DISSONANCE_TRACKS, TRACK_LABEL, TRACK_STAT, dissonanceFactor, hasDissonance, trackBoost } from '../engine/dissonance';
+import { DISSONANCE_TRACKS, TOURNAMENT_TIER, TRACK_LABEL, TRACK_STAT, dissonanceFactor, hasDissonance, trackBoost } from '../engine/dissonance';
 import { buildEdpsCalibration, edpsScore } from '../engine/edps';
 import { formatGameNumber } from '../engine/gameNumbers';
 import { formatLabTime } from '../engine/upgradeCosts';
@@ -165,12 +165,15 @@ export function accountSummary(s: AiAccount, now = Date.now(), tourney?: AiTourn
         });
         lines.push(`Labs: ${labs.length} researched, ${maxed} maxed${key.length ? `; ${key.join(', ')}` : ''}.`);
     }
-    // Campaign only: whether Dissonant Boosts count in tournaments isn't confirmed.
     const farmRun = s.importedBattles[defaultBattleIndex(s.importedBattles)];
-    if (!tourney && farmRun && hasDissonance(s.dissonanceWaves)) {
+    if (hasDissonance(s.dissonanceWaves) && (tourney || farmRun)) {
         const waves = s.dissonanceWaves;
-        const tracks = DISSONANCE_TRACKS.map(t => `${TRACK_LABEL[t]} ×${trackBoost(waves, t, farmRun.tier, s.labData).total.toFixed(2)} on ${TRACK_STAT[t]}`);
-        lines.push(`Dissonant Boosts on T${farmRun.tier}, where they farm: ${tracks.join(', ')}; each tier has its own.`);
+        const tier = tourney ? TOURNAMENT_TIER : farmRun.tier;
+        const tracks = DISSONANCE_TRACKS.filter(t => !tourney || t !== 'utility')
+            .map(t => `${TRACK_LABEL[t]} ×${trackBoost(waves, t, tier, s.labData).total.toFixed(2)} on ${TRACK_STAT[t]}`);
+        lines.push(tourney
+            ? `In tournaments only Dissonant Echo counts, not a tier's own boost: ${tracks.join(', ')}.`
+            : `Dissonant Boosts on T${tier}, where they farm: ${tracks.join(', ')}; each tier has its own.`);
     }
     const relics = Object.values(RELICS).flat().filter(([k]) => (s.relicData?.[k] ?? 0) !== 0)
         .map(([k, name, , , unit]) => `${name} ${s.relicData[k] > 0 && unit !== 's' ? '+' : ''}${s.relicData[k]}${unit}`);

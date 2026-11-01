@@ -26,7 +26,7 @@ import type { RunLengthModel, RunStat } from './runLength';
 import { buildRunModel, projectRun, runSettingsFromCards } from './runCoins';
 import type { RunProjection } from './runCoins';
 import { defaultBattleIndex } from './gameExport';
-import { hasDissonance } from './dissonance';
+import { TOURNAMENT_TIER, hasDissonance } from './dissonance';
 import { conditioned, leagueConditions } from './battleConditions';
 import type { TourneyConditions } from './battleConditions';
 import { LEAGUE_HEAT } from '../constants/tournamentData';
@@ -44,12 +44,11 @@ export const chosenReport = (s: AccountState): BattleReport | null =>
 
 // The account as the optimizer scores it, for the active preset.
 export function snapshotFromState(s: AccountState): OptimizerSnapshot {
-    // Dissonant Boosts at the tier the model calibrates on. Whether they count in
-    // tournaments isn't confirmed, so a tournament run leaves them out and
-    // tournament picks stay as they were.
+    // Dissonant Boosts at the tier the model calibrates on; a tournament run
+    // counts Echo alone.
     const run = chosenReport(s);
-    const boostTier = run?.tier || s.profile.highestTier || 0;
-    const dissonance = hasDissonance(s.dissonanceWaves) && !run?.tournament && boostTier > 0
+    const boostTier = run?.tournament ? TOURNAMENT_TIER : run?.tier || s.profile.highestTier || 0;
+    const dissonance = hasDissonance(s.dissonanceWaves) && (run?.tournament || boostTier > 0)
         ? { waves: copy(s.dissonanceWaves), tier: boostTier }
         : undefined;
     // Run rates (boss/elite kills, packages, cash…) from the chosen report

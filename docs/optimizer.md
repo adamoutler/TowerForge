@@ -170,9 +170,9 @@ What each currency buys (wiki Currencies page) and how it's ranked:
   this split, so it's the SDK's reading. A level adds (top − 1) × 0.5% × every
   other tier's share, so it's worth most on an account with many full tiers.
   On the owner's account (2026-10-31) they rank first for waves and coins and
-  fourth for survival. Tournament runs leave the boost out until it's confirmed
-  to apply there. Ask AI's tier comparisons and Coins per Run's target tier
-  count each tier's own boost.
+  fourth for survival. In tournaments only Echo counts (owner, 2026-11-01), so a
+  tournament run reads 1 + Echo over every tier. Ask AI's tier comparisons and
+  Coins per Run's target tier count each tier's own boost.
 - Module slot shards: SDK's table starts at level 2; the wiki's Modules/Cost
   gives level 1 as 7 shards + 10K coins, and its totals then match
   (3,136,095 shards to 300).
