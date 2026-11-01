@@ -566,15 +566,21 @@ measured from the run's `FlameBotBlocked` (the made-up runs had none).
   kills; lifesteal and Death Wave healing at the chosen run's rate
   (2026-10-23 — they follow the tower's damage, so defense upgrades don't
   move them, but they dilute a regen upgrade; on eHP players' runs lifesteal
-  was a fifth to a third of all healing). **Flame Bot and Chain Thunder**
-  (2026-10-23, `ehp.cutsRatio`): the run shows what each cut — blocked ÷
-  what reached it (the game's order: Defense %, Absolute, Chrono Field,
-  Chain Thunder, Flame Bot, Primordial Collapse, NMP); against what the
-  upgrade gives (Flame Bot Damage Reduction 20% + 3% a level, the bot
-  table; Chain Thunder min(CL share × 10% per 6%, 3% a lab level, 90%), the
-  lab's wording via TheTowerSDK) that's the share of hits it covers, and a
-  higher level cuts that share more. So Flame Bot's reduction (medals) and
-  the Chain Thunder lab now rank for survival.
+  was a fifth to a third of all healing). **Chrono Field, Flame Bot and
+  Chain Thunder** (2026-10-23, reread 2026-11-01, `engine/damageLayers.ts`):
+  the run shows what each cut — blocked ÷ what reached it, with Defense %
+  last ([game-export-format.md](game-export-format.md)); against what the
+  upgrade gives (Chrono Field lab × uptime; Flame Bot Damage Reduction 20%
+  + 3% a level, the bot table; Chain Thunder 3% a lab level, at most 90%)
+  that's the share of hits it covers, and a higher level cuts that share
+  more. On the owner's T18 runs Chrono Field covers 72% of hits and Chain
+  Thunder 75%, which made the next Chain Thunder level +2.8% survival, where
+  the old reading (capped by CL's share of the damage) made it 0. **Defense %
+  perks** count at 5 picks, but when a run's Defense % line falls a whole
+  pick or more short, that many fewer (`defPicksShort`, the code's reading;
+  not from a run whose damage never reached the tower's health pool). The
+  Optimizer's Survival panel lists each cut as "What blocked the damage in
+  this run".
   Not modeled: Slow Aura mastery (enemy attack speed).
 - **eHP, in waves** (2026-10-23) — survival moves the death wave on the
   enemy-attack model (Run Length, `stat: 'attack'`; evidence in

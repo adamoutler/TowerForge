@@ -12,7 +12,7 @@ import { isRealRun } from '../../engine/gameExport';
 import { formatGameNumber } from '../../engine/gameNumbers';
 import { FARM_EFFECTS, FARM_EFFECT_LABELS } from '../../engine/farming';
 import type { FarmCalibration } from '../../engine/farming';
-import { ehpBreakdown, SUSTAIN_WINDOW_S } from '../../engine/ehp';
+import { chronoInRun, defPctInRun, ehpBreakdown, SUSTAIN_WINDOW_S } from '../../engine/ehp';
 import type { EhpCalibration, EhpFactor } from '../../engine/ehp';
 
 const fmtBig = (n: number): string => (n >= 1e3 ? formatGameNumber(n) : n.toFixed(0));
@@ -214,7 +214,7 @@ function FactorList({ title, factors, total, percent }: {
 }) {
     const fmt = (f: EhpFactor) =>
         f.op === 'base' ? fmtBig(f.value)
-            : f.op === '+' ? `+${f.value.toFixed(2)}${percent ? '%' : ''}`
+            : f.op === '+' ? `${f.value < 0 ? '−' : '+'}${Math.abs(f.value).toFixed(2)}${percent ? '%' : ''}`
                 : `×${f.value.toFixed(f.value < 10 ? 3 : 2)}`;
     return (
         <div style={{ marginBottom: '10px' }}>
@@ -236,11 +236,45 @@ function FactorList({ title, factors, total, percent }: {
     );
 }
 
+// What each defense took out of the enemy damage in the chosen run.
+function BlockedInRun({ calib }: { calib: EhpCalibration }) {
+    const l = calib.layers;
+    if (!l) return null;
+    const a = calib.anchor;
+    const rows: [string, number | null, string?][] = [
+        ['Chrono Field', l.chrono, a.cfReduction > 0 ? `lab × uptime ${pct(a.cfReduction)}` : undefined],
+        ['Chain Thunder', l.chainThunder, (a.chainThunderCap ?? 0) > 0 ? `lab's most ${pct(a.chainThunderCap!)}` : undefined],
+        ['Flame Bot', l.flame, (a.flameReduction ?? 0) > 0 ? `Damage Reduction ${pct(a.flameReduction!)}` : undefined],
+        ['Primordial Collapse', l.primordial],
+        ['Negative Mass Projector', l.negativeMass],
+        ['Defense %', l.defPct],
+    ];
+    return (
+        <div className="ehpl-blocked">
+            <div className="ehpl-title">What blocked the damage in this run</div>
+            {rows.filter(([, cut]) => cut).map(([label, cut, note]) => (
+                <div key={label} className="ehpl-row">
+                    <span>{label}{note && <span className="ehpl-note"> — {note}</span>}</span>
+                    <strong>{(cut! * 100).toFixed(1)}%</strong>
+                </div>
+            ))}
+            <div className="ehpl-row ehpl-landed">
+                <span>Landed, of all the enemy damage</span>
+                <strong>{(l.landed / l.total * 100).toFixed(1)}%</strong>
+            </div>
+            <p className="ehpl-note">Each is a share of the damage that reached it, from your Battle Report; Defense % is worked out last.</p>
+        </div>
+    );
+}
+
 // ── Survival breakdown (eHP, after a run) ─────────────────────
 export function EhpStats({ calib }: { calib: EhpCalibration }) {
     const a = calib.anchor;
     const { eHP, eRegen } = ehpBreakdown(a, calib);
-    const capped = a.defPctUncapped > a.defPct * 100 + 0.001;
+    const def = defPctInRun(a, calib);
+    const picksShort = calib.defPicksShort ?? 0;
+    const capped = a.defPctUncapped - picksShort * (a.defPerkPick ?? 0) > def * 100 + 0.001;
+    const chrono = chronoInRun(a, calib);
 
     const pills: [string, string, string?][] = [
         ['Effective HP', fmtBig(eHP), 'Raw damage needed to kill the tower in one hit: (health × package overheal + wall) ÷ (1 − CF) + Def Abs, all ÷ (1 − Def %).'],
@@ -249,9 +283,13 @@ export function EhpStats({ calib }: { calib: EhpCalibration }) {
         ...(a.maxRecovery > 1
             ? [['Package Overheal', `×${a.maxRecovery.toFixed(2)}`, 'Recovery packages can heal past max health up to this × max health — counted as your health pool.'] as [string, string, string]]
             : []),
-        ['Defense %', `${(a.defPct * 100).toFixed(1)}%${capped ? ' (capped)' : ''}`, capped ? `Your sources add up to ${a.defPctUncapped.toFixed(1)}%, but Defense % is capped at 98%.` : undefined],
+        ['Defense %', `${(def * 100).toFixed(1)}%${capped ? ' (capped)' : ''}`, picksShort > 0
+            ? `Your Battle Report blocked ${pct(calib.layers?.defPct ?? 0)}: this counts ${picksShort} Defense % perk ${picksShort === 1 ? 'pick' : 'picks'} fewer than the 5 it counts for a full run.`
+            : capped ? `Your sources add up to ${a.defPctUncapped.toFixed(1)}%, but Defense % is capped at 98%.` : undefined],
         ['Defense Abs', fmtBig(a.defAbs)],
-        ['Chrono Field', `${(a.cfReduction * 100).toFixed(1)}%`, 'Chrono Field damage reduction × its uptime.'],
+        ['Chrono Field', `${(chrono * 100).toFixed(1)}%`, calib.chronoCover !== undefined
+            ? `Chrono Field damage reduction × its uptime (${pct(a.cfReduction)}), on the ${pct(calib.chronoCover)} of hits it covered in your Battle Report.`
+            : 'Chrono Field damage reduction × its uptime.'],
     ];
     if (a.wallPool > 0) pills.push(['Wall Pool', fmtBig(a.wallPool)]);
     pills.push(['Regen', `${fmtBig(a.regen + a.wallRegen)}/s`, 'Tower regen plus wall regen.']);
@@ -272,6 +310,7 @@ export function EhpStats({ calib }: { calib: EhpCalibration }) {
                         </div>
                     ))}
                 </div>
+                <BlockedInRun calib={calib} />
                 <details style={{ marginTop: '10px' }}>
                     <summary style={{ cursor: 'pointer', fontSize: '12px', color: 'var(--accent)' }}>
                         How these are calculated
@@ -282,8 +321,10 @@ export function EhpStats({ calib }: { calib: EhpCalibration }) {
                         <FactorList title="Defense Absolute" factors={a.parts.defAbs} total={fmtBig(a.defAbs)} />
                         <FactorList
                             title="Defense %"
-                            factors={a.parts.defPct}
-                            total={`${(a.defPct * 100).toFixed(2)}%${capped ? ' (capped at 98%)' : ''}`}
+                            factors={picksShort > 0
+                                ? [...a.parts.defPct, { label: `Perk picks this run didn't have: ${picksShort}`, value: -picksShort * (a.defPerkPick ?? 0), op: '+' }]
+                                : a.parts.defPct}
+                            total={`${(def * 100).toFixed(2)}%${capped ? ' (capped at 98%)' : ''}`}
                             percent
                         />
                         {(a.parts.damageTaken?.length ?? 0) > 0 && (
@@ -302,7 +343,8 @@ export function EhpStats({ calib }: { calib: EhpCalibration }) {
                         )}
                         <p style={{ fontSize: '12px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
                             Perks count all-or-nothing: every perk you haven&apos;t banned is counted at 5 picks,
-                            including trade-offs. Mid-run the game only has the perks you&apos;ve picked so far, and
+                            including trade-offs, except Defense %, which follows your Battle Report. Mid-run the game
+                            only has the perks you&apos;ve picked so far, and
                             the Death Wave bonus grows during the run. The health pool also counts package overheal
                             (×{a.maxRecovery.toFixed(2)}).
                         </p>

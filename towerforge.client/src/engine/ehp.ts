@@ -34,18 +34,22 @@
 //  and after an upgrade — on eHP players' runs lifesteal was a fifth to a
 //  third of all healing (2026-10-23).
 //
-//  Flame Bot and Chain Thunder (2026-10-23) cut the damage that's left
-//  after Defense % and Chrono Field (the game's order, TheTowerSDK
-//  damage-redux-layers). The run says how much each cut —
-//  blocked ÷ what reached that layer — and that, against what the
-//  upgrade gives now, is the share of hits it covers:
+//  The run's blocked lines say what each layer really cut (engine/
+//  damageLayers.ts, Defense % last) and that, against what the upgrade gives
+//  now, is the share of hits it covers (2026-11-01):
+//    Chrono Field: lab reduction × uptime — coverage = cut ÷ that. The
+//      owner's 23% lab at full uptime cuts 16–20%.
 //    Flame Bot: Damage Reduction 20% + 3% a level (bot table), on the
 //      enemies it has burned — coverage = cut ÷ reduction.
-//    Chain Thunder (lab "CL-Chain Thunder"): min(CL's share of the
-//      damage × 10% per 6%, 3% a level, 90%) — the lab's own wording,
-//      coverage = cut ÷ that.
-//  An upgrade moves the cut by its coverage. On eHP players' runs they
-//  cut up to 47% and 19% (docs/run-simulation.md).
+//    Chain Thunder (lab "CL-Chain Thunder"): 3% a level, at most 90% —
+//      coverage = cut ÷ that. CL's share of the damage doesn't predict it:
+//      0.05% of the damage cut 21% in one tournament, 85% cut 14% on T20.
+//  An upgrade moves the cut by its coverage.
+//
+//  Defense % perks count at 5 picks, but a run only has the ones it's picked,
+//  and its Defense % line shows how many: the owner's Tier 23 runs block
+//  76.5% where the sources add up to 77.3% before perks and 102.3% with all 5.
+//  Runs that fell a whole pick short count that many fewer (defPicksShort).
 //
 //  Not modeled: Death Defy, Energy Shield, Second Wind, knockback and
 //  land mines.
@@ -66,6 +70,7 @@ import {
     uniq, sharpFortitudeMult, harmonyConductorReduction, negativeMassReduction, primordialCollapseReduction,
 } from './moduleEffects';
 import type { BattleReport } from './battleReport';
+import { damageLayers, type DamageLayers } from './damageLayers';
 import { dissonanceFactor } from './dissonance';
 import type { OptimizerSnapshot } from './optimizer';
 import { runMix } from './battleConditions';
@@ -104,6 +109,7 @@ export interface EhpInputs {
     defAbs: number;
     defPct: number;          // 0–0.98
     defPctUncapped: number;  // before the 98% cap, for display
+    defPerkPick?: number;    // points one pick of the Defense % perk adds (0 when banned)
     cfReduction: number;     // Chrono Field reduction × uptime (0–1)
     regen: number;           // tower regen / s
     wallRegen: number;       // wall regen / s
@@ -129,11 +135,13 @@ export interface EhpCalibration {
     orbKills?: number;
     deathRayKills?: number;
     touchable?: number;
-    // Flame Bot and Chain Thunder: the share of the hits each covers
-    // (the run's cut ÷ what the upgrade gave), and CL's share of the damage.
+    // Chrono Field, Flame Bot and Chain Thunder: the share of the hits each
+    // covers (the run's cut ÷ what the upgrade gave).
+    chronoCover?: number;
     flameCover?: number;
     chainThunderCover?: number;
-    clShare?: number;
+    defPicksShort?: number;  // Defense % perk picks the run didn't have
+    layers?: DamageLayers;   // what each layer cut in the run
 }
 
 export interface EhpBreakdown {
@@ -283,7 +291,8 @@ export function readEhpInputs(snap: OptimizerSnapshot): EhpInputs {
         add(parts.defPct, `Extra Defense card ${dCard.stars}★`, cardValue('Extra Defense', dCard.stars));
         if (dCard.mastery != null) add(parts.defPct, 'Extra Defense mastery', dCard.mastery);
     }
-    if (taken('defpct')) add(parts.defPct, 'Perk: Defense % +4', 4 * 5 * (1 + spb), PERK_NOTE);
+    const defPerkPick = taken('defpct') ? 4 * (1 + spb) : 0;
+    add(parts.defPct, 'Perk: Defense % +4', defPerkPick * 5, PERK_NOTE);
     add(parts.defPct, 'Armor sub-effects', sub.defPts);
     add(parts.defPct, 'Relics', relic('rDefPct'));
     const defPctUncapped = parts.defPct.reduce((sum, f) => sum + f.value, 0);
@@ -346,39 +355,40 @@ export function readEhpInputs(snap: OptimizerSnapshot): EhpInputs {
     const chainThunderCap = Math.min(CHAIN_THUNDER_MAX, 0.03 * (lab['CL-Chain Thunder'] ?? 0));
 
     return {
-        parts, health, maxRecovery, armorMainMissing, wallPool, defAbs, defPct, defPctUncapped, cfReduction, regen, wallRegen,
+        parts, health, maxRecovery, armorMainMissing, wallPool, defAbs, defPct, defPctUncapped, defPerkPick, cfReduction, regen, wallRegen,
         pkgChance, pkgAmount, thorns, damageTaken, orbRate: orbStats(snap).rate, deathRayRate: deathRayRate(snap),
         flameReduction, chainThunderCap,
     };
 }
 
 const CHAIN_THUNDER_MAX = 0.9;
-// "Enemy damage is reduced by 10% for every 6% of health lost from Chain
-// Lightning" (lab text, TheTowerSDK chainThunderReduction).
-const chainThunderAt = (cap: number, clShare: number) => Math.min((clShare / 0.06) * 0.1, cap, CHAIN_THUNDER_MAX);
 
-// What each layer cut in the run: blocked ÷ what reached it. Layers run
-// Defense % → Absolute → Chrono Field → Chain Thunder → Flame Bot →
-// Primordial Collapse → Negative Mass Projector, so what reached a layer is
-// what it blocked plus everything blocked after it and what still landed.
-function runCuts(raw: Record<string, unknown>): { flame: number; chainThunder: number } {
-    const n = (k: string) => (typeof raw[k] === 'number' ? raw[k] as number : 0);
-    const landed = n('DamageTaken') + n('DamageTakenWall');
-    const afterFlame = landed + n('PrimordialCollapseBlocked') + n('MagicOrbBlocked');
-    const atFlame = afterFlame + n('FlameBotBlocked');
-    const atThunder = atFlame + n('ChainThunderBlocked');
-    return {
-        flame: atFlame > 0 ? n('FlameBotBlocked') / atFlame : 0,
-        chainThunder: atThunder > 0 ? n('ChainThunderBlocked') / atThunder : 0,
-    };
+// Defense % perk picks the run didn't have. A gap under one pick is the
+// reading's blur (damageLayers.ts), so it changes nothing, nor does a run
+// whose damage never came near the tower's health: what little lands there
+// is mostly the damage no defense touches.
+function defPicksShort(a: EhpInputs, layers: DamageLayers | null): number {
+    const pick = a.defPerkPick ?? 0;
+    if (!layers || layers.defPct === null || pick <= 0) return 0;
+    if (layers.total < a.health * a.maxRecovery + a.wallPool) return 0;
+    const inRun = layers.defPct * 100;
+    if (a.defPct * 100 - inRun < pick) return 0;
+    return Math.min(5, Math.max(0, Math.round((a.defPctUncapped - inRun) / pick)));
 }
+
+// Defense % and Chrono Field as the calibration run had them.
+export function defPctInRun(x: EhpInputs, calib: EhpCalibration): number {
+    const short = (calib.defPicksShort ?? 0) * (x.defPerkPick ?? 0);
+    return short > 0 ? Math.min(DEFENSE_PCT_CAP, x.defPctUncapped - short) / 100 : x.defPct;
+}
+export const chronoInRun = (x: EhpInputs, calib: EhpCalibration) => x.cfReduction * (calib.chronoCover ?? 1);
 
 // Damage that still lands after Flame Bot and Chain Thunder, now ÷ at the
 // calibration run (1 = no change).
 export function cutsRatio(x: EhpInputs, calib: EhpCalibration): number {
     const a = calib.anchor;
     const flame = (i: EhpInputs) => Math.min(0.95, (calib.flameCover ?? 0) * (i.flameReduction ?? 0));
-    const thunder = (i: EhpInputs) => Math.min(0.95, (calib.chainThunderCover ?? 0) * chainThunderAt(i.chainThunderCap ?? 0, calib.clShare ?? 0));
+    const thunder = (i: EhpInputs) => Math.min(0.95, (calib.chainThunderCover ?? 0) * (i.chainThunderCap ?? 0));
     return ((1 - flame(x)) * (1 - thunder(x))) / ((1 - flame(a)) * (1 - thunder(a)));
 }
 
@@ -398,9 +408,10 @@ export function buildEhpCalibration(snap: OptimizerSnapshot, report: BattleRepor
     const raw = report.raw ?? {};
     const healed = (key: string) => (typeof raw[key] === 'number' ? (raw[key] as number) : 0);
     const mix = runMix(report);
-    const cuts = runCuts(raw);
-    const clShare = report.damage && report.damage.total > 0 ? report.damage.chainLightning / report.damage.total : 0;
-    const thunderNow = chainThunderAt(anchor.chainThunderCap ?? 0, clShare);
+    const layers = damageLayers(report);
+    const cover = (cut: number | undefined, gave: number | undefined) => ((gave ?? 0) > 0 ? Math.min(1, (cut ?? 0) / gave!) : 0);
+    // A run whose damage never came near the tower's health says nothing of Chrono Field.
+    const chronoFelt = !!layers && layers.total >= anchor.health * anchor.maxRecovery + anchor.wallPool;
     return {
         source: 'report',
         anchor,
@@ -411,9 +422,11 @@ export function buildEhpCalibration(snap: OptimizerSnapshot, report: BattleRepor
         orbKills: mix.orbKills,
         deathRayKills: mix.deathRayKills,
         touchable: mix.touchable,
-        flameCover: (anchor.flameReduction ?? 0) > 0 ? Math.min(1, cuts.flame / anchor.flameReduction!) : 0,
-        chainThunderCover: thunderNow > 0 ? Math.min(1, cuts.chainThunder / thunderNow) : 0,
-        clShare,
+        chronoCover: chronoFelt && anchor.cfReduction > 0 ? cover(layers.chrono, anchor.cfReduction) : undefined,
+        flameCover: cover(layers?.flame, anchor.flameReduction),
+        chainThunderCover: cover(layers?.chainThunder, anchor.chainThunderCap),
+        defPicksShort: defPicksShort(anchor, layers),
+        layers: layers ?? undefined,
     };
 }
 
@@ -436,8 +449,8 @@ export function orbReachRatio(x: EhpInputs, calib: EhpCalibration): number {
 
 // ── Score ─────────────────────────────────────────────────────
 export function ehpBreakdown(x: EhpInputs, calib: EhpCalibration): EhpBreakdown {
-    const throughDef = 1 - x.defPct;
-    const throughCF = 1 - x.cfReduction;
+    const throughDef = 1 - defPctInRun(x, calib);
+    const throughCF = 1 - chronoInRun(x, calib);
     const lands = Math.max(0.01, x.damageTaken ?? 1);
     const eHP = ((x.health * x.maxRecovery + x.wallPool) / throughCF + x.defAbs) / throughDef / lands;
 

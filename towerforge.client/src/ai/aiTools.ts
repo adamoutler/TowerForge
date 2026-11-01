@@ -33,6 +33,7 @@ import { defaultBattleIndex } from '../engine/gameExport';
 import { DISSONANCE_TRACKS, TOURNAMENT_TIER, TRACK_LABEL, TRACK_STAT, dissonanceFactor, hasDissonance, trackBoost } from '../engine/dissonance';
 import { buildEdpsCalibration, edpsScore } from '../engine/edps';
 import { coinSources } from '../engine/coinSources';
+import { damageLayers } from '../engine/damageLayers';
 import { FARM_EFFECT_LABELS } from '../engine/farming';
 import type { FarmEffect } from '../engine/farming';
 import { formatGameNumber } from '../engine/gameNumbers';
@@ -805,6 +806,13 @@ export function runsReport(s: AiAccount, kind: AiRunKind = 'any'): ToolResult {
         });
         out.push(`Coins on the newest campaign run (T${coinRun.tier} W${coinRun.wave.toLocaleString()}): Golden Combo ${pct(coinLines.combo)}, Wave Skip ${pct(coinLines.skip)}, kill coins ${pct(coinLines.kill)}.`
             + (effects.length ? ` Each bonus's average × on kill coins: ${effects.join(', ')}.` : ''));
+    }
+    // What blocked the enemy damage, in the game's own lines.
+    for (const [name, run] of [['campaign', campaign.find(r => r.wave > 100)], ['tournament', tourney.find(r => r.wave > 10)]] as const) {
+        const l = run && damageLayers(run);
+        if (!run || !l || l.defPct === null) continue;
+        const cuts: [string, number][] = [['Chrono Field', l.chrono], ['Chain Thunder', l.chainThunder], ['Flame Bot', l.flame], ['Primordial Collapse', l.primordial], ['Negative Mass Projector', l.negativeMass], ['Defense %', l.defPct]];
+        out.push(`Damage blocked on the newest ${name} run (W${run.wave.toLocaleString()}), each a share of what reached it: ${cuts.filter(([, v]) => v >= 0.0005).map(([n, v]) => `${n} ${(v * 100).toFixed(1)}%`).join(', ')}. ${(l.landed / l.total * 100).toFixed(1)}% of all the enemy damage landed.`);
     }
     const list = (kind === 'tournament' ? tourney : kind === 'campaign' ? campaign : all).slice(0, 12);
     out.push(`${kind === 'any' ? 'Newest runs' : `Newest ${kind} runs`}:`);

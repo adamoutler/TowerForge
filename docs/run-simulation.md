@@ -86,8 +86,10 @@ deaths, read on the server for totals only — no names, nothing kept):
 - **What blocks the damage:** Defense % took 50–94% of raw incoming damage;
   **Defense Absolute under 1%** at these waves (so it barely matters late);
   Chrono Field, Chain Thunder (to 19%), Flame Bot (to 47%) and Primordial
-  Collapse (29–42%) mattered for some. Healing: packages, wall regen, and
-  **lifesteal 20–30%** for lower-tier players (now counted, `ehp.ts`).
+  Collapse (29–42%) mattered for some. These cuts were read with Defense %
+  first; with it last (section 6, 2026-11-01) the lower layers' are smaller.
+  Healing: packages, wall regen, and **lifesteal 20–30%** for lower-tier
+  players (now counted, `ehp.ts`).
 - **Attack holds steady at death:** runs on one tier with the same build die
   within ±16–30% of enemy attack (e.g. sd 0.05–0.11 in log10), and across
   tiers too where the deaths are eHP-like — one account's long runs on
@@ -589,9 +591,13 @@ Most of this already exists in `engine/` (eDPS, UWs — see
 
 ## 6. The tower — defense and survival
 
-- **Damage taken, in order (SDK, from the game):** Defense % (linear, hard
-  cap 98%) → Defense Absolute (subtract) → Chrono Field damage reduction →
-  Chain Thunder → Flame Bot → Primordial Collapse → Negative Mass Projector.
+- **Damage taken, in order:** Chrono Field damage reduction → Chain Thunder →
+  Flame Bot → Primordial Collapse → Negative Mass Projector → Defense %
+  (linear, hard cap 98%) → what lands. Read from the battle reports' blocked
+  lines (2026-11-01, `engine/damageLayers.ts`, evidence in
+  [game-export-format.md](game-export-format.md)); the SDK has Defense % first,
+  which the lines rule out. Where Defense Absolute sits is unread: its line is
+  about 0 late.
 - **Workshop curves:** Health Regen, recovery amount/max, orb speed closed
   forms in `workshop/defense-stats.ts`.
 - **Recovery packages:** chance per wave (6% base → 30% workshop; up to 82%
@@ -745,3 +751,4 @@ still need one run where the killer is known.
 | Energy Shield BC | longer recharge (wiki) | shorter duration (SDK lab text) |
 | Wave base formula | **exact (SDK scaler) — confirmed** at T18 W6000 and W6196–6206 | fitted/approximate (SDK constants file) |
 | Wave cycle | 26 s + cooldown (wiki, SDK) | **28.0 s measured** at ×1.0 with a 4 s cooldown (~7% faster) |
+| Defense % among the damage layers | first (SDK) | **last, by the battle reports' blocked lines** (section 6) |

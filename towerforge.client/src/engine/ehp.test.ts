@@ -39,10 +39,9 @@ function snapshot(edit?: (s: OptimizerSnapshot) => void): OptimizerSnapshot {
 }
 
 // 1000 reached Chain Thunder: it blocked 100 (10%); 900 reached Flame Bot,
-// which blocked 450 (50%); 450 landed. CL dealt 30% of the damage.
+// which blocked 450 (50%); 450 landed.
 const cutRun = () => run({
     ChainThunderBlocked: 100, FlameBotBlocked: 450, DamageTaken: 400, DamageTakenWall: 50,
-    DamageDealt: 1000, ChainLightningDamage: 300,
 });
 
 describe('Flame Bot and Chain Thunder (eHP)', () => {
@@ -51,8 +50,7 @@ describe('Flame Bot and Chain Thunder (eHP)', () => {
         // Flame Bot level 10: 50% reduction → its 50% cut covers all hits.
         expect(calib.anchor.flameReduction).toBeCloseTo(0.5, 10);
         expect(calib.flameCover).toBeCloseTo(1, 10);
-        // Chain Thunder lab 5: cap 15%; CL's 30% share allows 50% → 15%;
-        // the run's 10% cut covers two thirds of the hits.
+        // Chain Thunder lab 5: cap 15%; the run's 10% cut covers two thirds of the hits.
         expect(calib.anchor.chainThunderCap).toBeCloseTo(0.15, 10);
         expect(calib.chainThunderCover).toBeCloseTo(0.1 / 0.15, 10);
     });
