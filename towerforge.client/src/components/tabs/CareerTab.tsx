@@ -64,7 +64,8 @@ function Earned() {
                     <thead>
                         <tr>
                             <th>Currency</th>
-                            <th>Per day</th>
+                            <th>Earned a day</th>
+                            <th>Spent a day</th>
                             <th>Last {income.sinceLastDays !== null ? dayText(income.sinceLastDays) : 'import'}</th>
                             <th>All time</th>
                         </tr>
@@ -74,6 +75,7 @@ function Earned() {
                             <tr key={r.key}>
                                 <td>{r.label}</td>
                                 <td>{r.perDay !== null ? big(r.perDay) : '—'}</td>
+                                <td>{r.spentPerDay !== null ? big(r.spentPerDay) : '—'}</td>
                                 <td>{r.sinceLast !== null ? big(r.sinceLast) : '—'}</td>
                                 <td>{big(r.total)}</td>
                             </tr>
@@ -82,9 +84,12 @@ function Earned() {
                 </table>
                 <p className="car-note">
                     {income.windowDays !== null
-                        ? `From the game's own totals, compared between your imports over the last ${dayText(income.windowDays)}. It counts what you earned, not what you bought.`
-                        : 'Import your game data again later: comparing two imports shows what you earn a day.'}
+                        ? `From the game's own counters, compared between your imports over the last ${dayText(income.windowDays)}. Coins and cells only show what's earned: the game's numbers for them don't add up to what you hold.`
+                        : 'Import your game data again later: comparing two imports shows what you earn and spend a day.'}
                 </p>
+                {income.spentFromRestart && (
+                    <p className="car-note">The game restarted its spending counters between these imports, so spending only counts from then on. Import more often for a closer number.</p>
+                )}
             </div>
         </div>
     );
@@ -100,6 +105,7 @@ function Lifetime({ career }: { career: Career }) {
         ['Enemies destroyed', big(n('EnemiesDestroyed'))],
         ['Damage dealt', big(n('DamageDealt'))],
         ['Upgrades bought', big(n('UpgradesBought'))],
+        ...(career.cardsBought !== undefined ? [['Cards bought', big(career.cardsBought)] as Pill] : []),
         ['Free upgrades', big(n('FreeAttackUpgrades') + n('FreeDefenseUpgrades') + n('FreeUtilityUpgrades'))],
         ['Death Defies', big(n('DeathDefyCount'))],
         ['Bot stuns', big(n('StunsByBot'))],
@@ -257,7 +263,7 @@ function Modules({ career }: { career: Career }) {
                     ['Gems on modules', big(career.totals.GemsSpentOnModules ?? 0)],
                     ['Rerolls', big(m.rerolls)],
                     ['Most on one module', big(m.mostRerolled)],
-                    ['Dice earned', big(m.dice)],
+                    ['Reroll Shards earned', big(m.rerollShards)],
                     ['Slot coins', big(m.slotCoins)],
                     ['Slot shards', big(m.slotShards)],
                 ]} />
@@ -277,7 +283,8 @@ function Research({ career }: { career: Career }) {
             <div className="section-head"><h3>Research History</h3></div>
             <div className="section-body">
                 <Pills pills={[
-                    ['Levels finished', career.labs.length.toLocaleString()],
+                    ...(career.researched !== undefined ? [['Levels researched', career.researched.toLocaleString()] as Pill] : []),
+                    ['In this history', career.labs.length.toLocaleString()],
                     ['Since', dateText(career.labs[0][0] * 1000)],
                 ]} />
                 <div className="car-sub" style={{ marginTop: '14px' }}>Levels finished each month</div>

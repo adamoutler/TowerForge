@@ -8,8 +8,12 @@
 //  2026-11-01 (T18 W3141 in progress, a finished T18 W2775 beside it): kills by
 //  source add up to all the enemies in both, and the coin, kill and damage
 //  shares line up. The file doesn't say whether the run is a tournament.
+//  The run's levels and perks sit in their own fields (liveUpgrades, livePerks).
 //  Pure functions — no store imports.
 // ============================================================
+
+import { PERKS, WS_STATS } from '../constants/gameData';
+import { GAME_PERKS } from '../constants/gameExportMaps';
 
 // After a week the run the file showed has surely ended.
 export const LIVE_RUN_MAX_AGE_MS = 7 * 86400000;
@@ -113,9 +117,64 @@ export function liveBattle(raw: Record<string, unknown>): Record<string, unknown
         else out[key.slice(0, -SUFFIX.length)] = v;
     }
     for (const [field, counter] of Object.entries(RENAMES)) out[field] = raw[counter + SUFFIX];
+    // 0 with no run going, 1892 / 1900 at T18 W3141: these two are the run's too.
+    out.AttackLevelSkips = raw.EnemyAttackLevelSkips;
+    out.HealthLevelSkips = raw.EnemyHealthLevelSkips;
     out.Tier = raw.CurrentTier;
     out.Wave = raw.CurrentWave;
     out.BattleDate = raw.ExportedAt;
     out.IsTournament = false;
     return out;
+}
+
+// In a run, these hold the workshop's level plus what the run added: at T18
+// W3141 the difference is exactly that run's free upgrades, and with no run
+// going they equal the workshop's (owner's exports, 2026-11-01). Same order as
+// WS_STATS.
+const IN_RUN_FIELDS: [string, string, string][] = [
+    ['attack', 'UpgradeLevel', 'UpgradeWorkshopLevel'],
+    ['defense', 'UpgradeDefenseLevel', 'UpgradeWorkshopDefenseLevel'],
+    ['utility', 'UpgradeUtilityLevel', 'UpgradeWorkshopUtilityLevel'],
+];
+
+export interface LiveUpgrade {
+    stat: string;
+    from: number;   // the workshop's level
+    to: number;     // the run's
+}
+
+// The stats the run has raised.
+export function liveUpgrades(raw: Record<string, unknown>): LiveUpgrade[] {
+    return IN_RUN_FIELDS.flatMap(([section, inRun, workshop]) => {
+        const [run, ws] = [raw[inRun], raw[workshop]];
+        if (!Array.isArray(run) || !Array.isArray(ws)) return [];
+        return (WS_STATS[section] ?? []).flatMap(([stat], i) => {
+            const [from, to] = [ws[i], run[i]];
+            return typeof from === 'number' && typeof to === 'number' && to > from ? [{ stat, from, to }] : [];
+        });
+    });
+}
+
+// Perks with no site perk, though the number is known (game-export-format.md).
+const OTHER_PERKS: Record<number, string> = { 10: 'Perk Wave Requirement', 12: 'Max Game Speed' };
+
+export interface LivePerks {
+    named: { name: string; count: number }[];   // in the order first picked
+    unnamed: number;                            // picks on numbers not known yet
+}
+
+// The picks so far, by the names the site knows. 12 standard perk numbers are
+// only known once an Auto Pick list is seen.
+export function livePerks(raw: Record<string, unknown>): LivePerks | null {
+    if (!Array.isArray(raw.PerksPicked)) return null;
+    const counts = new Map<string, number>();
+    let unnamed = 0;
+    for (const pick of raw.PerksPicked as unknown[]) {
+        const n = (pick as { Perk?: unknown } | null)?.Perk;
+        const id = typeof n === 'number' ? GAME_PERKS[n] : undefined;
+        const name = typeof n === 'number' ? OTHER_PERKS[n] ?? PERKS.find(p => p.id === id)?.name : undefined;
+        if (name) counts.set(name, (counts.get(name) ?? 0) + 1);
+        else unnamed++;
+    }
+    return { named: [...counts].map(([name, count]) => ({ name, count })), unnamed };
 }

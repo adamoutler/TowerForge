@@ -107,8 +107,11 @@ export function accountSummary(s: AiAccount, now = Date.now(), tourney?: AiTourn
     if (best.length) lines.push(`Best waves: ${best.map(([t, w]) => `T${t} W${w.toLocaleString()}`).join(', ')}.`);
     const income = incomeSummary(s.incomeLog ?? []);
     if (income?.windowDays) {
-        const earned = income.rows.filter(r => r.perDay).map(r => `${r.label} ${(r.perDay! >= 1e4 ? formatGameNumber(r.perDay!) : Math.round(r.perDay!).toLocaleString())}`);
-        lines.push(`Earned per day over the last ${income.windowDays.toFixed(1)} d (the game's totals between imports): ${earned.join(', ')}.`);
+        const amount = (v: number) => (v >= 1e4 ? formatGameNumber(v) : Math.round(v).toLocaleString());
+        const earned = income.rows.filter(r => r.perDay).map(r => `${r.label} ${amount(r.perDay!)}`);
+        lines.push(`Earned per day over the last ${income.windowDays.toFixed(1)} d (the game's counters between imports): ${earned.join(', ')}.`);
+        const spent = income.rows.filter(r => r.spentPerDay).map(r => `${r.label} ${amount(r.spentPerDay!)}`);
+        if (spent.length) lines.push(`Spent per day${income.spentFromRestart ? ' (only counted since the game restarted its counters)' : ''}: ${spent.join(', ')}.`);
     }
 
     const c = s.currencies;
@@ -782,6 +785,8 @@ export function runsReport(s: AiAccount, kind: AiRunKind = 'any'): ToolResult {
     if (s.liveRun) {
         const r = s.liveRun.report;
         out.push(`A run was in progress at the last import: T${r.tier} W${r.wave.toLocaleString()}, ${(r.gameTimeSec / 3600).toFixed(1)} h of game time, ${formatGameNumber(r.coinsEarned)} coins, ${s.liveRun.perks} perks picked.`);
+        const raised = s.liveRun.upgrades ?? [];
+        if (raised.length) out.push(`Workshop stats raised during that run, mostly by free upgrades: ${raised.map(u => `${u.stat} ${u.from} to ${u.to}`).join(', ')}.`);
     }
     // Where the damage comes from, campaign against tournaments.
     const farmTier = campaign.length ? [...campaign.reduce((m, r) => m.set(r.tier, (m.get(r.tier) ?? 0) + 1), new Map<number, number>())]

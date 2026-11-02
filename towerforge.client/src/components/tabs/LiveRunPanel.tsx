@@ -12,6 +12,7 @@ import { damageLayers } from '../../engine/damageLayers';
 import { lastFinishedOn } from '../../engine/gameExport';
 import { formatGameNumber } from '../../engine/gameNumbers';
 import { LIVE_RUN_MAX_AGE_MS } from '../../engine/liveRun';
+import { runLevelSkips } from '../../engine/runLength';
 import RunLines from '../common/RunLines';
 
 const big = (n: number): string => (n >= 1e4 ? formatGameNumber(n) : Math.round(n).toLocaleString());
@@ -36,6 +37,10 @@ export default function LiveRunPanel() {
     const cells = r.raw?.CellsEarned;
     const lines = coinSources(r);
     const layers = damageLayers(r);
+    const skips = runLevelSkips(r);
+    const skipPct = (n: number) => `${((n / r.wave) * 100).toFixed(1)}%`;
+    const upgrades = live.upgrades ?? [];
+    const picks = live.perkPicks;
     const pills: [string, string][] = [
         ['Reached', `T${r.tier} W${r.wave.toLocaleString()}`],
         ['Game time', hours(r.gameTimeSec)],
@@ -46,6 +51,10 @@ export default function LiveRunPanel() {
         ['Waves skipped', big(r.wavesSkipped)],
         ['Enemies destroyed', big(r.totalEnemies)],
         ['Perks picked', big(live.perks)],
+        ...(skips ? [
+            ['Enemy Health Level Skip', skipPct(skips.health)] as [string, string],
+            ['Enemy Attack Level Skip', skipPct(skips.attack)] as [string, string],
+        ] : []),
     ];
     return (
         <div className="section">
@@ -76,6 +85,17 @@ export default function LiveRunPanel() {
                 {layers && layers.defPct !== null && (
                     <p className="car-note">
                         Damage blocked so far: Chrono Field {pct(layers.chrono)}, Chain Thunder {pct(layers.chainThunder)}, Defense % {pct(layers.defPct)}.
+                    </p>
+                )}
+                {upgrades.length > 0 && (
+                    <p className="car-note">
+                        Raised during this run, mostly by free upgrades: {upgrades.map(u => `${u.stat} ${u.from} → ${u.to}`).join(', ')}.
+                    </p>
+                )}
+                {picks && picks.named.length > 0 && (
+                    <p className="car-note">
+                        Perks so far: {picks.named.map(p => (p.count > 1 ? `${p.name} (${p.count})` : p.name)).join(', ')}
+                        {picks.unnamed > 0 ? `, and ${picks.unnamed} more the file only gives as numbers` : ''}.
                     </p>
                 )}
                 <RunLines run={r} />

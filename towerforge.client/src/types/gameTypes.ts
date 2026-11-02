@@ -6,6 +6,7 @@
 
 import type { BattleReport } from '../engine/battleReport';
 import type { Career, IncomePoint } from '../engine/career';
+import type { LivePerks, LiveUpgrade } from '../engine/liveRun';
 
 // ── Currencies ────────────────────────────────────────────────
 export interface Currencies {
@@ -48,6 +49,8 @@ export interface LiveRun {
     at: number;           // the export's date, in ms
     report: BattleReport;
     perks: number;        // perks picked so far
+    upgrades?: LiveUpgrade[];   // workshop stats the run has raised
+    perkPicks?: LivePerks;
 }
 
 // ── Workshop Types ────────────────────────────────────────────

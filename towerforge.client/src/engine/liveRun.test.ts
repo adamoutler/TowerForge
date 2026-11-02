@@ -3,7 +3,7 @@
 // the owner's export of 2026-11-01.
 
 import { beforeEach, describe, expect, it } from 'vitest';
-import { liveBattle } from './liveRun';
+import { liveBattle, livePerks, liveUpgrades } from './liveRun';
 import { lastFinishedOn, parseGameExport } from './gameExport';
 import { coinSources } from './coinSources';
 import { damageLayers } from './damageLayers';
@@ -43,6 +43,53 @@ describe('liveBattle', () => {
         expect(b.CoinsEarned).toBe(1000);
         expect(b.EnemiesHitByBlackHoleThisRound).toBe(970);
         expect(b.CellsEarned).toBe(357333);
+    });
+
+    it('reads the run\'s level skips, which keep their own names', () => {
+        const b = liveBattle({ ...LIVE, EnemyAttackLevelSkips: 1892, EnemyHealthLevelSkips: 1900 })!;
+        expect(b.AttackLevelSkips).toBe(1892);
+        expect(b.HealthLevelSkips).toBe(1900);
+    });
+});
+
+describe('the run\'s levels and perks', () => {
+    // T18 W3141: the differences are exactly its 299 attack and 267 utility free upgrades.
+    const levels = {
+        UpgradeWorkshopLevel: [6000, 99, 79, 150, 0, 200, 99, 7, 85, 99, 85, 7, 60, 100, 120, 299, 0, 0, 0, 0],
+        UpgradeLevel: [6000, 99, 79, 150, 0, 200, 99, 7, 85, 99, 85, 7, 60, 100, 120, 299, 299, 0, 0, 0],
+        UpgradeWorkshopDefenseLevel: [6000], UpgradeDefenseLevel: [6000],
+        UpgradeWorkshopUtilityLevel: [149, 149, 149, 149, 99, 99, 99, 99, 300, 500, 60, 530, 601],
+        UpgradeUtilityLevel: [149, 149, 149, 149, 99, 99, 99, 99, 300, 500, 60, 699, 699],
+    };
+
+    it('names the stats the run raised', () => {
+        expect(liveUpgrades(levels)).toEqual([
+            { stat: 'Rend Armor Mult', from: 0, to: 299 },
+            { stat: 'Enemy Atk Level Skip', from: 530, to: 699 },
+            { stat: 'Enemy HP Level Skip', from: 601, to: 699 },
+        ]);
+        const gained = liveUpgrades(levels).reduce((sum, u) => sum + u.to - u.from, 0);
+        expect(gained).toBe(299 + 267);
+    });
+
+    it('is empty with no arrays or no difference', () => {
+        expect(liveUpgrades({})).toEqual([]);
+        expect(liveUpgrades({ UpgradeLevel: [5], UpgradeWorkshopLevel: [5] })).toEqual([]);
+    });
+
+    it('names the perks it can, and counts the rest', () => {
+        const p = livePerks({ PerksPicked: [
+            { Wave: 180, Perk: 10 }, { Wave: 270, Perk: 12 }, { Wave: 400, Perk: 3 }, { Wave: 530, Perk: 3 },
+            { Wave: 660, Perk: 25 }, { Wave: 700, Perk: 0 }, { Wave: 800, Perk: 8 }, null,
+        ] })!;
+        expect(p.named).toEqual([
+            { name: 'Perk Wave Requirement', count: 1 },
+            { name: 'Max Game Speed', count: 1 },
+            { name: 'All Coin Bonuses ×1.15', count: 2 },
+            { name: 'CL Damage ×2', count: 1 },
+        ]);
+        expect(p.unnamed).toBe(3);
+        expect(livePerks({})).toBeNull();
     });
 });
 

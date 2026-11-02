@@ -72,7 +72,25 @@ describe('parseCareer', () => {
             ModuleEquipped: [{ RerollCounter: 1142 }],
             AssistModuleSlots: [{ EquippedModule: { RerollCounter: 4659 } }, { EquippedModule: null }, {}],
         })!.modules!;
-        expect(m).toEqual({ epicPity: 75, common: 9, rare: 8, epic: 7, rerolls: 5901, mostRerolled: 4659, slotCoins: 10, slotShards: 30, dice: 1000 });
+        expect(m).toEqual({ epicPity: 75, common: 9, rare: 8, epic: 7, rerolls: 5901, mostRerolled: 4659, slotCoins: 10, slotShards: 30, rerollShards: 1000 });
+    });
+
+    it('counts the assist slots\' spending with the main slots\'', () => {
+        // The owner's export: 3,225,451 shards in all, not the main slots' 1,816,995.
+        const m = parseCareer({
+            TotalCoinsEarned: 5, SlotShardsSpent: [423930, 442655, 535580, 414830],
+            SlotCoinsSpent: [1e17, 2e17, 3e17, 4e17],
+            AssistModuleSlots: [{ ShardsSpent: 405905, CoinsSpent: 1e16 }, { ShardsSpent: 326280 }, { ShardsSpent: 279116 }, { ShardsSpent: 397155 }],
+        })!.modules!;
+        expect(m.slotShards).toBe(3225451);
+        expect(m.slotCoins).toBe(1.01e18);
+    });
+
+    it('keeps all the levels ever researched and the cards bought', () => {
+        const c = parseCareer({ TotalCoinsEarned: 5, ResearchesComplete: 3088, CardsBoughtTotal: 2480 })!;
+        expect(c.researched).toBe(3088);
+        expect(c.cardsBought).toBe(2480);
+        expect(parseCareer({ TotalCoinsEarned: 5 })!.researched).toBeUndefined();
     });
 
     it('is null for a file before the game kept them', () => {
@@ -115,6 +133,70 @@ describe('income between imports', () => {
         expect(incomeSummary([point(AT, 100)])!.rows[0]).toMatchObject({ total: 100, sinceLast: null, perDay: null });
         expect(incomeSummary([point(AT, 100), point(AT + 60000, 101)])!.windowDays).toBeNull();
         expect(incomeSummary([])).toBeNull();
+    });
+});
+
+describe('the game\'s cycle counters', () => {
+    // The owner's exports of 10-17 and 10-21, 4 days apart: the lifetime total
+    // says 60 bits and 702 medals, the counters 260 and 722. Earned − spent is the
+    // change in what they held: bits −205, medals −118, gems +6.
+    const at = (t: number, totalBits: number, totalMedals: number, totalCoins: number, earned: Record<string, number>, spent: Record<string, number>): IncomePoint => ({
+        t, earned: { coins: totalCoins, bits: totalBits, medals: totalMedals },
+        cycle: { earned, spent },
+    });
+    const a = at(AT, 1000, 5000, 1e20, { bits: 420, medal: 1839, gem: 3558, cannon_shard: 6118 }, { bits: 200, medal: 3120, gem: 3610, cannon_shard: 10000 });
+    const b = at(AT + 4 * DAY, 1060, 5702, 1.38e20, { bits: 680, medal: 2561, gem: 5394, cannon_shard: 15742 }, { bits: 665, medal: 3960, gem: 5440, cannon_shard: 19975 });
+
+    it('read from the file', () => {
+        const p = parseIncomePoint({
+            ExportedAt: new Date(AT).toISOString(), TotalCoinsEarned: 5, ModuleCannonShardsLifetime: 77,
+            CurrencyEarnedThisCycle: { Currencies: { bits: 680, coin: 9, cells: 9 } },
+            CurrencySpentThisCycle: { Currencies: { bits: 465 } },
+        })!;
+        expect(p.cycle?.earned.bits).toBe(680);
+        expect(p.cycle?.spent.bits).toBe(465);
+        expect(p.cycle?.earned.medal).toBe(0);
+        expect(p.cycle?.earned.coin).toBeUndefined();      // coins don't add up there
+        expect(p.earned.cannon).toBe(77);
+        expect(parseIncomePoint({ ExportedAt: new Date(AT).toISOString(), TotalCoinsEarned: 5 })!.cycle).toBeUndefined();
+    });
+
+    it('give what the totals leave out, and what was spent', () => {
+        const rows = incomeSummary([a, b])!.rows;
+        const row = (key: string) => rows.find(r => r.key === key)!;
+        expect(row('bits')).toMatchObject({ sinceLast: 260, perDay: 65, spentPerDay: 465 / 4 });
+        expect(row('medals')).toMatchObject({ sinceLast: 722, spentPerDay: 840 / 4 });
+        expect(row('cannon')).toMatchObject({ sinceLast: 9624, spentPerDay: 9975 / 4 });
+    });
+
+    it('leave coins and cells on the totals, with no spending', () => {
+        const rows = incomeSummary([a, b])!.rows;
+        const coins = rows.find(r => r.key === 'coins')!;
+        expect(coins.sinceLast).toBeCloseTo(3.8e19, -15);
+        expect(coins.spentPerDay).toBeNull();
+    });
+
+    it('fall back on the totals across a restart, and count spending only from it', () => {
+        const after = at(AT + 15 * DAY, 1445, 7293, 2.4e20, { bits: 525, medal: 1368, gem: 3715, cannon_shard: 9121 }, { bits: 505, medal: 1700, gem: 3768, cannon_shard: 503555 });
+        const s = incomeSummary([b, after])!;
+        const row = (key: string) => s.rows.find(r => r.key === key)!;
+        expect(row('bits').sinceLast).toBe(525);            // more than the total's 385
+        expect(row('medals').sinceLast).toBe(1591);         // the total's change, more than 1368
+        expect(row('bits').spentPerDay).toBeCloseTo(505 / 11, 6);
+        expect(s.spentFromRestart).toBe(true);
+    });
+
+    it('count spending from whole spans when there are some', () => {
+        const after = at(AT + 15 * DAY, 1445, 7293, 2.4e20, { bits: 525, medal: 1368, gem: 3715 }, { bits: 505, medal: 1700, gem: 3768 });
+        const s = incomeSummary([a, b, after])!;
+        expect(s.spentFromRestart).toBe(false);
+        expect(s.rows.find(r => r.key === 'bits')!.spentPerDay).toBeCloseTo(465 / 4, 6);
+    });
+
+    it('have nothing to say with a log from before them', () => {
+        const s = incomeSummary([point(AT, 100), point(AT + DAY, 300)])!;
+        expect(s.rows.find(r => r.key === 'gems')!.spentPerDay).toBeNull();
+        expect(s.spentFromRestart).toBe(false);
     });
 });
 
@@ -172,6 +254,6 @@ describe('Ask AI', () => {
         useGameStore.getState().applyGameImport(parseGameExport(file()));
         expect(accountSummary(useGameStore.getState())).not.toMatch(/Earned per day/);
         useGameStore.getState().applyGameImport(parseGameExport(file({ TotalStonesEarned: 600, TotalCoinsEarned: 3e20 }, AT + 2 * DAY)));
-        expect(accountSummary(useGameStore.getState())).toMatch(/Earned per day over the last 2\.0 d \(the game's totals between imports\): .*Stones 50\./);
+        expect(accountSummary(useGameStore.getState())).toMatch(/Earned per day over the last 2\.0 d \(the game's counters between imports\): .*Stones 50\./);
     });
 });

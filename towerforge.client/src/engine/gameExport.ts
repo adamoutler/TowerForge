@@ -36,7 +36,7 @@ import { CHIPS } from '../constants/guardianData';
 import { vaultGroupKey } from '../constants/vaultData';
 import { vaultCardSlots } from './vault';
 import { parseCareer, parseIncomePoint } from './career';
-import { liveBattle } from './liveRun';
+import { liveBattle, livePerks, liveUpgrades } from './liveRun';
 import type { Career, IncomePoint } from './career';
 
 type Raw = Record<string, unknown>;
@@ -519,7 +519,10 @@ function parseLiveRun(raw: Raw): LiveRun | null {
     const b = liveBattle(raw);
     const at = dateMs(raw.ExportedAt);
     if (!b || !at || !(num(b.Wave) > 0)) return null;
-    return { at, report: battleToReport(b), perks: num(raw.PerksPickedCount) };
+    return {
+        at, report: battleToReport(b), perks: num(raw.PerksPickedCount),
+        upgrades: liveUpgrades(raw), perkPicks: livePerks(raw) ?? undefined,
+    };
 }
 
 // One BattleHistory entry → the same shape a pasted Battle Report produces.
