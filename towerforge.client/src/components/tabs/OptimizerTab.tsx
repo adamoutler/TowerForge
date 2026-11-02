@@ -813,9 +813,11 @@ export default function OptimizerTab() {
                         </>)}
                         {shown === 'cells' && (<>
                             <strong>Ranked for Elite Cells a run</strong>, at the same waves. What the site can value:
-                            the Cells/Kill Bonus enhancement, the Cells card and its mastery. Longer runs, the Death
-                            Wave cell lab and Golden Bot+ Bonus Cells bring more too, but aren&apos;t counted. Your
-                            chosen run has to record cells and elites, or nothing here can be scored.
+                            the Cells/Kill Bonus enhancement, the Cells card and its mastery, and Golden Bot+ Bonus
+                            Cells on the elites killed in Golden Bot&apos;s range (so Golden Bot&apos;s Duration, Cooldown
+                            and Range count once it&apos;s unlocked). Longer runs and the Death Wave cell lab bring more
+                            too, but aren&apos;t counted. Your chosen run has to record cells and elites, or nothing here
+                            can be scored.
                         </>)}
                         {shown === 'blend' && (<>
                             <strong>Ranked for coins and {pushWaves ? 'push' : 'survival'} together</strong>, at

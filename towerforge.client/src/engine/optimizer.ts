@@ -122,7 +122,7 @@
 //     RARITIES maxLv may need revisiting alongside the dmg tables.
 // ============================================================
 
-import { enhancementsOpen, labOpen, workshopOpen } from './unlocks';
+import { cardMasteryOpen, enhancementsOpen, labOpen, workshopOpen } from './unlocks';
 import type { Progress } from './unlocks';
 import {
     UWS,
@@ -546,7 +546,8 @@ export function buildCandidates(
     // come from that card's mastery lab afterwards (coins and weeks of lab
     // time), so an unlocked mastery has nothing left to buy with stones.
     // fromLv −1 = locked; toLv = the lab level it unlocks at (0 until labbed).
-    if (cat === 'mast') {
+    // Not before the Card Mastery milestone (engine/unlocks.ts).
+    if (cat === 'mast' && cardMasteryOpen(snap.cardData, snap.progress)) {
         const activeNames = new Set(snap.cardData.presets[snap.presetIdx] ?? []);
 
         for (const [cardName] of CARDS) {
@@ -581,7 +582,8 @@ export function buildCandidates(
     // Once all five bots are owned, each one's Bot+ ability unlocks for
     // 1,250 stones at level 0 (then levels with medals). Scored by what the
     // ability does at level 0 — only abilities a model reads gain anything
-    // (Echoing Shot today), so the rest drop out under the gain threshold.
+    // (Echoing Shot, and Bonus Cells for the cells goal), so the rest drop out
+    // under the gain threshold.
     if (cat === 'botplus') {
         const allOwned = BOTS_CONFIG.every(b => snap.botData[b.name]?.owned);
         for (const bot of allOwned ? BOTS_CONFIG : []) {
@@ -919,7 +921,8 @@ export function buildCandidates(
     // Every stat of every owned bot, and its Bot+ ability once unlocked,
     // one level a step. Only the stats a model reads score (Amplify Bot for
     // damage, Golden Bot for coins, Bot Bot for whichever of them runs, Echoing
-    // Shot for tower shots); the rest show no gain and drop out.
+    // Shot for tower shots, Bonus Cells and Golden Bot's reach for cells); the
+    // rest show no gain and drop out.
     if (cat === 'bots') {
         for (const bot of BOTS_CONFIG) {
             const entry = snap.botData?.[bot.name];

@@ -115,7 +115,7 @@ What each currency buys (wiki Currencies page) and how it's ranked:
   reaches 2–4% of the owner's enemies (2026-11-01, game-export-format.md). Flame Bot's Damage
   Reduction counts for survival since 2026-10-23 (below). Bot+ unlocks (1,250 stones each, once all five bots are owned) are in
   the stone path since 2026-10-23, scored by what the ability does at level
-  0 — only Echoing Shot gains anything so far.
+  0 — Echoing Shot, and Bonus Cells for the More Elite Cells goal (below).
 - **Bot+** (game v29, checked 2026-10-19): once all five bots are owned,
   each one's ability unlocks for 1,250 stones and then levels with medals —
   Wild Fire ×1.5 +0.1 to 20 levels, Titan Shock 5% +1% to 20, Bonus Cells
@@ -563,8 +563,22 @@ measured from the run's `FlameBotBlocked` (the made-up runs had none).
     move the Cells/Kill Bonus enhancement, the Cells card and its mastery. On
     the owner's export (T18 W9302, 2.2M cells from 15,264 elites): Cells/Kill
     Bonus 100 → 101 is +0.45% for 3.65e18 coins, and unlocking Cells Mastery
-    +5% for 1,000 stones. Longer runs, the Death Wave cell lab and Golden Bot+
-    Bonus Cells aren't valued, since their shares of a run's cells aren't known.
+    +5% for 1,000 stones. Longer runs and the Death Wave cell lab aren't
+    valued, since their shares of a run's cells aren't known.
+    **Golden Bot+ Bonus Cells (2026-11-02):** the wiki's Golden Bot page says
+    "Elites killed in Golden Bot range grant {0}x more Cells", ×1.25 at unlock
+    to ×2.50 at Lv 25, and its Currencies page counts it among the cell
+    multipliers, with the Cells card added after them. So a run's cells per
+    elite = (k × (1 + s × (Bonus Cells − 1)) × enhancement + card) × mastery,
+    where s is the run's share of kills in Golden Bot's range
+    (`DestroyedInGoldenBot`). That elites die in its range as often as other
+    enemies is the code's assumption, and s follows Golden Bot's uptime ×
+    range the way its coins do, so its Duration, Cooldown and Range rows and
+    labs count for cells once Bot+ is unlocked. Bot Bot+'s Maximum Power on
+    Bonus Cells (the wiki lists it) stays in k: how it boosts the ability isn't
+    confirmed. On the owner's export (T18 W9302, 50.4% of kills in Golden Bot)
+    unlocking Golden Bot+ is +11.4% cells for 1,250 stones, on the preset that
+    has all five bots (Bot+ needs them in the preset; the farm preset doesn't).
   - **Free upgrades (2026-11-01, `engine/freeUpgrades.ts`):** every score
     reads the levels a run reaches, not the workshop's: `conditioned()` puts
     them in the snapshot, the workshop levels stay for prices and row labels.
@@ -643,7 +657,11 @@ measured from the run's `FlameBotBlocked` (the made-up runs had none).
 
 - **Card mastery**: stones only unlock a mastery, at its level-0 value; levels
   1–9 come from that card's lab (1.1q → 10q coins, 20 → 104 days each). The
-  optimizer offers unlocks only, never re-buys. Unlock costs (Notion Card
+  optimizer offers unlocks only, never re-buys, and none before the Card
+  Mastery milestone, Tier 16 wave 100 (TheTowerSDK's milestone tracks and the
+  wiki's Cards page, 2026-11-02; `cardMasteryOpen` in `engine/unlocks.ts`).
+  The wiki also says it needs 30 cards at 7★; nothing else confirms that, so
+  it isn't checked. Unlock costs (Notion Card
   Mastery page): 500 Cash / Free Upgrades; 750 Damage, Attack Speed, Health,
   Health Regen, Range, Critical Chance, Fortress, Extra Orb, Death Ray,
   Energy Net, Berserker, Ultimate Crit, Nuke; 1000 Slow Aura, Enemy Balance,

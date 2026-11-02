@@ -138,6 +138,24 @@ function freeUpgradesPerWave(snap: OptimizerSnapshot, waveSkip: number): number 
         + chance('Free Util Upgrade', 'Free Utility Upgrade')) * (1 + waveSkip);
 }
 
+// Golden Bot pays its Bonus on kills in its range while it's active, so what it
+// reaches is uptime × range. Its Bot+ Bonus Cells reach the same kills
+// (engine/cells.ts). Null when Golden Bot isn't owned.
+type GoldenBotSnap = Pick<OptimizerSnapshot, 'botData' | 'labData' | 'relicData' | 'vault' | 'modBonuses'>;
+export function goldenBotReach(snap: GoldenBotSnap): { bonus: number; uptime: number; reach: number } | null {
+    const cfg = BOTS_CONFIG.find(bot => bot.name === 'Golden Bot');
+    const entry = snap.botData?.['Golden Bot'];
+    if (!cfg || !isBotEntryOwned(entry)) return null;
+    const med = entry?.medals ?? [];
+    const [durS, cdS, bonusS, rangeS] = cfg.stats;
+    const dur = botStat(durS.values, durS.lv0, med[0] ?? 0) + labValue('Golden Bot Duration', snap.labData['Golden Bot Duration'] ?? 0);
+    const cd = botStat(cdS.values, cdS.lv0, med[1] ?? 0) + labValue('Golden Bot Cooldown', snap.labData['Golden Bot Cooldown'] ?? 0);
+    const range = botStat(rangeS.values, rangeS.lv0, med[3] ?? 0) + (snap.relicData['rBotRange'] ?? 0)
+        + vaultBotRange(snap.vault) + singularityHarnessRange(snap.modBonuses);
+    const uptime = Math.min(1, dur / Math.max(1, cd));
+    return { bonus: botStat(bonusS.values, bonusS.lv0, med[2] ?? 0), uptime, reach: uptime * range };
+}
+
 // ── Inputs from the tower state ───────────────────────────────
 export function readFarmInputs(snap: OptimizerSnapshot): FarmInputs {
     const mb = snap.modBonuses;
@@ -219,18 +237,11 @@ export function readFarmInputs(snap: OptimizerSnapshot): FarmInputs {
     }
 
     // Golden Bot — kills in its range while active.
-    const gbCfg = BOTS_CONFIG.find(bot => bot.name === 'Golden Bot');
-    const gbEntry = snap.botData?.['Golden Bot'];
-    if (gbCfg && isBotEntryOwned(gbEntry)) {
-        const med = gbEntry?.medals ?? [];
-        const [durS, cdS, bonusS, rangeS] = gbCfg.stats;
-        const dur = botStat(durS.values, durS.lv0, med[0] ?? 0) + labValue('Golden Bot Duration', snap.labData['Golden Bot Duration'] ?? 0);
-        const cd = botStat(cdS.values, cdS.lv0, med[1] ?? 0) + labValue('Golden Bot Cooldown', snap.labData['Golden Bot Cooldown'] ?? 0);
-        mult.gb = botStat(bonusS.values, bonusS.lv0, med[2] ?? 0);
-        const range = botStat(rangeS.values, rangeS.lv0, med[3] ?? 0) + (snap.relicData['rBotRange'] ?? 0)
-            + vaultBotRange(snap.vault) + singularityHarnessRange(mb);
-        uptime.gb = Math.min(1, dur / Math.max(1, cd));
-        reach.gb = uptime.gb * range;
+    const gb = goldenBotReach(snap);
+    if (gb) {
+        mult.gb = gb.bonus;
+        uptime.gb = gb.uptime;
+        reach.gb = gb.reach;
     }
 
     // Bot Bot, for what it adds to Golden Bot.

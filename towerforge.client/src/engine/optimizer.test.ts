@@ -164,6 +164,16 @@ describe('card mastery', () => {
     it('never offers to buy an unlocked mastery again', () => {
         expect(buildCandidates(withDamageCard(true), 'mast')).toHaveLength(0);
     });
+
+    it('offers none before the Card Mastery milestone (Tier 16, wave 100)', () => {
+        const at = (wave: number) => {
+            const s = withDamageCard(false);
+            s.progress = { tierWaves: { 15: 4000, 16: wave }, completedTier: 15 };
+            return buildCandidates(s, 'mast');
+        };
+        expect(at(99)).toHaveLength(0);
+        expect(at(100)).toHaveLength(1);
+    });
 });
 
 describe('assist modules', () => {
@@ -358,8 +368,8 @@ describe('every currency', () => {
     });
 
     // Echoing Shot: tower bullets count as 3 + level bullets, so 5 → 6 is
-    // +20% on tower shots — 1% of this run's damage. Bonus Cells (cells)
-    // isn't modeled and shows no gain.
+    // +20% on tower shots — 1% of this run's damage. Bonus Cells counts only
+    // for the More Elite Cells goal (cells.test.ts), so it shows no gain here.
     it('prices Bot+ levels in medals and scores Echoing Shot on tower shots', () => {
         const report = run();
         const plus = (s: OptimizerSnapshot, lv: number) => {

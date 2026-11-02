@@ -38,7 +38,7 @@ export const UNIQUE_MODULES: Record<ModuleType, [string, string, RarityProgressi
         ['Singularity Harness', 'Increase range of each bot by +[x]m. Enemies hit by Flame Bot receive double damage.', { Epic: 5, Legendary: 8, Mythic: 11, Ancestral: 15 }, 'm'],
         ['Galaxy Compressor', 'Collecting a recovery package reduces cooldown of all UWs except Poison Swamp by [x]s.', { Epic: 10, Legendary: 13, Mythic: 17, Ancestral: 20 }, 's'],
         ['Pulsar Harvester', 'Each projectile hit has [x]% chance to reduce enemy Health and Attack level by 1.', { Epic: 1.0, Legendary: 1.5, Mythic: 2.0, Ancestral: 2.5 }, '%'],
-        ['Black Hole Digestor', 'Get [x]% extra Coins/Kill Bonus for each free upgrade on current wave.', { Epic: 3, Legendary: 5, Mythic: 7, Ancestral: 10 }, '%'],
+        ['Black Hole Digestor', 'Temporarily get [x]% extra Coins/Kill Bonus for each free upgrade you got on the current wave. Free Upgrades can not increase Tower Range.', { Epic: 3, Legendary: 5, Mythic: 7, Ancestral: 10 }, '%'],
         ['Project Funding', 'Tower damage multiplied by [x]% of digits in current cash.', { Epic: 12.5, Legendary: 25, Mythic: 50, Ancestral: 100 }, '%'],
         ['Restorative Bonus', 'Packages grant 50% attack speed boost for [x]s, decaying over 60s.', { Epic: 15, Legendary: 20, Mythic: 25, Ancestral: 30 }, 's'],
         // Newer module, not on the wiki yet; values from the player (Legendary confirmed on a card).
@@ -166,7 +166,7 @@ export const UNIQUE_EFFECT_MODEL: Record<string, { counted: string; how: string 
     'Singularity Harness': { counted: 'Coins', how: 'Adds Golden Bot range (Flame Bot damage isn’t modeled).' },
     'Galaxy Compressor': { counted: 'eDPS · Coins', how: 'Each recovery package cuts every UW cooldown but Poison Swamp — package rate from your battle report.' },
     'Pulsar Harvester': { counted: 'Not counted', how: 'Enemy level reductions aren’t modeled.' },
-    'Black Hole Digestor': { counted: 'Coins', how: 'Adds Coins/Kill for every free upgrade each wave (free upgrade chances from workshop, card, perk, modules and enhancement). It also keeps free upgrades off Range, though its text doesn’t say so: Range stays at its workshop level.' },
+    'Black Hole Digestor': { counted: 'Coins', how: 'Adds Coins/Kill for every free upgrade each wave (free upgrade chances from workshop, card, perk, modules and enhancement). It also keeps free upgrades off Range, in a main or assist slot: Range stays at its workshop level.' },
     'Project Funding': { counted: 'eDPS', how: 'Tower damage × digits of cash — cash from your battle report.' },
     'Restorative Bonus': { counted: 'eDPS', how: 'Packages boost attack speed, which drives Chain Lightning.' },
     'Infinity Threshold': { counted: 'Not counted', how: 'Upgrade values past the normal level cap aren’t known.' },

@@ -14,7 +14,7 @@
 import { LABS, UWS, UW_UNLOCK_COSTS, WS_UNLOCK_GROUPS } from '../constants/gameData';
 import { BOT_UNLOCK_MEDALS, BOTS_CONFIG, isBotEntryOwned } from '../constants/botData';
 import { milestoneReached } from './statHelpers';
-import type { BotData, EnhData, GuardianData, LabData, ModuleState, TierWaves, UWData, WsUnlocked } from '../types/gameTypes';
+import type { BotData, CardData, EnhData, GuardianData, LabData, ModuleState, TierWaves, UWData, WsUnlocked } from '../types/gameTypes';
 
 export type WsSection = 'attack' | 'defense' | 'utility';
 
@@ -59,6 +59,15 @@ export function enhancementsOpen(labs: LabData, enh: EnhData | undefined): boole
         || Object.values(enh?.d ?? {}).some(levels => levels.some(v => v > 0));
 }
 
+// Card Mastery opens at Tier 16, wave 100 (TheTowerSDK's milestone tracks and
+// the wiki's Cards page agree, 2026-11-02); a mastery already bought means
+// it's open. The wiki also wants 30 cards at 7★, which nothing else confirms,
+// so it isn't checked.
+export const CARD_MASTERY_AT = [16, 100] as const;
+export function cardMasteryOpen(cards: CardData | undefined, p: Progress | undefined): boolean {
+    return Object.values(cards?.data ?? {}).some(c => c?.mu) || reached(p, ...CARD_MASTERY_AT);
+}
+
 const SECTION_LABEL: Record<WsSection, string> = { attack: 'Attack', defense: 'Defense', utility: 'Utility' };
 
 export type LockedNotes = Partial<Record<'workshop' | 'labs' | 'enhancements' | 'stones' | 'modules' | 'bots' | 'guardian', string>>;
@@ -78,7 +87,7 @@ function priceText(cost: number, held: number | undefined, unit: string): string
 // what's measured, far too much) — tried on made-up accounts 2026-10-28.
 export function lockedNotes(s: {
     progress?: Progress; wsUnlocked?: WsUnlocked; labData: LabData; enhData?: EnhData;
-    uwData?: UWData; moduleState?: ModuleState; botData?: BotData; guardian?: GuardianData;
+    uwData?: UWData; moduleState?: ModuleState; botData?: BotData; guardian?: GuardianData; cardData?: CardData;
 }, held: { stones?: number; medals?: number } = {}): LockedNotes {
     const notes: LockedNotes = {};
     if (s.uwData) {
@@ -89,6 +98,10 @@ export function lockedNotes(s: {
         } else if (next !== undefined) {
             notes.stones = `Unlocking your next Ultimate Weapon isn’t ranked here: TowerForge measures what a UW adds from your runs, so it can only rank one you’ve run with. The next costs ${priceText(next, held.stones, 'stones')}.`;
         }
+    }
+    if (s.cardData && !cardMasteryOpen(s.cardData, s.progress)) {
+        const [tier, wave] = CARD_MASTERY_AT;
+        notes.stones = [notes.stones, `Card masteries open at Tier ${tier}, wave ${wave}, so none are listed yet.`].filter(Boolean).join(' ');
     }
     if (s.moduleState && s.moduleState.library.length === 0) {
         notes.modules = reached(s.progress, 2, 90) ? 'No modules yet.' : 'Modules open at Tier 2, wave 90.';

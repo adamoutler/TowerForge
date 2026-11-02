@@ -6,7 +6,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { parseGameExport } from './gameExport';
-import { enhancementsOpen, labOpen, labsOpen, lockedNotes, workshopOpen } from './unlocks';
+import { cardMasteryOpen, enhancementsOpen, labOpen, labsOpen, lockedNotes, workshopOpen } from './unlocks';
 import { makeExport } from '../test/makeExport';
 import { UWS } from '../constants/gameData';
 import { BOTS_CONFIG } from '../constants/botData';
@@ -53,6 +53,18 @@ describe('unlocks', () => {
         expect(enhancementsOpen({}, { d: {}, u: { attack: [true] } })).toBe(false);
         expect(enhancementsOpen({ 'Workshop Enhancement': 1 }, undefined)).toBe(true);
         expect(enhancementsOpen({}, { d: { attack: [12] }, u: {} })).toBe(true);
+    });
+
+    it('opens Card Mastery at Tier 16 wave 100, or once a mastery is bought', () => {
+        const cards = (mu: boolean) => ({ data: { Damage: { s: 7, mu } }, slots: 1, presets: {} }) as never;
+        const t16 = (wave: number) => ({ tierWaves: { 15: 4000, 16: wave }, completedTier: 15 });
+        expect(cardMasteryOpen(cards(false), t16(99))).toBe(false);
+        expect(cardMasteryOpen(cards(false), t16(100))).toBe(true);
+        expect(cardMasteryOpen(cards(true), t16(99))).toBe(true);
+        expect(cardMasteryOpen(cards(false), { tierWaves: {}, completedTier: 0 })).toBe(true);   // not known
+        expect(lockedNotes({ labData: {}, cardData: cards(false), progress: t16(99) }).stones)
+            .toBe('Card masteries open at Tier 16, wave 100, so none are listed yet.');
+        expect(lockedNotes({ labData: {}, cardData: cards(false), progress: t16(100) }).stones).toBeUndefined();
     });
 
     it('says what a panel leaves out', () => {

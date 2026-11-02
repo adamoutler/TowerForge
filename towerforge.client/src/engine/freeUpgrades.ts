@@ -12,10 +12,10 @@
 //  for, and long T20 and T21 runs read 598 / 1800 / 1227, exactly what the
 //  tournament workshop has room for. In a run in progress, UpgradeLevel is the
 //  workshop's level plus the free upgrades.
-//  Black Hole Digestor keeps free upgrades off Range while it's equipped, a
-//  perk the module's text doesn't mention (the owner, 2026-11-01): Range stayed
-//  at 0 with 79 levels of room on those T18 runs, played with it. Read here as
-//  any active Digestor; as an assist that's the code's assumption.
+//  Black Hole Digestor keeps free upgrades off Range while it's equipped, in a
+//  main or assist slot: its text says "Free Upgrades can not increase Tower
+//  Range" (wiki, the owner, 2026-11-02). Range stayed at 0 with 79 levels of
+//  room on those T18 runs, played with it.
 //  The code's assumptions: each roll picks evenly among the stats with room,
 //  and rolls come at a steady pace through the run. Cash upgrades bought during
 //  a run aren't counted (the site assumes AFK runs), nor are the extra levels

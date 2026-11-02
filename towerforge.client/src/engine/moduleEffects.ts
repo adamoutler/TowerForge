@@ -117,7 +117,8 @@ export function restorativeBonusASMult(mb: ModBonuses, chancePct: number): numbe
 }
 
 // Black Hole Digestor: +[x]% Coins/Kill Bonus for each free upgrade this wave
-// (it triggers even when the upgrade has nothing left to raise — wiki).
+// (it triggers even when the upgrade has nothing left to raise — wiki). Its
+// other line, no free upgrades on Range, is in engine/freeUpgrades.ts.
 export function blackHoleDigestorMult(mb: ModBonuses, freeUpgradesPerWave: number): number {
     const x = uniq(mb, 'Black Hole Digestor');
     return x > 0 ? 1 + (x / 100) * freeUpgradesPerWave : 1;

@@ -44,7 +44,7 @@ Run from `towerforge.client/` unless noted.
 | TowerForge Link exe (repo root) | `dotnet publish TowerForge.Link -c Release -o <folder>` — one self-contained `TowerForgeLink.exe` (unsigned for now) |
 | TowerForge Link for Android (repo root) | `powershell -ExecutionPolicy Bypass -File TowerForge.Link.Android\build.ps1 [-Debug] [-Out <file.apk>]` — Java 17 and the Android SDK from `%LOCALAPPDATA%\TowerForgeBuild\` (setup in `docs/towerforge-link.md`) |
 
-`npx eslint src` shows older `no-explicit-any` errors in moduleDefinitions. Lint the files you change instead.
+`npx eslint src` is clean (2026-11-02); keep it that way.
 
 ## Rules
 
