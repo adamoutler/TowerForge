@@ -32,6 +32,8 @@ import type { LabData, ModBonuses, UWAbbr } from '../types/gameTypes';
 import { HEAT_CONDITIONS, HEAT_WAVES } from '../constants/tournamentData';
 import type { HeatCondition, HeatKey, HeatRamp, LeagueHeat } from '../constants/tournamentData';
 import type { BattleReport } from './battleReport';
+import { inRunLevels } from './freeUpgrades';
+import type { RunLevelsInput } from './freeUpgrades';
 import { SPEED_RATIO } from './enemyStats';
 import type { EnemyType } from './enemyStats';
 
@@ -245,7 +247,8 @@ export function armorKeep(blocked: number | undefined, hits: number): number {
 }
 
 // A snapshot scored under its conditions.
-export function conditioned<T extends { modBonuses: ModBonuses; conditions?: TourneyConditions }>(snap: T): T {
+export function conditioned<T extends { modBonuses: ModBonuses; conditions?: TourneyConditions } & RunLevelsInput>(raw: T): T {
+    const snap = inRunLevels(raw);
     return snap.conditions ? { ...snap, modBonuses: withConditions(snap.modBonuses, snap.conditions) } : snap;
 }
 

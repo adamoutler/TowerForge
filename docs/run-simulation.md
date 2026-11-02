@@ -626,7 +626,11 @@ Most of this already exists in `engine/` (eDPS, UWs — see
   + card + perk + substats, × enhancement (to ×2); over 100% can give 2;
   never picks a maxed stat; rolls again for each skipped wave. Infinity
   Threshold (generator unique) adds 1000–4000 extra free-upgrade levels for
-  Damage / Health / Regen.
+  Damage / Health / Regen. Checked on the owner's runs (2026-11-01): a long
+  run's count is exactly the room its workshop leaves, in-run levels are the
+  workshop's plus the free upgrades, and Range isn't filled
+  (game-export-format.md, "Free upgrades"). Already in the scores:
+  `engine/freeUpgrades.ts`.
 - **Perks:** a pick every N waves: `N = trunc((base − Waves Required lab) ×
   (1 − 0.20 × perks × (1 + SPB/100)))`, base 200 → 250 after 20 perks, 300
   after 30, 350 after 40. Pools: 15 standard / 9 UW / 10 trade-off, drawn

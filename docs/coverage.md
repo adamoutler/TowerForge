@@ -41,7 +41,7 @@ reports set the baseline, so even unmodeled effects are already in it; only
 | System | Status | Notes |
 |---|---|---|
 | Health/damage per wave and tier, elites, fleets, bosses, speeds | ✅ | enemyStats.ts — matches the in-game Wave Info panel at T18 |
-| Enemy Level Skip (health and attack) | ✅ | levelSkip.ts; workshop, lab, enhancement, relic, substats |
+| Enemy Level Skip (health and attack) | ✅ | levelSkip.ts; workshop (at the level free upgrades take it to), lab, enhancement, relic, substats |
 | Enemy health labs | ✅ | By how often each type ends your runs (KilledBy) |
 | Enemy mix of normal types | ◐ | Not confirmed; doesn't change the push ranking |
 | Run length (Glass Cannon) | ✅ | runLength.ts — your last 5 deaths, luck-averaged, with the spread shown |
@@ -59,7 +59,8 @@ reports set the baseline, so even unmodeled effects are already in it; only
 | Coins per run and per hour as runs get longer | ✅ | Coins per Run projection |
 | Cells, gems, medals, reroll and module shards per run | ◐ | Read from your runs (2026-10-18, Coins per Run page). Elite cells in What If (2026-10-23, cells.ts): the run's cells per elite = (k × Cells/Kill Bonus + Cells card) × card mastery (wiki Currencies), so the enhancement, card and mastery lab move the right part, at the same waves. The DW cell lab and Golden Bot+ Bonus Cells stay in k (not valued); cells aren't an Optimizer goal |
 | Guardian fetch | ✅ | In the run drops; its coins are a separate share of the run's coins, scaled by the Fetch chip's finds per second |
-| In-run cash, interest, free upgrades, perks picked in a run | ✗ | The site assumes AFK runs; the calibration includes what you usually pick. Free upgrades matter more than that suggests: they fill workshop stats by about W220 on the owner's T18 runs, so workshop rows on those stats overstate their gain (game-export-format.md, optimizer.md; found 2026-11-01, not fixed yet) |
+| Free upgrades in a run | ✅ | Since 2026-11-01 (freeUpgrades.ts): scores read the levels a run reaches, from the chosen run's free upgrade counts, so workshop rows on stats they fill gain next to nothing. Checked against the room each owner's workshop leaves (game-export-format.md). Rolls shared evenly among stats with room is the code's assumption. The Free Upgrade stats themselves aren't valued, and locks (`UpgradesLockedFreeUpgrades`) aren't read |
+| In-run cash, interest, perks picked in a run | ✗ | The site assumes AFK runs; the calibration includes what you usually pick |
 
 ## Spending
 

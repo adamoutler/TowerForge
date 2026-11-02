@@ -382,6 +382,7 @@ export default function WhatIfTab() {
                                 that shows over several runs, not one.
                             </p>
                         )}
+                        {result.freeNotes.map(note => <p key={note} className="wi-hint">{note}</p>)}
                         {!models.run && (!tourney || gc) && (
                             <p className="wi-hint">
                                 Waves and coins per run need runs that ended in a death — use Import Game Data.

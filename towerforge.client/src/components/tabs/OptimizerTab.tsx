@@ -33,6 +33,7 @@ import { BattleReportPanel, EconomyStats, EhpStats } from './BuildPanels';
 import { buildRunLengthModel, pathRunGains, pathSkipGains } from '../../engine/runLength';
 import { conditionedSkip } from '../../engine/battleConditions';
 import { formatLabTime } from '../../engine/upgradeCosts';
+import { aboutWave, filledInRun, freeFillNote, freeFillText, statsInRun } from '../../engine/freeUpgrades';
 import { SKIP_NAMES, skipSources, skipUpgradePath } from '../../engine/levelSkip';
 import { labOpen, lockedNotes, workshopOpen } from '../../engine/unlocks';
 import type { LockedNotes } from '../../engine/unlocks';
@@ -99,6 +100,9 @@ export default function OptimizerTab() {
     const [coinWeight, setCoinWeight] = useState<number>(loadWeight);
     const [resultsGoal, setResultsGoal] = useState<OptGoal | null>(null);
     const [skipPath, setSkipPath] = useState<SkipUpgrade[]>([]);
+    // Free upgrades reach these in the chosen run: a note on the workshop and skip panels.
+    const [freeNote, setFreeNote] = useState<string>();
+    const [skipFreeNote, setSkipFreeNote] = useState<string>();
     // What's left out for now (not unlocked in the game yet) — a note per panel.
     const [locked, setLocked] = useState<LockedNotes>({});
     const [chipSets, setChipSets] = useState<ChipSet[]>([]);
@@ -198,12 +202,23 @@ export default function OptimizerTab() {
                 // Pushing waves: the Enemy Health Level Skip coin upgrades, most skip per
                 // coin first; pushing survival (eHP), the Enemy Attack Level Skip ones.
                 const skipKind = pushingWaves ? 'health' : pushingSurvival && snap.skipWorth ? 'attack' : null;
+                const workshop = snap.wsData[snap.presetIdx];
+                setFreeNote(freeFillNote(filledInRun(workshop, snap.free, snap.wsUnlocked)));
+                setSkipFreeNote(undefined);
                 if (skipKind) {
                     const sources = skipSources(
-                        skipKind, snap.wsData[snap.presetIdx], snap.labData, snap.enhData, snap.relicData, snap.modBonuses.subs ?? {},
+                        skipKind, workshop, snap.labData, snap.enhData, snap.relicData, snap.modBonuses.subs ?? {},
                     );
                     // Only what the account can buy yet (engine/unlocks.ts).
                     const names = SKIP_NAMES[skipKind];
+                    // Free upgrades take the workshop stat to its max: what's left to
+                    // buy is the lab and enhancement, on top of that max.
+                    const inRun = snap.free && workshop
+                        ? statsInRun(workshop, snap.free, snap.wsUnlocked).find(s => s.stat === names.workshop) : undefined;
+                    if (inRun?.filledAt != null) {
+                        sources.workshop = inRun.end;
+                        setSkipFreeNote(freeFillText(names.workshop, inRun.filledAt));
+                    }
                     sources.labProgress = snap.labProgress;
                     sources.closed = {
                         workshop: !workshopOpen('utility', names.workshop, sources.workshop, snap.wsUnlocked),
@@ -804,6 +819,7 @@ export default function OptimizerTab() {
                             {' '}<sup>{100 - Math.round(coinWeight * 100)}%</sup>, so ones that help both rise to the
                             top. Each row shows both halves.{pushWaves && ' Push counts flat damage and level skip, as in “Push further”.'}
                         </>)}
+                        {' '}Workshop stats count at the levels free upgrades take them to in your chosen run.
                         {' '}Stones and medals are ranked by gain per stone or medal, coins by gain per coin,
                         labs by gain per hour of research, shards per shard and gems per gem. Each step
                         builds on the ones above it.
@@ -854,6 +870,7 @@ export default function OptimizerTab() {
                             panel={panel}
                             candidates={results[panel.cat] ?? []}
                             locked={locked[panel.cat as keyof LockedNotes]}
+                            note={panel.cat === 'workshop' ? freeNote : undefined}
                             runGains={runGains(panel.cat)}
                             blend={blendMode ? (pushWaves ? 'waves' : 'survival') : undefined}
                             showAll={showMore[panel.cat] ?? false}
@@ -876,7 +893,7 @@ export default function OptimizerTab() {
                                 <ShardAdvice values={shardValues} metric={metricLabel} />
                             )}
                             {group.currency === 'coins' && runFits && skipPath.length > 0 && runModel && (
-                                <SkipPanel path={skipPath} runModel={runModel} coinsAt={coinsAt} skipScale={conditionedSkip(1, models.conditions)} />
+                                <SkipPanel path={skipPath} runModel={runModel} coinsAt={coinsAt} skipScale={conditionedSkip(1, models.conditions)} note={skipFreeNote} />
                             )}
                             {OPT_PANELS.filter(p => group.cats.includes(p.cat)).map(panel => (
                                 <OptPanel
@@ -884,6 +901,7 @@ export default function OptimizerTab() {
                                     panel={panel}
                                     candidates={results[panel.cat] ?? []}
                                     locked={locked[panel.cat as keyof LockedNotes]}
+                                    note={panel.cat === 'workshop' ? freeNote : undefined}
                                     runGains={runGains(panel.cat)}
                                     blend={blendMode ? (pushWaves ? 'waves' : 'survival') : undefined}
                                     showAll={showMore[panel.cat] ?? false}
@@ -965,6 +983,7 @@ interface OptPanelProps {
     panel: typeof OPT_PANELS[number];
     candidates: OptCandidate[];
     locked?: string;              // what's left out until it's unlocked in the game
+    note?: string;                // what free upgrades already reach
     showAll: boolean;
     onShowMore: () => void;
     gainColor: (score: number) => string;
@@ -1068,11 +1087,12 @@ function ShardAdvice({ values, metric }: { values: ShardTypeValue[]; metric: str
 // Skip (eHP survival): each point of skip slows how fast enemies get
 // tougher, so it moves the death wave a long way. In a tournament the
 // league's Skip Reduction and Skip Decay shrink each point (`skipScale`).
-function SkipPanel({ path, runModel, coinsAt, skipScale }: {
+function SkipPanel({ path, runModel, coinsAt, skipScale, note }: {
     path: SkipUpgrade[];
     runModel: NonNullable<ReturnType<typeof buildRunLengthModel>>;
     coinsAt?: (wave: number) => number;
     skipScale: number;
+    note?: string;
 }) {
     const gains = pathSkipGains(runModel, path.map(u => u.points * skipScale), coinsAt);
     const rows = path.map((u, i) => ({ u, ...gains[i] }));
@@ -1090,6 +1110,7 @@ function SkipPanel({ path, runModel, coinsAt, skipScale }: {
                 your death wave a long way. Most skip per coin first; the enhancement multiplies the other sources, so
                 its value grows with them.
             </p>
+            {note && <p className="opt-row-explainer" style={{ padding: '6px 12px 0' }}>{note}</p>}
             {rows.map(({ u, waves, coins }, idx) => (
                 <div key={`${u.source}-${u.to}`} className="opt-row">
                     <span className="opt-rank">#{idx + 1}</span>
@@ -1112,7 +1133,7 @@ function SkipPanel({ path, runModel, coinsAt, skipScale }: {
 }
 
 function OptPanel({
-    panel, candidates, locked, showAll, onShowMore, gainColor, catStyle, onApply, runGains, blend,
+    panel, candidates, locked, note, showAll, onShowMore, gainColor, catStyle, onApply, runGains, blend,
 }: OptPanelProps) {
     const totalWaves = runGains?.reduce((s, g) => s + g.waves, 0) ?? 0;
     const visible = showAll
@@ -1129,6 +1150,7 @@ function OptPanel({
             </div>
 
             {locked && candidates.length > 0 && <div className="opt-locked">🔒 {locked}</div>}
+            {note && <p className="opt-row-explainer" style={{ padding: '6px 12px 0' }}>{note}</p>}
             {candidates.length === 0 ? (
                 <div className="opt-empty">
                     {locked ? `🔒 ${locked}` : 'No upgrades available — all maxed or no data entered.'}
@@ -1149,6 +1171,9 @@ function OptPanel({
                             <div className="opt-name-col">
                                 <span className="opt-name">{c.category === 'workshop' ? c.label.replace(/^WS /, '') : c.label}</span>
                                 <span className="opt-sub">{c.subLabel}</span>
+                                {c.freeFillsAt !== undefined && (
+                                    <span className="opt-sub">Free upgrades max it by about {aboutWave(c.freeFillsAt)}</span>
+                                )}
                                 {blend && c.coinsPct !== undefined ? (
                                     <span className="opt-waves">
                                         {runGains?.[idx]

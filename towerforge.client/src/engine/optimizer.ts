@@ -36,6 +36,9 @@
 //  • The path is shown in blocks of 10 steps, one row per stat or lab in
 //    each, so one-level steps that take turns don't fill the list.
 //
+// 2026-11-01, free upgrades (engine/freeUpgrades.ts): scores read the levels
+// a run reaches, so a workshop stat free upgrades fill gains next to nothing.
+//
 // 2026-10-18, goals and every currency:
 //  • Goals (optimizerConfig OptGoal) pick the score for every panel; "coins
 //    and push" blends coins/hour with the push score (coins^w × push^(1−w)).
@@ -145,6 +148,8 @@ import type { FarmCalibration } from './farming';
 import { ehpScore } from './ehp';
 import type { EhpCalibration } from './ehp';
 import { edpsScore, edpsWaves } from './edps';
+import { inRunLevels, statsInRun } from './freeUpgrades';
+import type { FreeUpgradeRun } from './freeUpgrades';
 import { healthSkipChance, skipSources } from './levelSkip';
 import type { SkipKind } from './levelSkip';
 import type { DissonanceAt } from './dissonance';
@@ -204,6 +209,9 @@ export interface OptimizerSnapshot {
     // and the workshop groups bought. Omitted = not known: everything open.
     progress?: Progress;
     wsUnlocked?: WsUnlocked;
+    // The chosen run's free upgrades (engine/freeUpgrades.ts): scores read the
+    // levels a run reaches. Omitted = the workshop's levels.
+    free?: FreeUpgradeRun;
     // What upgrades are scored on: tower eDPS (Glass Cannon), coins per
     // hour (Farming, calibrated by `farm`) or survival (eHP, calibrated by
     // `ehp`). Defaults to eDPS.
@@ -367,8 +375,9 @@ function scoredSkip(snap: OptimizerSnapshot): number {
 
 // Enemy Health (or Attack) Level Skip chance in points, under the snapshot's conditions.
 export function skipChanceOf(snap: OptimizerSnapshot, kind: SkipKind = 'health'): number {
+    const ws = inRunLevels(snap).wsData[snap.presetIdx];
     return conditionedSkip(healthSkipChance(skipSources(
-        kind, snap.wsData[snap.presetIdx], snap.labData, snap.enhData, snap.relicData, snap.modBonuses.subs ?? {},
+        kind, ws, snap.labData, snap.enhData, snap.relicData, snap.modBonuses.subs ?? {},
     )), snap.conditions);
 }
 
@@ -744,6 +753,8 @@ export function buildCandidates(
     // ── Workshop ───────────────────────────────────────────────
     if (cat === 'workshop') {
         const cats = ['attack', 'defense', 'utility'] as const;
+        const workshop = snap.wsData[snap.presetIdx];
+        const inRun = snap.free && workshop ? statsInRun(workshop, snap.free, snap.wsUnlocked) : [];
         for (const wsCat of cats) {
             const stats = WS_STATS[wsCat] ?? [];
             stats.forEach(([statName, maxLv], idx) => {
@@ -775,6 +786,7 @@ export function buildCandidates(
                     costType: 'coins',
                     scorePct: delta,
                     skipPoints: addedSkip(snap, after),
+                    freeFillsAt: inRun.find(s => s.section === wsCat && s.idx === idx)?.filledAt ?? undefined,
                     // Rank by gain per coin; a stat without a known cost isn't recommended.
                     scorePerCost: costKnown ? delta / Math.max(1, cost) : 0,
                 });

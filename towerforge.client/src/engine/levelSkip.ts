@@ -17,6 +17,7 @@
 //      everything else, so one level is worth several workshop levels.
 //  Costs: the workshop, lab and enhancement tables (engine/upgradeCosts.ts),
 //  after the player's discount labs and lab speed.
+//  Scores read the workshop level free upgrades take it to (freeUpgrades.ts).
 //  Pure functions — no store imports.
 // ============================================================
 

@@ -25,6 +25,7 @@ import { buildRunLengthModel, killerMix, oneHitEnds, skipWorth } from './runLeng
 import type { RunLengthModel, RunStat } from './runLength';
 import { buildRunModel, projectRun, runSettingsFromCards } from './runCoins';
 import type { RunProjection } from './runCoins';
+import { freeUpgradeRun } from './freeUpgrades';
 import { defaultBattleIndex } from './gameExport';
 import { TOURNAMENT_TIER, hasDissonance } from './dissonance';
 import { conditioned, leagueConditions } from './battleConditions';
@@ -81,6 +82,7 @@ export function snapshotFromState(s: AccountState): OptimizerSnapshot {
         vault: s.vaultLevels ? { ...s.vaultLevels } : undefined,
         progress: { tierWaves: { ...(s.tierWaves ?? {}) }, completedTier: s.profile.completedTier || 0 },
         wsUnlocked: s.profile.wsUnlocked ? { ...s.profile.wsUnlocked } : undefined,
+        free: freeUpgradeRun(run, s.importedBattles, s.wsData[s.activePreset]) ?? undefined,
         metric: metricOf(effectiveBuild(s.profile.build, s.importedBattles)),
     };
 }

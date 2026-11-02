@@ -548,16 +548,27 @@ measured from the run's `FlameBotBlocked` (the made-up runs had none).
     runs (T18 ~W8300, 58% skip) one point of skip ≈ 205 waves ≈ +90% damage.
     That rate uses +50% damage, past the nearest health wall; the first +10%
     alone can buy more (53 waves there), which is why small probes mislead.
-  - **Known error, not fixed yet (found 2026-11-01):** the workshop row and
-    the Enemy Level Skip panels read the workshop's level, but free upgrades
-    carry both stats to 699 by about W220 on the owner's T18 runs (the
-    evidence: "Free upgrades" in [game-export-format.md](game-export-format.md)).
-    On the owner's export the top workshop pick for pushing was Enemy HP Level
-    Skip 601 → 611, +52% for 1.2e18 coins; ten levels only help until the stat
-    fills, so about 220 of 9,300 waves, or about +1% (the code's estimate).
-    The skip lab and enhancement do add to the capped chance. The same goes
-    for any workshop stat a player's free upgrades fill before the run ends;
-    each run's free counts against the room its workshop leaves tell which.
+  - **Free upgrades (2026-11-01, `engine/freeUpgrades.ts`):** every score
+    reads the levels a run reaches, not the workshop's: `conditioned()` puts
+    them in the snapshot, the workshop levels stay for prices and row labels.
+    The pace is the most free upgrades a wave seen on the tier's runs (a long
+    run's count stops at the room), never under 0.5% × the workshop's Free
+    Upgrade level; rolls go evenly among the stats with room (the code's
+    assumption: TheTowerSDK and the wiki only say a maxed stat is never
+    picked); evidence in "Free upgrades" in
+    [game-export-format.md](game-export-format.md). So a stat free upgrades fill
+    gains next to nothing at the death wave, and buying it frees rolls for the
+    rest. Level Skip counts by its average across the run, since levels are
+    skipped wave by wave; that's the only way ten more workshop levels still
+    show a gain once it fills. The Enemy Level Skip panels stop offering a
+    workshop stat that fills, and work out the lab and enhancement on top of
+    the max. Rows and panels say so. On the owner's export (2026-11-01):
+    Enemy HP Level Skip 601 → 611 went from +52.1% to +1.7% (about +0.7% with
+    a short run saved, which shows the real pace), Enemy Atk Level Skip 530 →
+    540 for survival from +15.8% to +0.7%, the Enemy Level Skips enhancement
+    from +28.0% to +31.5% (it multiplies the real 699), and on the tournament
+    workshop Wall Health 0 → 10 for survival from +1479% to +0.6% (free upgrades
+    reach about Lv 185 of it by W275).
   - On the rows, a step's skip moves the death wave as skip (not as its
     damage equivalent), so the skip lab shows the same waves in the Labs
     panel as in the Enemy Health Level Skip panel.

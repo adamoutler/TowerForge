@@ -32,6 +32,7 @@ import type { GoalModels } from './accountModels';
 import type { OptGoal } from '../constants/optimizerConfig';
 import type { BattleReport } from './battleReport';
 import { readActiveModuleBonuses } from './modBonuses';
+import { freeFillText, inRunLevels, statsInRun } from './freeUpgrades';
 import { attackSkipSources, healthSkipChance, healthSkipSources } from './levelSkip';
 import { readEhpInputs } from './ehp';
 import { deathRayRate, orbStats } from './orbs';
@@ -304,6 +305,7 @@ export interface WhatIfResult {
     // the waves those runs ended on.
     spread: { min: number; max: number; endedMin: number; endedMax: number; runs: number; tournament: boolean } | null;
     costs: Costs;
+    freeNotes: string[];               // workshop stats changed that free upgrades take to their max anyway
 }
 
 const ratioPct = (after: number, before: number) => (before > 0 ? (after / before - 1) * 100 : 0);
@@ -323,9 +325,12 @@ function goalPct(
 // Everything between a change and its result, for both snapshots; links
 // that didn't move are left out.
 function buildChain(
-    base: OptimizerSnapshot, after: OptimizerSnapshot, build: BuildType,
+    rawBase: OptimizerSnapshot, rawAfter: OptimizerSnapshot, build: BuildType,
     report: BattleReport | null, models: GoalModels, split: WaveSplit | null,
 ): ChainLink[] {
+    // The levels a run reaches, like the scores above.
+    const base = inRunLevels(rawBase);
+    const after = inRunLevels(rawAfter);
     // A part's share of the waves, by its log against the whole gain's.
     const totalLog = split ? Math.log(split.damage) + split.skipLog + split.killerLog + split.reachLog + split.smiteLog : 0;
     const wavesOf = (log: number) => (split && Math.abs(totalLog) > 1e-12 ? (split.waves * log) / totalLog : undefined);
@@ -494,10 +499,10 @@ function buildChain(
 // Skip as the run gets it: in a tournament, after the league's Skip
 // Reduction and Skip Decay.
 const skipOf = (s: OptimizerSnapshot, models: GoalModels) => conditionedSkip(healthSkipChance(healthSkipSources(
-    s.wsData[s.presetIdx], s.labData, s.enhData, s.relicData, s.modBonuses.subs ?? {},
+    inRunLevels(s).wsData[s.presetIdx], s.labData, s.enhData, s.relicData, s.modBonuses.subs ?? {},
 )), s.conditions ?? models.conditions);
 const attackSkipOf = (s: OptimizerSnapshot, models: GoalModels) => conditionedSkip(healthSkipChance(attackSkipSources(
-    s.wsData[s.presetIdx], s.labData, s.enhData, s.relicData, s.modBonuses.subs ?? {},
+    inRunLevels(s).wsData[s.presetIdx], s.labData, s.enhData, s.relicData, s.modBonuses.subs ?? {},
 )), s.conditions ?? models.conditions);
 
 export function whatIf(
@@ -654,5 +659,12 @@ export function whatIf(
         chain: buildChain(base, atStart, build, report, models, split),
         perChange, spread,
         costs,
+        freeNotes: changes.flatMap(c => {
+            const ws = base.wsData[base.presetIdx];
+            if (c.kind !== 'workshop' || !base.free || !ws) return [];
+            const [section, idx] = c.key.split('|');
+            const s = statsInRun(ws, base.free, base.wsUnlocked).find(x => x.section === section && x.idx === Number(idx));
+            return s?.filledAt != null ? [freeFillText(s.stat, s.filledAt)] : [];
+        }),
     };
 }

@@ -373,6 +373,8 @@ export interface OptCandidate {
     // Glass Cannon waves mode: Enemy Health Level Skip points the step adds
     // (counted in scorePct as the damage they're worth).
     skipPoints?: number;
+    // Workshop: the wave free upgrades take the stat to its max in the chosen run.
+    freeFillsAt?: number;
     // "Coins and push" goal: the step's gain in coins per hour and in the
     // push score (flat damage for Glass Cannon, survival otherwise), in %.
     coinsPct?: number;

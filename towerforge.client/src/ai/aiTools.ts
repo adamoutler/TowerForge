@@ -39,6 +39,7 @@ import type { IncomePoint } from '../engine/career';
 import type { LiveRun } from '../types/gameTypes';
 import { FARM_EFFECT_LABELS } from '../engine/farming';
 import type { FarmEffect } from '../engine/farming';
+import { filledInRun, freeFillNote } from '../engine/freeUpgrades';
 import { formatGameNumber } from '../engine/gameNumbers';
 import { formatLabTime } from '../engine/upgradeCosts';
 import { activeLoadout } from '../engine/statHelpers';
@@ -429,6 +430,8 @@ export function bestUpgrades(s: AiAccount, currency: AiCurrency, goalWanted?: st
             return `${i + 1}. ${c.label} ${c.subLabel} — ${gainText(picks, waves, i)}${cost ? `; costs ${cost}` : ''}`;
         });
         const unranked = unrankedNote(s, snap, cur);
+        const freeNote = cur === 'coins' ? freeFillNote(filledInRun(snap.wsData[snap.presetIdx], snap.free, snap.wsUnlocked)) : undefined;
+        if (freeNote) parts.push(freeNote);
         parts.push(`Next ${CURRENCY_NAMES[cur]}:\n${rows.length ? rows.join('\n')
             : `nothing the Optimizer can score for this goal.${unranked ? '' : ' The upgrades this currency buys don\'t change what this goal measures on this account.'}`}`);
         if (unranked) parts.push(unranked);
@@ -623,7 +626,7 @@ export function whatIfChanges(s: AiAccount, asks: AiChangeAsk[], tourney?: AiTou
     if (build === 'eHP' && (!r.waves || flat) && Math.abs(r.damagePct) >= 0.05 && Math.abs(r.survivalPct ?? 0) < 0.05) {
         out.push(`Why: with an eHP build, TowerForge measures how far runs go by survival (they end when enemies out-damage your health), so damage alone doesn't move it (this adds ${pct(r.damagePct)} damage).`);
     }
-    out.push(...notes, inTourney
+    out.push(...notes, ...r.freeNotes, inTourney
         ? `Details (tournaments: the tournament build set on the Tournament page, this week's battle conditions ticked there; damage measured on your tournament run that ended at W${report?.wave.toLocaleString() ?? '?'}):`
         : `Details (campaign runs; damage measured on your T${report?.tier ?? '?'} run that ended at W${report?.wave.toLocaleString() ?? '?'}):`);
     out.push(`All damage ${pct(r.damagePct)}.`);
