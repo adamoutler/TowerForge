@@ -12,8 +12,10 @@
 //  for, and long T20 and T21 runs read 598 / 1800 / 1227, exactly what the
 //  tournament workshop has room for. In a run in progress, UpgradeLevel is the
 //  workshop's level plus the free upgrades.
-//  Range stayed at 0 with 79 levels of room on those T18 runs, so it keeps its
-//  workshop level here. Why isn't known.
+//  Black Hole Digestor keeps free upgrades off Range while it's equipped, a
+//  perk the module's text doesn't mention (the owner, 2026-11-01): Range stayed
+//  at 0 with 79 levels of room on those T18 runs, played with it. Read here as
+//  any active Digestor; as an assist that's the code's assumption.
 //  The code's assumptions: each roll picks evenly among the stats with room,
 //  and rolls come at a steady pace through the run. Cash upgrades bought during
 //  a run aren't counted (the site assumes AFK runs), nor are the extra levels
@@ -36,7 +38,8 @@ const CHANCE_STAT: Record<WsSection, string> = {
 };
 const CHANCE_PER_LEVEL = 0.005;   // 0.5% a level, before card, perk and enhancement
 const MIN_WAVES = 50;             // shorter runs say little about the pace
-const LEFT_ALONE = 'Range';
+const RANGE = 'Range';
+const KEEPS_RANGE = 'Black Hole Digestor';
 // Enemy levels are skipped wave by wave, so a run's skip follows the level
 // across the whole run, not the level it ends on.
 const WAVE_BY_WAVE = new Set(['Enemy Atk Level Skip', 'Enemy HP Level Skip']);
@@ -81,13 +84,27 @@ export interface StatInRun {
     filledAt: number | null;    // the wave it reaches its max; null if it doesn't
 }
 
+export interface RunLevelsInput {
+    free?: FreeUpgradeRun;
+    wsData?: WSPreset[];
+    presetIdx?: number;
+    wsUnlocked?: WsUnlocked;
+    modBonuses?: { uniques?: Record<string, number> };
+}
+
+const rangeKept = (snap: RunLevelsInput) => snap.modBonuses?.uniques?.[KEEPS_RANGE] != null;
+
 // Each stat with room: rolls go evenly among the stats that still have room, so
 // the ones with least room fill first.
-export function statsInRun(ws: WSPreset, free: FreeUpgradeRun, unlocked?: WsUnlocked): StatInRun[] {
+export function statsInRun(snap: RunLevelsInput): StatInRun[] {
+    const { free } = snap;
+    const ws = snap.wsData?.[snap.presetIdx ?? 0];
+    if (!free || !ws) return [];
+    const kept = rangeKept(snap);
     return SECTIONS.flatMap(section => {
         const open = (WS_STATS[section] ?? []).flatMap(([stat, max], idx) => {
             const start = ws[section]?.[idx] ?? 0;
-            return start < max && stat !== LEFT_ALONE && workshopOpen(section, stat, start, unlocked)
+            return start < max && !(kept && stat === RANGE) && workshopOpen(section, stat, start, snap.wsUnlocked)
                 ? [{ stat, idx, start, room: max - start }] : [];
         });
         const rooms = open.map(s => s.room).sort((a, b) => a - b);
@@ -108,13 +125,6 @@ export function statsInRun(ws: WSPreset, free: FreeUpgradeRun, unlocked?: WsUnlo
     });
 }
 
-export interface RunLevelsInput {
-    free?: FreeUpgradeRun;
-    wsData?: WSPreset[];
-    presetIdx?: number;
-    wsUnlocked?: WsUnlocked;
-}
-
 // The snapshot with the levels a run reaches. Once applied `free` is gone, so
 // applying it again changes nothing.
 export function inRunLevels<T extends RunLevelsInput>(snap: T): T {
@@ -123,7 +133,7 @@ export function inRunLevels<T extends RunLevelsInput>(snap: T): T {
     const ws = wsData[presetIdx];
     if (!ws) return { ...snap, free: undefined };
     const levels: WSPreset = { ...ws, attack: [...ws.attack], defense: [...ws.defense], utility: [...ws.utility] };
-    for (const s of statsInRun(ws, free, snap.wsUnlocked)) {
+    for (const s of statsInRun(snap)) {
         const share = (s.filledAt ?? free.wave) / free.wave;
         levels[s.section][s.idx] = WAVE_BY_WAVE.has(s.stat) ? s.end - (s.end - s.start) * share / 2 : s.end;
     }
@@ -132,13 +142,21 @@ export function inRunLevels<T extends RunLevelsInput>(snap: T): T {
     return { ...snap, wsData: next, free: undefined };
 }
 
-// For the Optimizer's note: the stats a run takes to their max, and about when
-// the last of them gets there.
-export function filledInRun(ws: WSPreset | undefined, free: FreeUpgradeRun | undefined, unlocked?: WsUnlocked): { stats: string[]; byWave: number } | null {
-    if (!ws || !free) return null;
-    const filled = statsInRun(ws, free, unlocked).filter(s => s.filledAt !== null);
-    if (!filled.length) return null;
-    return { stats: filled.map(s => s.stat), byWave: Math.max(...filled.map(s => s.filledAt!)) };
+export interface FilledInRun {
+    stats: string[];      // the stats a run takes to their max
+    byWave: number;       // about when the last of them gets there
+    rangeKept: boolean;   // Black Hole Digestor is keeping Range below its max
+}
+
+// For the Optimizer's note.
+export function filledInRun(snap: RunLevelsInput): FilledInRun | null {
+    const ws = snap.wsData?.[snap.presetIdx ?? 0];
+    if (!snap.free || !ws) return null;
+    const filled = statsInRun(snap).filter(s => s.filledAt !== null);
+    const rangeIdx = WS_STATS.attack.findIndex(([n]) => n === RANGE);
+    const kept = rangeKept(snap) && (ws.attack[rangeIdx] ?? 0) < WS_STATS.attack[rangeIdx][1];
+    if (!filled.length && !kept) return null;
+    return { stats: filled.map(s => s.stat), byWave: Math.max(0, ...filled.map(s => s.filledAt!)), rangeKept: kept };
 }
 
 // "about W220": the pace is an average, so round up to a clean wave.
@@ -149,10 +167,14 @@ export const freeFillText = (stat: string, wave: number) =>
     `Free upgrades take ${stat} to its max by about ${aboutWave(wave)} in your chosen run, so workshop levels only help before that.`;
 
 // The same for every such stat, for the top of the workshop panel.
-export function freeFillNote(filled: { stats: string[]; byWave: number } | null): string | undefined {
+export function freeFillNote(filled: FilledInRun | null): string | undefined {
     if (!filled) return undefined;
     const SHOWN = 6;
     const names = filled.stats.slice(0, SHOWN).join(', ');
     const more = filled.stats.length - SHOWN;
-    return `Free upgrades take ${names}${more > 0 ? ` and ${more} more` : ''} to their max by about ${aboutWave(filled.byWave)} in your chosen run, so workshop levels on these only help before that.`;
+    const fills = filled.stats.length
+        ? `Free upgrades take ${names}${more > 0 ? ` and ${more} more` : ''} to their max by about ${aboutWave(filled.byWave)} in your chosen run, so workshop levels on these only help before that.`
+        : '';
+    const range = filled.rangeKept ? 'Black Hole Digestor keeps free upgrades off Range, so Range stays at its workshop level.' : '';
+    return [fills, range].filter(Boolean).join(' ');
 }

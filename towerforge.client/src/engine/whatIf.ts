@@ -660,10 +660,9 @@ export function whatIf(
         perChange, spread,
         costs,
         freeNotes: changes.flatMap(c => {
-            const ws = base.wsData[base.presetIdx];
-            if (c.kind !== 'workshop' || !base.free || !ws) return [];
+            if (c.kind !== 'workshop') return [];
             const [section, idx] = c.key.split('|');
-            const s = statsInRun(ws, base.free, base.wsUnlocked).find(x => x.section === section && x.idx === Number(idx));
+            const s = statsInRun(base).find(x => x.section === section && x.idx === Number(idx));
             return s?.filledAt != null ? [freeFillText(s.stat, s.filledAt)] : [];
         }),
     };

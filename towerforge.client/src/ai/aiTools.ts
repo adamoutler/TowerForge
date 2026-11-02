@@ -433,7 +433,7 @@ export function bestUpgrades(s: AiAccount, currency: AiCurrency, goalWanted?: st
             return `${i + 1}. ${c.label} ${c.subLabel} — ${gainText(picks, waves, i)}${cost ? `; costs ${cost}` : ''}`;
         });
         const unranked = unrankedNote(s, snap, cur);
-        const freeNote = cur === 'coins' ? freeFillNote(filledInRun(snap.wsData[snap.presetIdx], snap.free, snap.wsUnlocked)) : undefined;
+        const freeNote = cur === 'coins' ? freeFillNote(filledInRun(snap)) : undefined;
         if (freeNote) parts.push(freeNote);
         parts.push(`Next ${CURRENCY_NAMES[cur]}:\n${rows.length ? rows.join('\n')
             : `nothing the Optimizer can score for this goal.${unranked ? '' : ' The upgrades this currency buys don\'t change what this goal measures on this account.'}`}`);

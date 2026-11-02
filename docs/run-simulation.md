@@ -628,8 +628,9 @@ Most of this already exists in `engine/` (eDPS, UWs — see
   Threshold (generator unique) adds 1000–4000 extra free-upgrade levels for
   Damage / Health / Regen. Checked on the owner's runs (2026-11-01): a long
   run's count is exactly the room its workshop leaves, in-run levels are the
-  workshop's plus the free upgrades, and Range isn't filled
-  (game-export-format.md, "Free upgrades"). Already in the scores:
+  workshop's plus the free upgrades, and Range isn't filled while Black Hole
+  Digestor is equipped, which its text doesn't say (the owner, 2026-11-01;
+  game-export-format.md, "Free upgrades"). Already in the scores:
   `engine/freeUpgrades.ts`.
 - **Perks:** a pick every N waves: `N = trunc((base − Waves Required lab) ×
   (1 − 0.20 × perks × (1 + SPB/100)))`, base 200 → 250 after 20 perks, 300

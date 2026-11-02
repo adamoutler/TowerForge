@@ -166,7 +166,7 @@ export const UNIQUE_EFFECT_MODEL: Record<string, { counted: string; how: string 
     'Singularity Harness': { counted: 'Coins', how: 'Adds Golden Bot range (Flame Bot damage isn’t modeled).' },
     'Galaxy Compressor': { counted: 'eDPS · Coins', how: 'Each recovery package cuts every UW cooldown but Poison Swamp — package rate from your battle report.' },
     'Pulsar Harvester': { counted: 'Not counted', how: 'Enemy level reductions aren’t modeled.' },
-    'Black Hole Digestor': { counted: 'Coins', how: 'Adds Coins/Kill for every free upgrade each wave (free upgrade chances from workshop, card, perk, modules and enhancement).' },
+    'Black Hole Digestor': { counted: 'Coins', how: 'Adds Coins/Kill for every free upgrade each wave (free upgrade chances from workshop, card, perk, modules and enhancement). It also keeps free upgrades off Range, though its text doesn’t say so: Range stays at its workshop level.' },
     'Project Funding': { counted: 'eDPS', how: 'Tower damage × digits of cash — cash from your battle report.' },
     'Restorative Bonus': { counted: 'eDPS', how: 'Packages boost attack speed, which drives Chain Lightning.' },
     'Infinity Threshold': { counted: 'Not counted', how: 'Upgrade values past the normal level cap aren’t known.' },

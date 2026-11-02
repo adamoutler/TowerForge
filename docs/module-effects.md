@@ -47,7 +47,7 @@ A pasted battle report (as opposed to an imported one) doesn't include boss/elit
 | Dimension Core | eDPS | Chain Lightning +0.6 hits per proc (hits its target 60%). Shock (labs: 2.5% + 0.5%/lvl chance, ×1.10 + 0.04/lvl): all damage × (1 + min(x, hits × 2s) × 2(m − 1)); without Dimension Core × (1 + min(1, hits × s)(m − 1)). |
 | Om Chip | eDPS | × (1 + (x − 1) × min(1, boss kills/s × time-to-tower) × 25%). *Assumes a quarter of enemies are near a lit boss.* |
 | Primordial Collapse | eDPS · eHP | +1 Black Hole (BH damage and farming coverage). eHP: damage that lands × (1 − x% × share of kills in holes). |
-| Black Hole Digestor | Coins | Kill coins × (1 + x% × free upgrades per wave). Free upgrades/wave = Σ over Attack/Defense/Utility of (0.5%/level + card + perk + subs) × enhancement, × (1 + Wave Skip). Your setup: ~6.2/wave → +62%. *Assumes the bonus multiplies the Coins/Kill bonus.* |
+| Black Hole Digestor | Coins | Also keeps free upgrades off Range while equipped, which its text doesn't say (the owner, 2026-11-01; `engine/freeUpgrades.ts`). Kill coins × (1 + x% × free upgrades per wave). Free upgrades/wave = Σ over Attack/Defense/Utility of (0.5%/level + card + perk + subs) × enhancement, × (1 + Wave Skip). Your setup: ~6.2/wave → +62%. *Assumes the bonus multiplies the Coins/Kill bonus.* |
 | Gilded Sniper | Coins | For Spotlight, Black Hole and Golden Bot: coverage c → c + (uptime − c) × x%. Observed coverage has the current value removed first, so changes re-apply cleanly. |
 | Singularity Harness | Coins | +x m Golden Bot range (Flame Bot double damage not modeled). |
 | Sharp Fortitude | eHP | Wall health and wall regen × x. |

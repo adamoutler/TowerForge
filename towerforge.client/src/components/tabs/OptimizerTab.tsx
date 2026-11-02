@@ -203,7 +203,7 @@ export default function OptimizerTab() {
                 // coin first; pushing survival (eHP), the Enemy Attack Level Skip ones.
                 const skipKind = pushingWaves ? 'health' : pushingSurvival && snap.skipWorth ? 'attack' : null;
                 const workshop = snap.wsData[snap.presetIdx];
-                setFreeNote(freeFillNote(filledInRun(workshop, snap.free, snap.wsUnlocked)));
+                setFreeNote(freeFillNote(filledInRun(snap)));
                 setSkipFreeNote(undefined);
                 if (skipKind) {
                     const sources = skipSources(
@@ -213,8 +213,7 @@ export default function OptimizerTab() {
                     const names = SKIP_NAMES[skipKind];
                     // Free upgrades take the workshop stat to its max: what's left to
                     // buy is the lab and enhancement, on top of that max.
-                    const inRun = snap.free && workshop
-                        ? statsInRun(workshop, snap.free, snap.wsUnlocked).find(s => s.stat === names.workshop) : undefined;
+                    const inRun = statsInRun(snap).find(s => s.stat === names.workshop);
                     if (inRun?.filledAt != null) {
                         sources.workshop = inRun.end;
                         setSkipFreeNote(freeFillText(names.workshop, inRun.filledAt));

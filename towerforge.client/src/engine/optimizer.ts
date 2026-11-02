@@ -759,8 +759,7 @@ export function buildCandidates(
     // ── Workshop ───────────────────────────────────────────────
     if (cat === 'workshop') {
         const cats = ['attack', 'defense', 'utility'] as const;
-        const workshop = snap.wsData[snap.presetIdx];
-        const inRun = snap.free && workshop ? statsInRun(workshop, snap.free, snap.wsUnlocked) : [];
+        const inRun = statsInRun(snap);
         for (const wsCat of cats) {
             const stats = WS_STATS[wsCat] ?? [];
             stats.forEach(([statName, maxLv], idx) => {
