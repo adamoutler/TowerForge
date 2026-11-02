@@ -348,10 +348,11 @@ Traced on the owner's 29.1.3 export by recording every field `parseGameExport` r
 
 **Readable now, nothing needed from the owner (2026-11-01):**
 
-- Gems per run: `GemsThisRound` = `AdGemsThisRound` + `GuardianGems` + 2 × `GemBlocksTapped` on 11 of the owner's newest 12 runs (the other, T23 W185, reads 20 more than that). Only the Guardian's part is shown today.
 - `AssistModuleSlots[].CoinsSpent` and `ShardsSpent`: the assist slots' spending, on top of `SlotCoinsSpent` / `SlotShardsSpent`, which hold the four main slots only (main level 213 cost 423,930 shards, assist level 211 cost 405,905). Career's slot totals leave these out.
 - `ResearchesComplete` (3,088 on the owner's export, `CompletedLabs` holds 2,144) and `CardsBoughtTotal`.
 - `PerksPicked` by name for the perk numbers already known: 22 of the 52 picks at T18 W3141.
+
+**Gems per run (checked 2026-11-01):** `GemsThisRound` = `AdGemsThisRound` + `GuardianGems` + 2 × `GemBlocksTapped` on 11 of the owner's newest 12 runs (the other, T23 W185, reads 20 more than that). Coins per Run already lists these by name (`runDrops`), so nothing is missing here.
 
 **Looked at and left out (2026-11-01):** `TargetPriority`, `TargetPriorityList`, `LifeSavingOrder`, the orb distance fields and `BotPresetName` (the site's presets go by the global preset's name): no model reads them. The automation and on/off toggles (`DeathRayInstantKillToggle`, `NukeAutomateToggle`, `DemonModeAutomateToggle`, `MissileBarrageAutomateToggle`, `SpawnAcceleratorToggle`, `EnergyShieldRestrictionToggle`, `SpotlightSmartMissilesOff`, `PoisonSwampStunOff`) never change between the owner's exports, so what each does can't be read from them; `DemonModeAutomateToggle` is off on runs that still used Demon Mode.
 
