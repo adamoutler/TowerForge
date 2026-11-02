@@ -660,8 +660,10 @@ measured from the run's `FlameBotBlocked` (the made-up runs had none).
   optimizer offers unlocks only, never re-buys, and none before the Card
   Mastery milestone, Tier 16 wave 100 (TheTowerSDK's milestone tracks and the
   wiki's Cards page, 2026-11-02; `cardMasteryOpen` in `engine/unlocks.ts`).
-  The wiki also says it needs 30 cards at 7★; nothing else confirms that, so
-  it isn't checked. Unlock costs (Notion Card
+  The wiki also says it needs 30 cards at 7★, and so do TheTowerSDK's
+  written notes (`knowledge/compartments/masteries`, likely from the wiki); no
+  game screen confirms it, and only an account past Tier 16 wave 100 with
+  fewer than 30 cards at 7★ could show it, so it isn't checked. Unlock costs (Notion Card
   Mastery page): 500 Cash / Free Upgrades; 750 Damage, Attack Speed, Health,
   Health Regen, Range, Critical Chance, Fortress, Extra Orb, Death Ray,
   Energy Net, Berserker, Ultimate Crit, Nuke; 1000 Slow Aura, Enemy Balance,

@@ -371,7 +371,10 @@ export function calcTowerDamage(
 //
 // Game formula:
 //   Displayed AS = (Workshop × Lab × Card + ModuleSub) × Enhancement
-//   fireRate     = Displayed AS × Perk × Relic
+//   fireRate     = Displayed AS × Relic
+// The game has no Attack Speed perk (wiki Perks page, TheTowerSDK's perk
+// table, and the export's 34-perk Auto Pick list; until 2026-11-02 the site
+// counted one at ×2.19 with Standard Perk Bonus 25).
 // where:
 //   Workshop:    1.00 base, +0.05/level (max 5.95 @ lv99)
 //   Lab:         1.00 base, +0.02/level (max 2.98 @ lv99)
@@ -403,13 +406,12 @@ export function calcAttackSpeed(
     const moduleSub = modBonuses.subs?.['Attack Speed'] ?? 0;
     const displayedAS = (workshopVal * labMult * cardMult + moduleSub) * enhAS;
 
-    const perkMult = modBonuses.perks.atkSpdMult ?? 1;
     const relicMult = 1 + (relicData['rAtkSpd'] ?? 0) / 100;
 
     // Restorative Bonus: packages give +50% attack speed for a while.
     const restorative = restorativeBonusASMult(modBonuses, packageChancePct(presetIdx, wsData, labData, cardData, modBonuses));
 
-    return displayedAS * perkMult * relicMult * restorative;
+    return displayedAS * relicMult * restorative;
 }
 
 // ── Projectile hits per second ────────────────────────────────

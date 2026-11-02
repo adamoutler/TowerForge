@@ -641,6 +641,19 @@ Most of this already exists in `engine/` (eDPS, UWs — see
   65/20/15%. Caps: 5 for most, 3 Bounce Shot & Wave Requirement, 2 Orbs, 1
   for UW and trade-off perks. Exact stacking/routing in SDK `perks/benefit.ts`.
   Which perks get taken depends on the player's Auto Pick ranking.
+  **Checked 2026-11-02 on the owner's Auto Pick list** (Standard Perk Bonus 25,
+  Improve Tradeoff Perks 10): one pick shows x1.44 All Coin Bonuses, x1.50 Max
+  Health, x2.19 Health Regen, +6.25% Free Upgrade Chance, +1.25 max game speed,
+  −25% Perk Wave Requirement, and the regen trade-off x8.80 with −60% max
+  health. So Standard Perk Bonus multiplies the whole x-perk, (1 + base) × 1.25,
+  not just its bonus, and Improve Tradeoff Perks multiplies only the benefit
+  (anchors in `calculations.test.ts` and `ehp.test.ts`). Several picks of one
+  perk count as (1 + base × picks) × (1 + SPB), TheTowerSDK's formula, which
+  the list can't show. **There is no Attack Speed perk**: the wiki's Perks page
+  and TheTowerSDK's perk table (read from the game) list the same 15 standard
+  perks, and the export's Auto Pick list holds exactly 34 (15 + 9 + 10). The site
+  counted one until 2026-11-02, which put tower attack speed ×2.19 too high
+  (202 against 92 on the owner's account); the Optimizer's picks didn't move.
 - **Wave Skip:** a skipped wave pays ×1.1 of the previous wave's coins, cash
   and cells (×1.1ⁿ for a chain), rolls free upgrades and ELS per skipped
   wave, and doesn't skip fleets.

@@ -79,3 +79,11 @@ describe('healing the run shows', () => {
         expect(calib.otherHealPerSec).toBeCloseTo(4.5e6 / 150000, 10);
     });
 });
+
+describe('perks in eHP', () => {
+    it('counts the regen trade-off as the game shows it: x8.80 at Improve Tradeoff Perks 10', () => {
+        const parts = readEhpInputs(snapshot(s => { s.labData['Improve Tradeoff Perks'] = 10; })).parts;
+        expect(parts.regen.find(f => f.label.startsWith('Trade-off: Regen'))!.value).toBeCloseTo(8.8, 10);
+        expect(parts.health.find(f => f.label.startsWith('Trade-off: Regen'))!.value).toBeCloseTo(0.4, 10);   // −60%
+    });
+});

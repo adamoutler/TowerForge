@@ -15,6 +15,7 @@ import { moduleMaxLevel } from '../constants/moduleRarities';
 import { UNIQUE_MODULES } from '../constants/moduleData';
 import type { CardData, Loadout, ModBonuses, ModuleEntry, ModuleRarity, ModuleState, ModuleType, UWData } from '../types/gameTypes';
 import { battle, makeExport } from '../test/makeExport';
+import { standardPerkValue } from './modBonuses';
 
 const mod = (type: ModuleType, rarity: ModuleRarity, mainMult = 0): ModuleEntry =>
     ({ id: 'm', name: 'Test', type, rarity, subs: [], mainMult });
@@ -309,5 +310,22 @@ describe('workshop stats at the game\'s values', () => {
         close(WS_HEALTH_REGEN.valueAt(1), 0.04);
         close(WS_DEFENSE_ABSOLUTE.valueAt(50), 191.67);
         close(WS_DEFENSE_ABSOLUTE.valueAt(1), 0.505);
+    });
+});
+
+describe('perk values (the game’s Auto Pick list, owner 2026-11-02)', () => {
+    // One pick each at Standard Perk Bonus 25; the list rounds to 2 places.
+    it.each([
+        ['All Coin Bonuses', 0.15, 1.44],
+        ['Max Health', 0.2, 1.5],
+        ['Health Regen', 0.75, 2.19],
+    ] as const)('x%s shows %f', (_, base, shown) => {
+        expect(standardPerkValue(base, 1, 25)).toBeCloseTo(shown, 2);
+    });
+
+    it('scales the additive ones too: +6.25% free upgrades, +1.25 game speed', () => {
+        expect(standardPerkValue(5, 1, 25, true)).toBeCloseTo(6.25, 10);
+        expect(standardPerkValue(1, 1, 25, true)).toBeCloseTo(1.25, 10);
+        expect(standardPerkValue(0.2, 1, 25, true)).toBeCloseTo(0.25, 10);   // Perk Wave Requirement −25%
     });
 });

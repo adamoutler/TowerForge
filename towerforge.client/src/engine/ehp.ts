@@ -76,6 +76,7 @@ import type { OptimizerSnapshot } from './optimizer';
 import { runMix } from './battleConditions';
 import { botStatValue, touchesOf } from './edps';
 import { deathRayRate, orbStats } from './orbs';
+import { standardPerkValue } from './modBonuses';
 
 // Seconds of sustained pressure the score weighs healing over.
 export const SUSTAIN_WINDOW_S = 60;
@@ -169,9 +170,10 @@ export function readEhpInputs(snap: OptimizerSnapshot): EhpInputs {
 
     // Perks — like the rest of the app, every perk that isn't banned counts as taken.
     const banned = new Set(snap.perkData.banned ?? []);
-    const spb = (lab['Standard Perk Bonus'] ?? 0) / 100;
+    const spbLevel = lab['Standard Perk Bonus'] ?? 0;
+    // Improve Tradeoff Perks: +1% a level on the benefit (x8.80 regen at 10 on the game's Auto Pick list).
     const tradeoffLab = (lab['Improve Tradeoff Perks'] ?? 0) / 100;
-    const perkMult = (id: string, base: number) => (banned.has(id) ? 1 : (1 + base * 5) * (1 + spb));
+    const perkMult = (id: string, base: number) => (banned.has(id) ? 1 : standardPerkValue(base, 5, spbLevel));
     const taken = (id: string) => !banned.has(id);
 
     // Armor sub-effects (main slot at full value, assist at its substat efficiency).
@@ -291,7 +293,7 @@ export function readEhpInputs(snap: OptimizerSnapshot): EhpInputs {
         add(parts.defPct, `Extra Defense card ${dCard.stars}★`, cardValue('Extra Defense', dCard.stars));
         if (dCard.mastery != null) add(parts.defPct, 'Extra Defense mastery', dCard.mastery);
     }
-    const defPerkPick = taken('defpct') ? 4 * (1 + spb) : 0;
+    const defPerkPick = taken('defpct') ? standardPerkValue(4, 1, spbLevel, true) : 0;
     add(parts.defPct, 'Perk: Defense % +4', defPerkPick * 5, PERK_NOTE);
     add(parts.defPct, 'Armor sub-effects', sub.defPts);
     add(parts.defPct, 'Relics', relic('rDefPct'));

@@ -29,6 +29,7 @@ import { BOTS_CONFIG, isBotEntryOwned, vaultBotRange } from '../constants/botDat
 import { labValue, WS_COIN_PER_KILL, WS_COIN_PER_WAVE } from '../constants/buildStatCurves';
 import { uwStatValue, calcEffCD, getMultiverseNexusCombinedCD } from './uwdps';
 import { calcModuleSlotMult } from './towerDamage';
+import { standardPerkValue } from './modBonuses';
 import {
     blackHoleDigestorMult, gildedSniperChance, singularityHarnessRange, primordialCollapseExtraHoles,
 } from './moduleEffects';
@@ -126,8 +127,7 @@ function freeUpgradesPerWave(snap: OptimizerSnapshot, waveSkip: number): number 
     const card = activeCard(snap, 'Free Upgrades');
     const cardPct = card ? cardValue('Free Upgrades', card.stars) : 0;
     const banned = new Set(snap.perkData.banned ?? []);
-    const spb = (snap.labData['Standard Perk Bonus'] ?? 0) / 100;
-    const perkPct = banned.has('freeupg') ? 0 : 5 * 5 * (1 + spb);
+    const perkPct = banned.has('freeupg') ? 0 : standardPerkValue(5, 5, snap.labData['Standard Perk Bonus'] ?? 0, true);
     const enhIdx = WS_ENH.utility.findIndex(([n]) => n === 'Free Upgrades');
     const enh = snap.enhData?.u?.utility?.[enhIdx] ? 1 + 0.01 * (snap.enhData?.d?.utility?.[enhIdx] ?? 0) : 1;
     const subs = snap.modBonuses.subs ?? {};

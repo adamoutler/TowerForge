@@ -199,6 +199,17 @@ function matchUWSub(
 }
 
 // ── Perk Bonuses ──────────────────────────────────────────────
+// A standard perk after some picks, with the Standard Perk Bonus lab (+1% a
+// level): x-perks (1 + base × picks) × (1 + SPB), additive ones (Defense %,
+// Free Upgrade Chance) base × picks × (1 + SPB) — TheTowerSDK's formula. At one
+// pick and SPB 25 it gives what the game's Auto Pick list shows (owner,
+// 2026-11-02): x1.44 All Coin Bonuses, x1.50 Max Health, x2.19 Health Regen,
+// +6.25% Free Upgrade Chance.
+export function standardPerkValue(base: number, picks: number, spbLevel: number, additive = false): number {
+    const spb = 1 + spbLevel / 100;
+    return additive ? base * picks * spb : (1 + base * picks) * spb;
+}
+
 // Reads perkData.banned and returns all active perk multipliers.
 // All non-banned perks are assumed active at max quantity.
 export function calcPerkBonuses(
@@ -206,13 +217,10 @@ export function calcPerkBonuses(
     labData: LabData,
 ): PerkBonuses {
     const banned = new Set(perkData.banned ?? []);
-    const spb = (labData['Standard Perk Bonus'] ?? 0) / 100;
+    const spbLevel = labData['Standard Perk Bonus'] ?? 0;
 
-    // Standard perk multiplier formula:
-    // (1 + baseVal × maxQty) × (1 + SPB)
     function stdMult(id: string, baseVal: number, maxQty: number): number {
-        if (banned.has(id)) return 1;
-        return (1 + baseVal * maxQty) * (1 + spb);
+        return banned.has(id) ? 1 : standardPerkValue(baseVal, maxQty, spbLevel);
     }
 
     // UW perk — flat mult, no SPB
@@ -227,7 +235,6 @@ export function calcPerkBonuses(
 
     return {
         totalDmgMult: stdMult('dmg', 0.15, 5),
-        atkSpdMult: stdMult('atkspd', 0.15, 5),
         clDmgMult: uwActive('cl_dmg') ? 2.0 : 1.0,
         slBonusMult: uwActive('sl_bonus') ? 1.5 : 1.0,
         dwExtraWave: uwActive('dw_wave') ? 1 : 0,

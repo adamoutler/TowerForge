@@ -144,9 +144,14 @@ export const CARD_PRESET_SLOTS = 28;   // SlotPresetCardInt holds 28 slots per c
 // the wiki's order (every confirmed number matches it). Standard perks do
 // NOT, so only the confirmed ones are listed; banned perks the file can't
 // name keep what the player entered. null = a perk the site doesn't model.
+// 0, 2 and 8 (and 22, 47) were read off the owner's Auto Pick list against
+// AutoPickOrder (2026-11-02); 1, 4, 6, 7, 9, 11 and 13 sit further down it.
 export const GAME_PERKS: Record<number, string | null> = {
+    0: 'health',
+    2: 'hregen',
     3: 'coins',
     5: 'interest',
+    8: 'freeupg',
     10: null,   // Perk Wave Requirement
     12: null,   // Max Game Speed +1
     14: 'absdef',

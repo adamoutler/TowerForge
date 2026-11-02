@@ -164,7 +164,7 @@ export const CARDS: [string, number, number, number, number[], string][] = [
     ['Intro Sprint', 1, 0, 0, [20, 30, 40, 50, 60, 80, 100], 'waves'],
     ['Land Mine Stun', 1, 7, 250, [1.4, 1.8, 2.2, 2.6, 3, 3.4, 3.8], 'sec'],
     ['Recovery Pkg Chance', 1, 2, 750, [15, 18, 21, 24, 27, 30, 33], '+%'],
-    ['Cells', 1, 0, 0, [2, 4, 6, 8, 10, 12, 14], ' cells'],
+    ['Cells', 1, 4, 40, [2, 4, 6, 8, 10, 12, 14], ' cells'],   // Tier 4 milestone screen (owner, 2026-11-02)
     ['Death Ray', 2, 0, 0, [2.3, 2.7, 3.1, 3.5, 3.9, 4.4, 4.9], 'sec'],
     ['Energy Net', 2, 0, 0, [2.5, 2.8, 3.1, 3.4, 3.7, 4, 4.3], 'sec'],
     ['Super Tower', 2, 0, 0, [2.5, 2.9, 3.3, 3.7, 4.1, 4.5, 5], 'x'],
@@ -432,7 +432,6 @@ export const PERKS: {
 }[] = [
         // Standard
         { id: 'dmg', name: 'Damage ×1.15', type: 'standard', stat: 'dmg', baseVal: 0.15, maxQty: 5, spbScales: true },
-        { id: 'atkspd', name: 'Attack Speed ×1.15', type: 'standard', stat: 'atkspd', baseVal: 0.15, maxQty: 5, spbScales: true },
         { id: 'coins', name: 'All Coin Bonuses ×1.15', type: 'standard', stat: 'coins', baseVal: 0.15, maxQty: 5, spbScales: true },
         { id: 'cash', name: 'Cash Bonus ×1.15', type: 'standard', stat: 'cash', baseVal: 0.15, maxQty: 5, spbScales: true },
         { id: 'health', name: 'Max Health ×1.20', type: 'standard', stat: 'health', baseVal: 0.20, maxQty: 5, spbScales: true },
@@ -586,6 +585,7 @@ export const MEDAL_SYMBOL = '🎖️';
 // Fortification W40, Swamp Rend W60, the bot Burn Stack / Duration labs W60,
 // the enemy labs T9 W30–60 (Protector Dmg Reduction W400) and the fleet ones
 // T22 W60 were corrected then. Bot Bot's labs aren't in those lists (kept).
+// Auto Pick Perks at T4 W50 matches the owner's Tier 4 milestone screen (2026-11-02).
 export const LABS: { c: string; l: [string, number, number, number, number?][] }[] = [
     {
         c: 'Main Research', l: [

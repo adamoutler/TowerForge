@@ -136,6 +136,12 @@ describe('perks, league, preset names', () => {
         expect(imp.bannedPerks).toEqual(['coins', 'to_dmg']);
     });
 
+    it('names the perks read off the owner\'s Auto Pick list (2026-11-02)', () => {
+        // The list's first 12 against AutoPickOrder [10,3,12,24,27,28,25,22,8,47,2,0,…].
+        const imp = parseGameExport(makeExport({ BannedPerksIndex: [8, 47, 2, 0, 22] }));
+        expect(imp.bannedPerks).toEqual(['freeupg', 'to_regen', 'hregen', 'health', 'dw_wave']);
+    });
+
     it('reads the league, and leaves it unknown when the file has none', () => {
         expect(parseGameExport(makeExport({ HighestLeague: 6 })).league).toBe('Mythic');
         expect(parseGameExport(makeExport({ HighestLeague: 0 })).league).toBe('Copper');

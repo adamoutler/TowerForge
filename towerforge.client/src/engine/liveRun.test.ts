@@ -80,15 +80,17 @@ describe('the run\'s levels and perks', () => {
     it('names the perks it can, and counts the rest', () => {
         const p = livePerks({ PerksPicked: [
             { Wave: 180, Perk: 10 }, { Wave: 270, Perk: 12 }, { Wave: 400, Perk: 3 }, { Wave: 530, Perk: 3 },
-            { Wave: 660, Perk: 25 }, { Wave: 700, Perk: 0 }, { Wave: 800, Perk: 8 }, null,
+            { Wave: 660, Perk: 25 }, { Wave: 700, Perk: 0 }, { Wave: 800, Perk: 8 }, { Wave: 900, Perk: 13 }, null,
         ] })!;
         expect(p.named).toEqual([
             { name: 'Perk Wave Requirement', count: 1 },
             { name: 'Max Game Speed', count: 1 },
             { name: 'All Coin Bonuses ×1.15', count: 2 },
             { name: 'CL Damage ×2', count: 1 },
+            { name: 'Max Health ×1.20', count: 1 },
+            { name: 'Free Upgrade Chance +5%', count: 1 },
         ]);
-        expect(p.unnamed).toBe(3);
+        expect(p.unnamed).toBe(2);
         expect(livePerks({})).toBeNull();
     });
 });

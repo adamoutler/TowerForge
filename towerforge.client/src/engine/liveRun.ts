@@ -163,8 +163,8 @@ export interface LivePerks {
     unnamed: number;                            // picks on numbers not known yet
 }
 
-// The picks so far, by the names the site knows. 12 standard perk numbers are
-// only known once an Auto Pick list is seen.
+// The picks so far, by the names the site knows. 7 standard perk numbers are
+// still to be read off the rest of an Auto Pick list.
 export function livePerks(raw: Record<string, unknown>): LivePerks | null {
     if (!Array.isArray(raw.PerksPicked)) return null;
     const counts = new Map<string, number>();

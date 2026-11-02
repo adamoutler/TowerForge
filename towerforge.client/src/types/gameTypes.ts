@@ -314,7 +314,6 @@ export interface ModBonuses {
 // ── Engine — Perk Bonuses ─────────────────────────────────────
 export interface PerkBonuses {
     totalDmgMult: number;
-    atkSpdMult: number;
     clDmgMult: number;
     slBonusMult: number;
     dwExtraWave: number;
