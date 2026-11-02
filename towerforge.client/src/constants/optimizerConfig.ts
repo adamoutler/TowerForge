@@ -27,7 +27,8 @@ export const BUILD_SUPPORT: Record<string, { ready: boolean; label: string }> = 
 //   survival — eHP (engine/ehp.ts)
 //   blend    — coins and push together: coins^w × push^(1 − w), push being
 //              waves for Glass Cannon and survival otherwise
-export type OptGoal = 'damage' | 'waves' | 'coins' | 'survival' | 'blend';
+//   cells    — Elite Cells on the chosen run, at the same waves (engine/cells.ts)
+export type OptGoal = 'damage' | 'waves' | 'coins' | 'survival' | 'blend' | 'cells';
 
 export const GOAL_LABELS: Record<OptGoal, string> = {
     damage: 'More damage (eDPS)',
@@ -35,12 +36,13 @@ export const GOAL_LABELS: Record<OptGoal, string> = {
     coins: 'More coins (econ)',
     survival: 'Survive longer (eHP)',
     blend: 'Coins and push together',
+    cells: 'More Elite Cells',
 };
 
 export const BUILD_GOALS: Record<BuildType, OptGoal[]> = {
-    'Glass Cannon': ['waves', 'damage', 'coins', 'blend'],
-    'eHP': ['survival', 'coins', 'blend'],
-    'Farming': ['coins', 'survival', 'blend'],
+    'Glass Cannon': ['waves', 'damage', 'coins', 'blend', 'cells'],
+    'eHP': ['survival', 'coins', 'blend', 'cells'],
+    'Farming': ['coins', 'survival', 'blend', 'cells'],
     'Hybrid': [],                       // never scored as itself (effectiveBuild)
 };
 

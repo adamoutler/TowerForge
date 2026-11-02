@@ -548,6 +548,13 @@ measured from the run's `FlameBotBlocked` (the made-up runs had none).
     runs (T18 ~W8300, 58% skip) one point of skip ≈ 205 waves ≈ +90% damage.
     That rate uses +50% damage, past the nearest health wall; the first +10%
     alone can buy more (53 waves there), which is why small probes mislead.
+  - **More Elite Cells (2026-11-01, `engine/cells.ts`):** a goal of its own, for
+    every build: cells on the chosen run, at the same waves, so it can only
+    move the Cells/Kill Bonus enhancement, the Cells card and its mastery. On
+    the owner's export (T18 W9302, 2.2M cells from 15,264 elites): Cells/Kill
+    Bonus 100 → 101 is +0.45% for 3.65e18 coins, and unlocking Cells Mastery
+    +5% for 1,000 stones. Longer runs, the Death Wave cell lab and Golden Bot+
+    Bonus Cells aren't valued, since their shares of a run's cells aren't known.
   - **Free upgrades (2026-11-01, `engine/freeUpgrades.ts`):** every score
     reads the levels a run reaches, not the workshop's: `conditioned()` puts
     them in the snapshot, the workshop levels stay for prices and row labels.

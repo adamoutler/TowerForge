@@ -8,7 +8,8 @@
 //  So a run's cells per elite = (k × enhancement + card) × mastery, where
 //  k holds everything else — the tier's drop, Wave Skip's ×1.1, Golden
 //  Bot+, the Death Wave cell lab. k comes from the run; an upgrade then
-//  changes the rest, at the same elites (the same waves).
+//  changes the rest, at the same elites (the same waves). That's also the
+//  Optimizer's "More Elite Cells" goal.
 //  Pure functions — no store imports.
 // ============================================================
 
@@ -36,15 +37,30 @@ export function cellParts(snap: CellSnap): CellParts {
     };
 }
 
-// Cells the run earned, and what `after` would earn on the same run (the
-// same elites); null when the run doesn't record cells or elites.
-export function cellsPerRun(before: CellSnap, after: CellSnap, report: BattleReport | null): { from: number; to: number } | null {
+export interface CellCalibration {
+    elites: number;   // elites in the run
+    k: number;        // cells an elite, before the enhancement, card and mastery
+}
+
+// Null when the run doesn't record cells or elites.
+export function buildCellCalibration(snap: CellSnap, report: BattleReport | null): CellCalibration | null {
     const raw = report?.raw ?? {};
     const cells = typeof raw.CellsEarned === 'number' ? raw.CellsEarned : 0;
     const elites = typeof raw.TotalElites === 'number' ? raw.TotalElites : 0;
     if (cells <= 0 || elites <= 0) return null;
-    const a = cellParts(before);
-    const k = Math.max(0, (cells / (elites * a.mastery) - a.card) / a.enhancement);
-    const x = cellParts(after);
-    return { from: cells, to: elites * (k * x.enhancement + x.card) * x.mastery };
+    const a = cellParts(snap);
+    return { elites, k: Math.max(0, (cells / (elites * a.mastery) - a.card) / a.enhancement) };
+}
+
+// Cells on the calibration's run with this account's enhancement, card and mastery.
+export function cellScore(snap: CellSnap, cal: CellCalibration): number {
+    const x = cellParts(snap);
+    return cal.elites * (cal.k * x.enhancement + x.card) * x.mastery;
+}
+
+// Cells the run earned, and what `after` would earn on the same run (the
+// same elites); null when the run doesn't record cells or elites.
+export function cellsPerRun(before: CellSnap, after: CellSnap, report: BattleReport | null): { from: number; to: number } | null {
+    const cal = buildCellCalibration(before, report);
+    return cal ? { from: report?.raw?.CellsEarned as number, to: cellScore(after, cal) } : null;
 }

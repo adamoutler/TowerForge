@@ -372,7 +372,7 @@ export function bestUpgrades(s: AiAccount, currency: AiCurrency, goalWanted?: st
     // read in waves, like the Optimizer page.
     const inWaves = !!models.run && (goal === 'waves' ? models.run.stat === 'health' : goal === 'survival' && models.run.stat === 'attack');
     const wanted: OptCurrency[] = currency === 'any' ? ['stones', 'coins', 'research'] : [currency];
-    const metric = { damage: 'damage', waves: 'push (damage toward waves)', coins: 'coins per hour', survival: 'survival', blend: 'coins and push' }[goal];
+    const metric = { damage: 'damage', waves: 'push (damage toward waves)', coins: 'coins per hour', survival: 'survival', blend: 'coins and push', cells: 'Elite Cells a run' }[goal];
     const budget = ask.budget && ask.budget > 0 ? ask.budget : null;
     const parts: string[] = [`Goal: ${GOAL_LABELS[goal]}. ${inWaves ? 'Each pick shows the waves it adds' : `Each pick's gain is in ${metric}`}, in the order the Optimizer would buy them.`];
     if (note) parts.push(note);

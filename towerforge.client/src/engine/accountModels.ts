@@ -18,6 +18,7 @@ import { runRatesFrom } from './runRates';
 import { packageChancePct } from './ttt';
 import { enhForPreset } from './statHelpers';
 import { botsForPreset } from '../constants/botData';
+import { buildCellCalibration } from './cells';
 import { buildFarmCalibration } from './farming';
 import { buildEhpCalibration } from './ehp';
 import { buildEdpsCalibration } from './edps';
@@ -165,7 +166,8 @@ export function applyGoal(
     snap.farm = goal === 'coins' || goal === 'blend' ? buildFarmCalibration(cal, report) : undefined;
     snap.ehp = wantsEhp ? buildEhpCalibration(cal, report) : undefined;
     snap.edps = goal === 'damage' || wantsWaves ? buildEdpsCalibration(cal, report) ?? undefined : undefined;
-    snap.metric = goal === 'coins' ? 'coins' : wantsEhp && goal !== 'blend' ? 'ehp' : 'edps';
+    snap.cells = goal === 'cells' ? buildCellCalibration(cal, report) ?? undefined : undefined;
+    snap.metric = goal === 'cells' ? 'cells' : goal === 'coins' ? 'coins' : wantsEhp && goal !== 'blend' ? 'ehp' : 'edps';
     // Waves need damage by source; without it eDPS stands in.
     snap.edpsMode = wantsWaves && snap.edps ? 'waves' : 'damage';
     snap.blend = goal === 'blend' ? { push: pushWaves ? 'waves' : 'ehp', coinWeight } : undefined;

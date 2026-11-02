@@ -133,7 +133,7 @@ export default function OptimizerTab() {
     const wavesMode = shown === 'waves' || (blendMode && pushWaves);
     const survivalMode = shown === 'survival' || (blendMode && !pushWaves);
     const metricLabel = {
-        damage: 'eDPS', waves: 'waves', coins: 'coins', survival: 'survival', blend: 'coins and push',
+        damage: 'eDPS', waves: 'waves', coins: 'coins', survival: 'survival', blend: 'coins and push', cells: 'Elite Cells',
     }[shown];
 
     // Run Length (waves) and Coins per Run (coins), from the saved runs that
@@ -812,6 +812,12 @@ export default function OptimizerTab() {
                                 ? `Waves come from Run Length — your last ${runModel.used.length} tier ${runModel.tier} deaths (around W${runModel.typicalWave.toLocaleString()}).`
                                 : 'Import runs that ended in a death to see waves.'}
                         </>)}
+                        {shown === 'cells' && (<>
+                            <strong>Ranked for Elite Cells a run</strong>, at the same waves. What the site can value:
+                            the Cells/Kill Bonus enhancement, the Cells card and its mastery. Longer runs, the Death
+                            Wave cell lab and Golden Bot+ Bonus Cells bring more too, but aren&apos;t counted. Your
+                            chosen run has to record cells and elites, or nothing here can be scored.
+                        </>)}
                         {shown === 'blend' && (<>
                             <strong>Ranked for coins and {pushWaves ? 'push' : 'survival'} together</strong>, at
                             {' '}{Math.round(coinWeight * 100)}% coins: each upgrade scores (coins per hour gain)
@@ -819,7 +825,7 @@ export default function OptimizerTab() {
                             {' '}<sup>{100 - Math.round(coinWeight * 100)}%</sup>, so ones that help both rise to the
                             top. Each row shows both halves.{pushWaves && ' Push counts flat damage and level skip, as in “Push further”.'}
                         </>)}
-                        {' '}Workshop stats count at the levels free upgrades take them to in your chosen run.
+                        {shown !== 'cells' && ' Workshop stats count at the levels free upgrades take them to in your chosen run.'}
                         {' '}Stones and medals are ranked by gain per stone or medal, coins by gain per coin,
                         labs by gain per hour of research, shards per shard and gems per gem. Each step
                         builds on the ones above it.

@@ -145,6 +145,8 @@ import { calcTowerEDPS, calcSmiteWaveHPFraction } from './uwdps';
 import { readActiveModuleBonuses } from './modBonuses';
 import { coinRate } from './farming';
 import type { FarmCalibration } from './farming';
+import { cellScore } from './cells';
+import type { CellCalibration } from './cells';
 import { ehpScore } from './ehp';
 import type { EhpCalibration } from './ehp';
 import { edpsScore, edpsWaves } from './edps';
@@ -215,7 +217,10 @@ export interface OptimizerSnapshot {
     // What upgrades are scored on: tower eDPS (Glass Cannon), coins per
     // hour (Farming, calibrated by `farm`) or survival (eHP, calibrated by
     // `ehp`). Defaults to eDPS.
-    metric?: 'edps' | 'coins' | 'ehp';
+    metric?: 'edps' | 'coins' | 'ehp' | 'cells';
+    // Elite Cells on the chosen run; omitted when it doesn't record them, and
+    // then nothing can be scored for that goal.
+    cells?: CellCalibration;
     farm?: FarmCalibration;
     ehp?: EhpCalibration;
     // eDPS weighted by a run's real damage by source (engine/edps.ts). Without
@@ -301,6 +306,7 @@ function getScore(raw: OptimizerSnapshot): number {
         const w = snap.blend.coinWeight;
         return coinRate(snap, snap.farm) ** w * pushScore(snap) ** (1 - w);
     }
+    if (snap.metric === 'cells') return snap.cells ? cellScore(snap, snap.cells) : 1;
     if (snap.metric === 'coins' && snap.farm) return coinRate(snap, snap.farm);
     if (snap.metric === 'ehp' && snap.ehp) return survivalScore(snap);
     if (snap.edps && snap.edpsMode !== 'waves') return edpsScore(snap, snap.edps);

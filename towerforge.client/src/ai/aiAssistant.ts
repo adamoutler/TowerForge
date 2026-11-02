@@ -113,7 +113,7 @@ async function modelIdFor(m: AiModel): Promise<string> {
 export interface Route {
     tool: 'upgrades' | 'what_if' | 'levels' | 'runs' | 'tier' | 'farm_tier' | 'tournament' | 'lab_boosts' | 'shard_plan' | 'guardian' | 'guide' | 'none';
     currency: AiCurrency;
-    goal: 'default' | 'waves' | 'damage' | 'coins' | 'survival';
+    goal: 'default' | 'waves' | 'damage' | 'coins' | 'survival' | 'cells';
     changes: AiChangeAsk[];
     search: string;
     runs: AiRunKind;
@@ -130,7 +130,7 @@ const ROUTE_SCHEMA = JSON.stringify({
     properties: {
         tool: { type: 'string', enum: ['upgrades', 'what_if', 'levels', 'runs', 'tier', 'farm_tier', 'tournament', 'lab_boosts', 'shard_plan', 'guardian', 'guide', 'none'] },
         currency: { type: 'string', enum: ['any', 'stones', 'coins', 'research', 'shards', 'medals', 'gems', 'bits'] },
-        goal: { type: 'string', enum: ['default', 'waves', 'damage', 'coins', 'survival'] },
+        goal: { type: 'string', enum: ['default', 'waves', 'damage', 'coins', 'survival', 'cells'] },
         changes: {
             type: 'array', maxItems: 4,
             items: {
@@ -216,6 +216,7 @@ function guessRoute(q: string): Route {
     if (/\bshards?\b/.test(l) && !/\bstones?\b|\bcoins?\b/.test(l)) return { ...base, tool: 'shard_plan', search: q };
     if (/\b(more|earn|make)\b.*\bcoins?\b|\bincome\b/.test(l)) return { ...base, tool: 'upgrades', goal: 'coins' };
     if (/surviv|stay alive|keep dying/.test(l)) return { ...base, tool: 'upgrades', goal: 'survival' };
+    if (/\bmore\b.*\bcells?\b/.test(l)) return { ...base, tool: 'upgrades', goal: 'cells' };
     if (/what level|\blevel (is|of)\b|\bmy .+ level\b/.test(l)) return { ...base, tool: 'levels', search: q };
     if (spend) return { ...base, tool: 'upgrades', currency: currencyIn(l) };
     if (/how (does|do|is)|what (is|does)|why/.test(l)) return { ...base, tool: 'guide', search: q };
