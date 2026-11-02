@@ -112,8 +112,6 @@
 //  4. Dimension Core UNIQUE effect (CL 60% initial-hit + stacking
 //     shock) not modeled; named-module uniques only apply in MAIN
 //     slot. CL "Quantity" & CL "Chance" subs aren't in matchUWSub.
-//  5. Workshop Damage base = exponential approximation (lv1=6,
-//     lv100≈1050) — calibration TODO (towerDamage.ts).
 //  6. Super Tower UW mult (modBonuses calcSuperTowerUWMult) has an
 //     ESTIMATED per-level constant + stCard=0 placeholder.
 //  7. GT lab (GT-Bonus / GT-Duration) not used by calcGTMult

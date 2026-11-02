@@ -1177,7 +1177,7 @@ function OptPanel({
                                 <span className="opt-name">{c.category === 'workshop' ? c.label.replace(/^WS /, '') : c.label}</span>
                                 <span className="opt-sub">{c.subLabel}</span>
                                 {c.freeFillsAt !== undefined && (
-                                    <span className="opt-sub">Free upgrades max it by about {aboutWave(c.freeFillsAt)}</span>
+                                    <span className="opt-sub">Free upgrades max it by about {aboutWave(c.freeFillsAt)} anyway</span>
                                 )}
                                 {blend && c.coinsPct !== undefined ? (
                                     <span className="opt-waves">

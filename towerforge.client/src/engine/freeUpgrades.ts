@@ -146,17 +146,19 @@ export interface FilledInRun {
     stats: string[];      // the stats a run takes to their max
     byWave: number;       // about when the last of them gets there
     rangeKept: boolean;   // Black Hole Digestor is keeping Range below its max
+    stillFilling: boolean;   // some stat isn't full when the run ends
 }
 
 // For the Optimizer's note.
 export function filledInRun(snap: RunLevelsInput): FilledInRun | null {
     const ws = snap.wsData?.[snap.presetIdx ?? 0];
     if (!snap.free || !ws) return null;
-    const filled = statsInRun(snap).filter(s => s.filledAt !== null);
+    const stats = statsInRun(snap);
+    const filled = stats.filter(s => s.filledAt !== null);
     const rangeIdx = WS_STATS.attack.findIndex(([n]) => n === RANGE);
     const kept = rangeKept(snap) && (ws.attack[rangeIdx] ?? 0) < WS_STATS.attack[rangeIdx][1];
     if (!filled.length && !kept) return null;
-    return { stats: filled.map(s => s.stat), byWave: Math.max(0, ...filled.map(s => s.filledAt!)), rangeKept: kept };
+    return { stats: filled.map(s => s.stat), byWave: Math.max(0, ...filled.map(s => s.filledAt!)), rangeKept: kept, stillFilling: stats.some(s => s.filledAt === null) };
 }
 
 // "about W220": the pace is an average, so round up to a clean wave.
@@ -173,7 +175,7 @@ export function freeFillNote(filled: FilledInRun | null): string | undefined {
     const names = filled.stats.slice(0, SHOWN).join(', ');
     const more = filled.stats.length - SHOWN;
     const fills = filled.stats.length
-        ? `Free upgrades take ${names}${more > 0 ? ` and ${more} more` : ''} to their max by about ${aboutWave(filled.byWave)} in your chosen run, so workshop levels on these only help before that.`
+        ? `Free upgrades take ${names}${more > 0 ? ` and ${more} more` : ''} to their max by about ${aboutWave(filled.byWave)} in your chosen run, so workshop levels on these only help before that${filled.stillFilling ? ', and by leaving one more free upgrade for the stats that aren’t full by the end' : ''}.`
         : '';
     const range = filled.rangeKept ? 'Black Hole Digestor keeps free upgrades off Range, so Range stays at its workshop level.' : '';
     return [fills, range].filter(Boolean).join(' ');

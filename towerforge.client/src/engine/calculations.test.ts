@@ -3,7 +3,8 @@
 // them shows up here.
 
 import { describe, expect, it } from 'vitest';
-import { calcCannonModuleMult, calcModuleDamageMult, calcProjectileFactors, primaryMainMult } from './towerDamage';
+import { calcCannonModuleMult, calcCritChance, calcModuleDamageMult, calcProjectileFactors, calcWorkshopDamageBase, primaryMainMult } from './towerDamage';
+import { WS_DEFENSE_ABSOLUTE, WS_HEALTH, WS_HEALTH_REGEN } from '../constants/buildStatCurves';
 import { activeLoadout, enhForPreset, masteredCardMult, milestoneReached, uniqueTier } from './statHelpers';
 import { DEFAULT_RUN_RATES, runRatesFrom } from './runRates';
 import { calcCFPlusHiddenSlow, calcCFSpeedReduction, calcCFUptime, calcEnemySpeedFactor, calcSlowAura } from './ttt';
@@ -271,5 +272,42 @@ describe('end of a T18 push (owner’s recording, 2026-10-19)', () => {
     it('enemy hits dwarf the overhealed tower', () => {
         const attack = baseEnemyDamage(Math.floor(8881 * (1 - 0.577)), 18);
         expect(attack / 289.2e12).toBeGreaterThan(1e6);
+    });
+});
+
+// The game's workshop table, by way of TheTowerSDK.
+describe('workshop stats at the game\'s values', () => {
+    it('Damage follows the table at every band', () => {
+        const table: [number, number][] = [
+            [0, 3], [1, 5.877], [100, 1053], [999, 79646.277], [1000, 79803.08], [1500, 214842.53],
+            [2066, 580238.07], [3000, 2340393.71], [4195, 11343084.3], [5000, 29049032.56], [6000, 71114385.08],
+        ];
+        for (const [level, value] of table) expect(calcWorkshopDamageBase(level) / value).toBeCloseTo(1, 5);
+    });
+
+    it('Critical Chance is the level plus 1%', () => {
+        const at = (level: number) => calcCritChance(0, [{ attack: [0, 0, level], defense: [], utility: [] }], { data: {}, slots: 1, presets: { 0: [] } } as never, {});
+        expect(at(0)).toBeCloseTo(0.01, 9);
+        expect(at(40)).toBeCloseTo(0.41, 9);
+        expect(at(79)).toBeCloseTo(0.80, 9);
+    });
+
+    it('a Damage level adds about what the table says, not 5.4%', () => {
+        const perLevel = (level: number) => calcWorkshopDamageBase(level + 1) / calcWorkshopDamageBase(level) - 1;
+        expect(perLevel(100)).toBeCloseTo(0.0174, 3);
+        expect(perLevel(2000)).toBeCloseTo(0.00163, 4);
+        expect(perLevel(4000)).toBeCloseTo(0.00128, 4);
+    });
+
+    it('Health, Regen and Defense Absolute are right at low levels', () => {
+        const close = (got: number, want: number) => expect(got / want).toBeCloseTo(1, 2);
+        close(WS_HEALTH.valueAt(0), 5);
+        close(WS_HEALTH.valueAt(60), 5354);
+        close(WS_HEALTH.valueAt(150), 65402);
+        close(WS_HEALTH.valueAt(6000), 6.709e9);
+        close(WS_HEALTH_REGEN.valueAt(60), 79.469);
+        close(WS_HEALTH_REGEN.valueAt(1), 0.04);
+        close(WS_DEFENSE_ABSOLUTE.valueAt(50), 191.67);
+        close(WS_DEFENSE_ABSOLUTE.valueAt(1), 0.505);
     });
 });

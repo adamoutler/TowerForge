@@ -548,6 +548,16 @@ measured from the run's `FlameBotBlocked` (the made-up runs had none).
     runs (T18 ~W8300, 58% skip) one point of skip ≈ 205 waves ≈ +90% damage.
     That rate uses +50% damage, past the nearest health wall; the first +10%
     alone can buy more (53 waves there), which is why small probes mislead.
+  - **Workshop curves (2026-11-01):** every workshop curve was compared with the
+    game's table in TheTowerSDK at seven levels each. Damage was the one badly
+    wrong: 1.054^level, right up to about Lv 100, 30 to 70 times too steep past
+    Lv 1000. It's the game's closed form now, so a Damage level past Lv 1000
+    adds 0.2% or less. Health, Regen and Defense Absolute matched from Lv 600 up
+    and were up to 6 times off below, now closely sampled. Defense %, Thorns,
+    Wall Health, Recovery Amount, Max Recovery, Package Chance, Coins/Kill and
+    Coins/Wave matched. So do the stats written as formulas (Attack Speed,
+    Critical Factor, Damage/Meter, Range, Orb Speed, Super Crit), but Critical
+    Chance read one point low: it's the level + 1, 80% at Lv 79.
   - **More Elite Cells (2026-11-01, `engine/cells.ts`):** a goal of its own, for
     every build: cells on the chosen run, at the same waves, so it can only
     move the Cells/Kill Bonus enhancement, the Cells card and its mastery. On

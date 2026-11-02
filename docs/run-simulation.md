@@ -573,7 +573,9 @@ Most of this already exists in `engine/` (eDPS, UWs — see
   L 999/1499/1999/2499/2999/3499/3999 (p 2.10 → 2.34, c 0.08 → 0.20). The
   Damage Decay battle condition subtracts levels before this. In-run levels
   above 6000 (free upgrades with Infinity Threshold): Health and Regen keep
-  their level-6000 base × Damage(L)/Damage(6000).
+  their level-6000 base × Damage(L)/Damage(6000). In the site since 2026-11-01
+  (`calcWorkshopDamageBase`, anchors in calculations.test.ts); it used 1.054^L
+  until then, 30 to 70 times too steep past Lv 1000.
 - **Attack speed:** (workshop × lab × card + module substat) × enhancement;
   not linear shots/second — diminishing returns at medium speed and above 40.
 - **Range:** soft-capped (`computeMaxDistance`); multishot uses the range

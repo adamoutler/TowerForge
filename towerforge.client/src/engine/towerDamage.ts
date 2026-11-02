@@ -10,11 +10,6 @@
 //            × (1 + SuperCritMult×SuperCritChance×CritChance)
 //            × [UW-specific term]
 //
-//  NOTE: Workshop Damage uses an exponential approximation
-//  calibrated to early-game data (lv1=6, lv100≈1050).
-//  This is the most likely value to need refinement via a
-//  full interpolation table once more data points are available.
-//
 //  Pure functions — no store imports.
 // ============================================================
 
@@ -302,15 +297,20 @@ function getPerkMult(modBonuses: ModBonuses): number {
 }
 
 // ── Workshop Damage (base value) ──────────────────────────────
-// Workshop Damage is NOT a multiplier — it's the base damage
-// value itself. Exponential approximation calibrated to:
-//   lv1 = 6, lv100 ≈ 1,050 → growth rate ≈ 1.054/level
-// TODO: replace with full interpolation table from cost table
-//       for better accuracy at high levels (1000+).
-function calcWorkshopDamageBase(level: number): number {
-    if (level <= 0) return 6;
-    const GROWTH = 1.054;
-    return 6 * Math.pow(GROWTH, level - 1);
+// Workshop Damage is NOT a multiplier — it's the base damage value itself. The
+// game's table in closed form (TheTowerSDK workshop/damage.ts, checked there
+// against all 6001 rows): a quadratic, plus a power term for each band the
+// level has passed. A level adds 1.74% at Lv 100, 0.16% at Lv 2000 and 0.08% at
+// Lv 6000. Until 2026-11-01 this was 1.054^level, right up to about Lv 100 and
+// 30 to 70 times too steep past Lv 1000.
+const DAMAGE_BANDS: [number, number, number][] = [
+    [999, 2.10, 0.08], [1499, 2.12, 0.09], [1999, 2.18, 0.10], [2499, 2.25, 0.10],
+    [2999, 2.30, 0.15], [3499, 2.33, 0.20], [3999, 2.34, 0.20],
+];
+
+export function calcWorkshopDamageBase(level: number): number {
+    const L = Math.max(0, level);
+    return DAMAGE_BANDS.reduce((sum, [from, power, c]) => (L > from ? sum + c * (L - from) ** power : sum), 3 + 2.8 * L + 0.077 * L * L);
 }
 
 // ── Tower Damage ───────────────────────────────────────────────
@@ -509,7 +509,7 @@ export function calcCritChance(
     relicData: RelicData,
     modBonuses?: ModBonuses,
 ): number {
-    const wsCrit = wsData[presetIdx]?.attack[2] ?? 0; // level → % directly (1%/level)
+    const wsCrit = (wsData[presetIdx]?.attack[2] ?? 0) + 1; // 1% at Lv 0, +1% a level: 80% at Lv 79 (the game's table)
     // The card counts only while it's in the preset, like every card.
     const critCard = activeCard(cardData, presetIdx, 'Critical Chance');
     const critCardBonus = critCard ? [5, 6, 7, 8, 9, 10, 11][critCard.stars - 1] ?? 0 : 0;

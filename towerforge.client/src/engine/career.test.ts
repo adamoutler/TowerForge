@@ -115,6 +115,19 @@ describe('income between imports', () => {
         expect(addIncomePoint([point(AT, 100)], point(AT + DAY, 5))).toEqual([point(AT + DAY, 5)]);
     });
 
+    it('still covers a month with Auto import bringing a file every 10 minutes', () => {
+        const MIN = 60000;
+        let log = [point(AT, 0)];
+        for (let i = 1; i <= 30 * 24 * 6; i++) log = addIncomePoint(log, point(AT + i * 10 * MIN, i));
+        expect(log.length).toBeLessThanOrEqual(125);
+        expect(log[0].t).toBe(AT);
+        expect(log[log.length - 1].earned.coins).toBe(30 * 24 * 6);   // the newest is always kept
+        const s = incomeSummary(log)!;
+        expect(s.windowDays).toBeCloseTo(30, 6);
+        expect(s.sinceLastDays).toBeGreaterThanOrEqual(1 / 24);        // never "the last 10 minutes"
+        expect(s.rows[0].perDay).toBeCloseTo(24 * 6, 6);
+    });
+
     it('gives what came in since the last import and per day', () => {
         const s = incomeSummary([point(AT, 100, 10), point(AT + 2 * DAY, 300, 14), point(AT + 4 * DAY, 500, 30)])!;
         const stones = s.rows.find(r => r.key === 'stones')!;

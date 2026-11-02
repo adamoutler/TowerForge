@@ -80,6 +80,10 @@ export interface Career {
 }
 
 const MAX_INCOME_POINTS = 200;
+// Auto import can bring a new file every 10 minutes during a run. Older imports
+// are kept this far apart, so 200 of them still cover the 30 days.
+const MIN_POINT_GAP_MS = 6 * 3600000;
+const MS_PER_HOUR = 3600000;
 const INCOME_WINDOW_DAYS = 30;
 const MS_PER_DAY = 86400000;
 
@@ -172,12 +176,15 @@ export function parseIncomePoint(raw: Record<string, unknown>): IncomePoint | nu
 
 // Adds an export to the log. The same file twice, or an older one, adds
 // nothing. A total only ever grows, so one that fell means another account or
-// a fresh start: its log starts over.
+// a fresh start: its log starts over. A newer file replaces the newest one while
+// that's still within the gap of the one before it.
 export function addIncomePoint(log: IncomePoint[], p: IncomePoint): IncomePoint[] {
     const last = log[log.length - 1];
     if (!last) return [p];
     if (p.t <= last.t) return log;
     if (INCOME_CURRENCIES.some(([key]) => (p.earned[key] ?? 0) < (last.earned[key] ?? 0))) return [p];
+    const before = log[log.length - 2];
+    if (before && p.t - before.t < MIN_POINT_GAP_MS) return [...log.slice(0, -1), p];
     return [...log, p].slice(-MAX_INCOME_POINTS);
 }
 
@@ -217,7 +224,10 @@ function earnedBetween(a: IncomePoint, b: IncomePoint, key: IncomeKey, counter: 
 export function incomeSummary(log: IncomePoint[]): IncomeSummary | null {
     const last = log[log.length - 1];
     if (!last) return null;
-    const prev = log.length > 1 ? log[log.length - 2] : null;
+    // "Since the last import" reaches back at least an hour where it can: the
+    // newest two can be minutes apart with Auto import on.
+    const older = log.slice(0, -1).reverse();
+    const prev = older.find(p => last.t - p.t >= MS_PER_HOUR) ?? older[0] ?? null;
     const firstAt = log.findIndex(p => last.t - p.t <= INCOME_WINDOW_DAYS * MS_PER_DAY);
     const inWindow = log.slice(Math.max(0, firstAt));
     const spans = inWindow.slice(1).map((b, i) => ({ a: inWindow[i], b, days: (b.t - inWindow[i].t) / MS_PER_DAY }));
