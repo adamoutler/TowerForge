@@ -14,6 +14,7 @@ import type { KeyboardEvent, PointerEvent } from 'react';
 import { useGameStore } from '../../store/useGameStore';
 import type { League, TourneyRecord } from '../../types/gameTypes';
 import { leagueMoves, leagueStats, leagueStretches, leaguesPlayed, placed } from '../../engine/tourneyHistory';
+import PageIntro from '../common/PageIntro';
 
 // Fixed per league (the entity, never its place in a filtered list);
 // validated as a set on the dark panel (dataviz validator, 2026-10-21).
@@ -230,12 +231,12 @@ export default function TourneyHistoryTab() {
 
     return (
         <div className="tnh">
-            <div className="relics-note">
-                <strong>Tournament history</strong> — every tournament you&apos;ve played, from your game data (each
+            <PageIntro title="Tournament history">
+                Every tournament you&apos;ve played, from your game data (each
                 import adds the newest). Waves only compare within a league: each league&apos;s enemies are a
                 different strength, so each league has its own color. Rank 1 is the top of your bracket. A
                 tournament still running when the game exported isn&apos;t placed yet, so it&apos;s only in the table.
-            </div>
+            </PageIntro>
 
             <div className="tnh-filters">
                 <label>League

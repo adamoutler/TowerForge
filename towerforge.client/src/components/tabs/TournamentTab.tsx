@@ -32,6 +32,7 @@ import {
 import type { HeatCondition, HeatKey } from '../../constants/tournamentData';
 import { keysOf, loadTourneySim, saveTourneySim, ticksOf } from '../common/tourneySim';
 import type { Ticks, TourneySim } from '../common/tourneySim';
+import PageIntro from '../common/PageIntro';
 
 const TYPES: ModuleType[] = ['cannon', 'armor', 'generator', 'core'];
 const cap = (w: string) => w.charAt(0).toUpperCase() + w.slice(1);
@@ -221,11 +222,11 @@ export default function TournamentTab() {
 
     return (
         <div>
-            <div className="relics-note">
-                <strong>Tournaments.</strong> Tournament enemies get tougher much faster than on a campaign tier, so
+            <PageIntro title="Tournaments">
+                Tournament enemies get tougher much faster than on a campaign tier, so
                 everything here is measured against your own tournament deaths, on the tournament enemy curve, with the
                 build you use for tournaments. What If (Tournament) tries any other change against the same runs.
-            </div>
+            </PageIntro>
 
             <div className="section" style={{ marginBottom: '12px' }}>
                 <div className="section-head"><h3>Your tournament build</h3></div>

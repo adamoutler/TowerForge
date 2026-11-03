@@ -15,6 +15,7 @@ import { runLevelSkips } from '../../engine/runLength';
 import type { EnemyPerks, EnemyType } from '../../engine/enemyStats';
 import { formatGameNumber } from '../../engine/gameNumbers';
 import NumericInput from '../common/NumericInput';
+import PageIntro from '../common/PageIntro';
 
 // The trade-off perks that change enemies, in the game's words.
 const PERKS: [keyof EnemyPerks, string][] = [
@@ -97,12 +98,12 @@ export default function EnemyStatsTab() {
 
     return (
         <div>
-            <div className="relics-note">
-                <strong>Wave Info, recreated.</strong> In a run, tap the wave counter and compare: enter the
+            <PageIntro title="Wave Info, recreated">
+                In a run, tap the wave counter and compare: enter the
                 tier, the wave and the two <em>Level Skip</em> numbers from the bottom of that panel, tick the
                 trade-off perks you have, and every enemy row should match the game. Your enemy labs come from
                 the Labs tab. Tell us any row that doesn&apos;t match — this is the first piece of the run simulator.
-            </div>
+            </PageIntro>
 
             <div className="section" style={{ marginBottom: '12px' }}>
                 <div className="section-head"><h3>Wave</h3></div>

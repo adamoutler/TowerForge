@@ -28,6 +28,7 @@ import { activeLoadout } from '../../engine/statHelpers';
 import { keysOf, loadTourneySim, saveTourneySim, ticksOf } from '../common/tourneySim';
 import { takeWhatIfHandoff } from '../common/whatIfHandoff';
 import type { TourneySim } from '../common/tourneySim';
+import PageIntro from '../common/PageIntro';
 
 type Mode = 'campaign' | 'tournament';
 const MODE_KEY = 'tc_whatif_mode';
@@ -178,13 +179,13 @@ export default function WhatIfTab() {
 
     return (
         <div>
-            <div className="relics-note">
-                <strong>What if I…?</strong> Pick any upgrade and a level, add as many as you like, and see what
+            <PageIntro title="What if I…?">
+                Pick any upgrade and a level, add as many as you like, and see what
                 they do to your damage, how far your runs get, your coins and your survival — and what they
                 cost. Campaign: calibrated on your chosen Battle Report (Optimizer page), waves and coins per run
                 from Run Length and Coins per Run. Tournament: your tournament build against your tournament
                 deaths, under this week&apos;s battle conditions. Nothing here changes your saved account.
-            </div>
+            </PageIntro>
 
             <div className="preset-tabs wi-mode">
                 <button className={`preset-btn ${!tourney ? 'active' : ''}`} onClick={() => setMode('campaign')}>Campaign runs</button>

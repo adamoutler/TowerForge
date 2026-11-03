@@ -27,6 +27,7 @@ import NumericInput from '../common/NumericInput';
 import GuardianShareCard from '../share/GuardianShareCard';
 import { SHARE_OFFSCREEN_STYLE } from '../share/shareTheme';
 import { openExportDialog } from '../share/exportImages';
+import PageIntro from '../common/PageIntro';
 
 const fmtX = (v: number) => `×${v < 10 ? v.toFixed(2) : v.toFixed(1)}`;
 const pctText = (v: number) => `+${(v * 100).toFixed(v < 0.1 ? 1 : 0)}%`;
@@ -152,13 +153,13 @@ export default function GuardianTab() {
                 <GuardianShareCard ref={shareRef} guardian={g} preset={activePreset} presetName={presetLabel(profile.presetNames, activePreset)} poster />
             </div>
 
-            <div className="relics-note">
-                <strong>The Guardian</strong> (Guild → Guardian) fights next to the tower with its equipped chips; each
+            <PageIntro title="The Guardian">
+                The Guardian (Guild → Guardian) fights next to the tower with its equipped chips; each
                 chip has three stats bought with Bits. Import Game Data fills this in, by your presets. Here:
                 <em> Scout</em> boosts tower shots through Damage/Meter, <em>Attack</em> adds its share of your run&apos;s
                 damage, <em>Bounty</em> and <em>Summon</em> add coins, <em>Fetch</em> finds loot — the Optimizer ranks
                 their upgrades per Bit.
-            </div>
+            </PageIntro>
 
             {g.unlocked && g.inGuild === false && (
                 <p className="en-note grd-warn">

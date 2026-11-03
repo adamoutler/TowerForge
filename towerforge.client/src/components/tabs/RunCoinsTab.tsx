@@ -20,6 +20,7 @@ import { formatGameNumber } from '../../engine/gameNumbers';
 import { runDrops } from '../../engine/battleReport';
 import type { BattleReport } from '../../engine/battleReport';
 import NumericInput from '../common/NumericInput';
+import PageIntro from '../common/PageIntro';
 
 const fmt = (n: number) => (n >= 1000 ? formatGameNumber(n) : Math.round(n).toLocaleString());
 const signedPct = (x: number) => `${x >= 0 ? '+' : '−'}${Math.abs(x * 100).toFixed(1)}%`;
@@ -63,12 +64,12 @@ export default function RunCoinsTab() {
 
     return (
         <div>
-            <div className="relics-note">
-                <strong>Run simulator, step 1 — coins.</strong> The model plays a run wave by wave (enemies per
+            <PageIntro title="Run simulator, step 1 — coins">
+                The model plays a run wave by wave (enemies per
                 wave from the Wave Accelerator chart, coins per kill, Coins / Wave, Golden Combo, Wave Skip),
                 tuned to one of your runs. Then it predicts your <em>other</em> runs: the closer those are, the
                 more you can trust the projection below. Upgrades and how far a run gets come next.
-            </div>
+            </PageIntro>
 
             <div className="section" style={{ marginBottom: '12px' }}>
                 <div className="section-head"><h3>Tune on</h3></div>

@@ -34,7 +34,7 @@ export default function PUWsTab() {
             {/* ── Intro ── */}
             <div className="section" style={{ marginBottom: '12px' }}>
                 <div className="section-body" style={{ padding: '10px 14px' }}>
-                    <p style={{ fontSize: '12px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
+                    <p style={{ fontSize: '13px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
                         A UW is <strong style={{ color: 'var(--accent)' }}>permanent</strong> when its
                         effective <strong>Duration ≥ effective Cooldown</strong> (cooldown after the
                         Galaxy Compressor reduction). Only duration-based UWs qualify — Chrono Field,
@@ -43,7 +43,7 @@ export default function PUWsTab() {
                         <strong> Poison Swamp is not affected by Galaxy Compressor</strong>, so its
                         cooldown relies on the Cooldown stat alone.
                     </p>
-                    <p style={{ fontSize: '12px', marginTop: '6px', color: gcVal > 0 ? 'var(--gold)' : 'var(--text-dim)' }}>
+                    <p style={{ fontSize: '13px', marginTop: '6px', color: gcVal > 0 ? 'var(--gold)' : 'var(--text-dim)' }}>
                         Galaxy Compressor: {gcVal > 0
                             ? `equipped (−${gcVal}s per recovery package)`
                             : 'not equipped — cooldowns are not reduced'}

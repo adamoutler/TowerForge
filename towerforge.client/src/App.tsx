@@ -62,18 +62,20 @@ const ImportGuideTab = lazy(() => import('./components/tabs/ImportGuideTab'));
 // The tabs, grouped into sections so the menu fits a phone: the top row
 // picks a section, the row under it picks the tab inside it (no second row
 // for a section with one tab). A section with a long name has a short one
-// for phones. A preview section shows only for the accounts the server
-// lists for it (features.json), and always in development.
+// for phones, and an icon (on phones the icon sits over the name). A
+// preview section shows only for the accounts the server lists for it
+// (features.json), and always in development.
 interface TabGroup {
     id: string;
     label: string;
+    icon: string;
     short?: string;
     tabs: { id: TabName; label: string; title?: string }[];   // title: the page title, when the label needs its section
     preview?: string;
 }
 const TAB_GROUPS: TabGroup[] = [
     {
-        id: 'player', label: 'Player', tabs: [
+        id: 'player', label: 'Player', icon: '👤', tabs: [
             { id: 'profile', label: 'Profile' },
             { id: 'tiers', label: 'Tiers' },
             { id: 'career', label: 'Career' },
@@ -83,7 +85,7 @@ const TAB_GROUPS: TabGroup[] = [
         ],
     },
     {
-        id: 'upgrades', label: 'Upgrades', tabs: [
+        id: 'upgrades', label: 'Upgrades', icon: '⬆️', tabs: [
             { id: 'workshop', label: 'Workshop' },
             { id: 'labs', label: 'Labs' },
             { id: 'cards', label: 'Cards' },
@@ -92,13 +94,13 @@ const TAB_GROUPS: TabGroup[] = [
         ],
     },
     {
-        id: 'uws', label: 'UWs', tabs: [
+        id: 'uws', label: 'UWs', icon: '⚡', tabs: [
             { id: 'uw', label: 'Ultimate Weapons' },
             { id: 'puws', label: 'Permanent UWs' },
         ],
     },
     {
-        id: 'gear', label: 'Gear', tabs: [
+        id: 'gear', label: 'Gear', icon: '⚙️', tabs: [
             { id: 'modules', label: 'Modules' },
             { id: 'bots', label: 'Bots' },
             { id: 'guardian', label: 'Guardian' },
@@ -106,7 +108,7 @@ const TAB_GROUPS: TabGroup[] = [
         ],
     },
     {
-        id: 'optimizer', label: 'Optimizer', tabs: [
+        id: 'optimizer', label: 'Optimizer', icon: '📈', tabs: [
             { id: 'optimizer', label: 'Optimizer' },
             { id: 'whatif', label: 'What If' },
             { id: 'enemies', label: 'Enemy Stats' },
@@ -115,14 +117,14 @@ const TAB_GROUPS: TabGroup[] = [
         ],
     },
     {
-        id: 'tournaments', label: 'Tournaments', short: 'Tourney', tabs: [
+        id: 'tournaments', label: 'Tournaments', icon: '🏆', short: 'Tourney', tabs: [
             { id: 'tournament', label: 'This Week', title: 'Tournament' },
             { id: 'tourneyhistory', label: 'History', title: 'Tournament History' },
         ],
     },
     // Public since v2.0.0 (a preview for the owner's account before).
-    { id: 'ai', label: 'Ask AI', tabs: [{ id: 'ai', label: 'Ask AI' }] },
-    { id: 'creators', label: 'Creator Codes', short: 'Creators', tabs: [{ id: 'creators', label: 'Creator Codes' }] },
+    { id: 'ai', label: 'Ask AI', icon: '✨', tabs: [{ id: 'ai', label: 'Ask AI' }] },
+    { id: 'creators', label: 'Creator Codes', icon: '⭐', short: 'Creators', tabs: [{ id: 'creators', label: 'Creator Codes' }] },
 ];
 
 const groupOf = (tab: TabName): TabGroup => TAB_GROUPS.find(g => g.tabs.some(t => t.id === tab)) ?? TAB_GROUPS[0];
@@ -502,9 +504,10 @@ export default function App() {
                             aria-current={activeGroup.id === group.id ? 'true' : undefined}
                             onClick={e => { if (plainClick(e)) { e.preventDefault(); openTab(tab); } }}
                         >
+                            <span className="tab-icon" aria-hidden="true">{group.icon}</span>
                             {group.short
                                 ? <><span className="tab-long">{group.label}</span><span className="tab-short">{group.short}</span></>
-                                : group.label}
+                                : <span>{group.label}</span>}
                         </a>
                     );
                 })}

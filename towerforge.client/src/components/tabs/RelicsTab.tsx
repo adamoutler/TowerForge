@@ -8,6 +8,7 @@
 import { useGameStore } from '../../store/useGameStore';
 import { RELICS } from '../../constants/gameData';
 import NumericInput from '../common/NumericInput';
+import PageIntro from '../common/PageIntro';
 
 export default function RelicsTab() {
     const relicData = useGameStore(s => s.relicData);
@@ -23,15 +24,15 @@ export default function RelicsTab() {
     return (
         <div>
             {/* ── Note ── */}
-            <div className="relics-note">
-                <strong>Relics</strong> come with <em>Import Game Data</em>: the totals of every relic you
+            <PageIntro title="Relics">
+                Relics come with <em>Import Game Data</em>: the totals of every relic you
                 own. To enter them by hand, open Profile → Relics in the game and tap the ⓘ at the top
                 left — it lists every relic bonus total in this same order, so copy them top to bottom.
                 Relics newer than TowerForge&apos;s list are counted when you import; add their bonus here.
-            </div>
+            </PageIntro>
 
             <div className="flex-row" style={{ marginBottom: '12px' }}>
-                <span style={{ fontSize: '12px', color: 'var(--text-dim)' }}>
+                <span style={{ fontSize: '13px', color: 'var(--text-dim)' }}>
                     {filled} / {total} filled
                 </span>
             </div>

@@ -19,6 +19,7 @@ import { runSavers } from '../../engine/battleReport';
 import type { BattleReport } from '../../engine/battleReport';
 import { buildRunModel, projectRun, runSettingsFromCards } from '../../engine/runCoins';
 import { defaultBattleIndex } from '../../engine/gameExport';
+import PageIntro from '../common/PageIntro';
 
 const GAIN_STEPS = [0.01, 0.05, 0.1, 0.25, 0.5, 1];
 const SKIP_STEPS = [0.5, 1, 2, 5];
@@ -104,19 +105,19 @@ export default function RunLengthTab() {
     return (
         <div>
             {switcher}
-            <div className="relics-note">
+            <PageIntro title={`Run simulator, step 2 — how far a run gets (${attack ? 'eHP' : 'Glass Cannon'})`}>
                 {attack ? (<>
-                    <strong>Run simulator, step 2 — how far a run gets (eHP).</strong> An eHP tower takes the hits, so
+                    An eHP tower takes the hits, so
                     a run lasts until enemies hit harder than it can take — its health, healing and defense (the
                     Optimizer&apos;s survival). Enemy attack at the wave you died (from the formula checked against the
                     game) tells us where that point is; more survival pushes it to where enemies hit that much harder.
                 </>) : (<>
-                    <strong>Run simulator, step 2 — how far a run gets (Glass Cannon).</strong> One hit ends a GC run, so
+                    One hit ends a GC run, so
                     a run lasts until enemies are too tough to kill before they reach the tower. Enemy health at the
                     wave you died (from the formula checked against the game) tells us where that point is; more
                     damage pushes it to where enemies are that much tougher.
                 </>)}
-            </div>
+            </PageIntro>
 
             {oneHit && (
                 <div className="relics-note rl-warn">

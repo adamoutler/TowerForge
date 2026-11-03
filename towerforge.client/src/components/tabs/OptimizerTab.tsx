@@ -41,6 +41,7 @@ import type { SkipKind, SkipUpgrade } from '../../engine/levelSkip';
 import { formatGameNumber } from '../../engine/gameNumbers';
 import type { StepRunGain } from '../../engine/runLength';
 import { withChipLevel } from '../../engine/guardian';
+import MoreInfo from '../common/MoreInfo';
 
 // The goal every panel ranks by, and how much coins count in "coins and
 // push". Remembered per browser (the old Rank by "waves" carries over).
@@ -134,6 +135,15 @@ export default function OptimizerTab() {
     const survivalMode = shown === 'survival' || (blendMode && !pushWaves);
     const metricLabel = {
         damage: 'eDPS', waves: 'waves', coins: 'coins', survival: 'survival', blend: 'coins and push', cells: 'Elite Cells',
+    }[shown];
+    // The ranking note's one line; the rest of it folds under "How it's ranked".
+    const rankHeadline = {
+        waves: 'Ranked by how far your runs get: milestones and tournaments',
+        damage: 'Ranked for all damage (eDPS)',
+        coins: 'Ranked for coins per hour, at the same run length',
+        survival: 'Ranked for survival',
+        cells: 'Ranked for Elite Cells a run, at the same waves',
+        blend: `Ranked for coins and ${pushWaves ? 'push' : 'survival'} together, at ${Math.round(coinWeight * 100)}% coins`,
     }[shown];
 
     // Run Length (waves) and Coins per Run (coins), from the saved runs that
@@ -765,23 +775,28 @@ export default function OptimizerTab() {
 
                         </div>
 
-                        <p className="ttt-explainer">
-                            TTT (Time-To-Tower) is how long an enemy takes to cross your tower's range.
-                            Longer TTT means more UW activations for SM, DW, ILM, PS, BH, and GT.
-                            While Chrono Field is up, its slow (capped at 90%), Slow Aura and Chrono Loop (CF+) multiply; the CF+ figure is the extra time Chrono Loop's spiral adds.
-                        </p>
+                        <MoreInfo summary="What TTT means">
+                            <p>
+                                TTT (Time-To-Tower) is how long an enemy takes to cross your tower's range.
+                                Longer TTT means more UW activations for SM, DW, ILM, PS, BH, and GT.
+                                While Chrono Field is up, its slow (capped at 90%), Slow Aura and Chrono Loop (CF+) multiply; the CF+ figure is the extra time Chrono Loop's spiral adds.
+                            </p>
+                        </MoreInfo>
                     </div>
                 </div>
             )}
 
             {/* ── What the ranking counts ── */}
             {buildSupport.ready && hasResults && (
-                <div className="opt-warning-banner">
-                    <span className="opt-warning-icon">⚠️</span>
-                    <div>
+                <details className="opt-warning-banner opt-rank-note">
+                    <summary>
+                        <span className="opt-warning-icon">ⓘ</span>
+                        <strong>{rankHeadline}</strong>
+                        <span className="opt-rank-more">How it's ranked</span>
+                    </summary>
+                    <div className="opt-rank-body">
                         {shown === 'waves' && (<>
-                            <strong>Ranked by how far your runs get</strong> — milestones and tournaments. Only flat
-                            damage counts — Chain Lightning, Smart Missiles, Death Wave, Inner Land Mines, Poison
+                            Only flat damage counts — Chain Lightning, Smart Missiles, Death Wave, Inner Land Mines, Poison
                             Swamp and tower shots. Orbs, Black Hole, Smite and Consume deal a share of enemy health,
                             so they don&apos;t fall behind as waves get harder, and the enemies that end Glass Cannon
                             runs ignore orbs and Black Hole. Enemy Health Level Skip counts as the damage that gains
@@ -792,18 +807,16 @@ export default function OptimizerTab() {
                                 {runModel?.tournament && ' Tournaments have no coins per run here — they pay differently.'}
                         </>)}
                         {shown === 'damage' && (<>
-                            <strong>Ranked for all damage (eDPS).</strong>{' '}
                             {edpsCalib
                                 ? 'Gains are a share of all the damage in your chosen run, so sources stones can’t change (like orbs) keep their real weight.'
                                 : 'Without a run that has damage data, gains come from the model alone and can over- or under-value some sources (Black Hole especially).'}
                             {' '}Coin income isn&apos;t counted — pick “More coins” or “Coins and push” for that.
                         </>)}
                         {shown === 'coins' && (<>
-                            <strong>Ranked for coins per hour</strong>, at the same run length. Survival and damage
-                            aren&apos;t counted — a farming setup still has to reach the waves you farm.
+                            Survival and damage aren&apos;t counted — a farming setup still has to reach the waves you farm.
                         </>)}
                         {shown === 'survival' && (<>
-                            <strong>Ranked for survival.</strong> Damage and coins aren&apos;t counted (thorns are
+                            Damage and coins aren&apos;t counted (thorns are
                             the exception). An eHP run ends where enemy attack outgrows what your tower can take, so
                             Enemy Attack Level Skip and the attack labs of the enemies that end your runs count as the
                             survival that gains the same waves.{' '}
@@ -812,7 +825,7 @@ export default function OptimizerTab() {
                                 : 'Import runs that ended in a death to see waves.'}
                         </>)}
                         {shown === 'cells' && (<>
-                            <strong>Ranked for Elite Cells a run</strong>, at the same waves. What the site can value:
+                            What the site can value:
                             the Cells/Kill Bonus enhancement, the Cells card and its mastery, and Golden Bot+ Bonus
                             Cells on the elites killed in Golden Bot&apos;s range (so Golden Bot&apos;s Duration, Cooldown
                             and Range count once it&apos;s unlocked). Longer runs and the Death Wave cell lab bring more
@@ -820,8 +833,7 @@ export default function OptimizerTab() {
                             can be scored.
                         </>)}
                         {shown === 'blend' && (<>
-                            <strong>Ranked for coins and {pushWaves ? 'push' : 'survival'} together</strong>, at
-                            {' '}{Math.round(coinWeight * 100)}% coins: each upgrade scores (coins per hour gain)
+                            Each upgrade scores (coins per hour gain)
                             {' '}<sup>{Math.round(coinWeight * 100)}%</sup> × ({pushWaves ? 'push' : 'survival'} gain)
                             {' '}<sup>{100 - Math.round(coinWeight * 100)}%</sup>, so ones that help both rise to the
                             top. Each row shows both halves.{pushWaves && ' Push counts flat damage and level skip, as in “Push further”.'}
@@ -831,7 +843,7 @@ export default function OptimizerTab() {
                         labs by gain per hour of research, shards per shard and gems per gem. Each step
                         builds on the ones above it.
                     </div>
-                </div>
+                </details>
             )}
 
             {/* ── Build not yet supported ── */}

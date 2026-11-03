@@ -175,7 +175,7 @@ export default function LabsTab() {
                     Clear All
                 </button>
                 <span style={{ flex: 1 }} />
-                <span style={{ fontSize: '12px', color: 'var(--text-dim)' }}>
+                <span style={{ fontSize: '13px', color: 'var(--text-dim)' }}>
                     {doneLabs} / {totalLabs} maxed
                 </span>
             </div>
@@ -236,7 +236,7 @@ export default function LabsTab() {
                                                 />
                                             <button
                                                 className="btn btn-dim"
-                                                style={{ fontSize: '11px', padding: '2px 7px' }}
+                                                style={{ fontSize: '12px', padding: '2px 7px' }}
                                                 disabled={!isUnlocked || isMaxed}
                                                 title={`Max ${labName}`}
                                                 onClick={() => setLabLevel(labName, maxLv)}

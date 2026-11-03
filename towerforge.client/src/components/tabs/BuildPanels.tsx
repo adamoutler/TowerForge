@@ -73,11 +73,11 @@ export function BattleReportPanel({ purpose }: { purpose: 'farming' | 'ehp' | 'e
             <div className="section-body" style={{ padding: '10px 14px' }}>
                 {runs.length > 0 && !editing && (
                     <div className="flex-row" style={{ marginBottom: '8px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '12px', color: 'var(--text-dim)' }}>Calibrate from</span>
+                        <span style={{ fontSize: '13px', color: 'var(--text-dim)' }}>Calibrate from</span>
                         <select
                             value={choice}
                             onChange={e => setChoice(parseInt(e.target.value))}
-                            style={{ fontSize: '12px', maxWidth: '100%' }}
+                            style={{ fontSize: '13px', maxWidth: '100%' }}
                         >
                             {runs.map(({ b, i }) => (
                                 <option key={i} value={i}>
@@ -86,7 +86,7 @@ export function BattleReportPanel({ purpose }: { purpose: 'farming' | 'ehp' | 'e
                             ))}
                             <option value={-1}>{text ? 'Pasted Battle Report' : 'Pasted Battle Report (none yet)'}</option>
                         </select>
-                        <span style={{ fontSize: '12px', color: 'var(--text-dim)', flexBasis: '100%' }}>
+                        <span style={{ fontSize: '13px', color: 'var(--text-dim)', flexBasis: '100%' }}>
                             {imported.length} run{imported.length === 1 ? '' : 's'} saved — the game&apos;s file only
                             holds your last 5, so importing after a few runs keeps adding to this history.
                         </span>
@@ -94,23 +94,23 @@ export function BattleReportPanel({ purpose }: { purpose: 'farming' | 'ehp' | 'e
                 )}
                 {report && !editing ? (
                     <>
-                        <p style={{ fontSize: '12px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
+                        <p style={{ fontSize: '13px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
                             Tier {report.tier} · Wave {report.wave.toLocaleString()} · {fmtBig(report.coinsPerHour)} coins/hour
                             {report.date ? ` · ${report.date}` : ''}
                         </p>
                         {purpose === 'edps' ? (
-                            <p style={{ fontSize: '12px', color: 'var(--text-dim)', marginTop: '6px', lineHeight: 1.6 }}>
+                            <p style={{ fontSize: '13px', color: 'var(--text-dim)', marginTop: '6px', lineHeight: 1.6 }}>
                                 {report.damage
                                     ? <>Damage dealt: {damageLine(report, report.damage)}</>
                                     : 'This report has no damage breakdown, so eDPS uses the model alone. Import your game data and pick one of its runs to rank by your real damage.'}
                             </p>
                         ) : purpose === 'ehp' ? (
-                            <p style={{ fontSize: '12px', color: 'var(--text-dim)', marginTop: '6px', lineHeight: 1.6 }}>
+                            <p style={{ fontSize: '13px', color: 'var(--text-dim)', marginTop: '6px', lineHeight: 1.6 }}>
                                 {report.recoveryPackages.toLocaleString()} recovery packages ·{' '}
                                 thorns made {pct(report.totalEnemies > 0 ? report.thornsKills / report.totalEnemies : 0)} of kills
                             </p>
                         ) : (
-                        <p style={{ fontSize: '12px', color: 'var(--text-dim)', marginTop: '6px', lineHeight: 1.6 }}>
+                        <p style={{ fontSize: '13px', color: 'var(--text-dim)', marginTop: '6px', lineHeight: 1.6 }}>
                             Kills covered:{' '}
                             {[
                                 ['GT', report.killedWithEffect.goldenTower],
@@ -132,7 +132,7 @@ export function BattleReportPanel({ purpose }: { purpose: 'farming' | 'ehp' | 'e
                     </>
                 ) : (
                     <>
-                        <p style={{ fontSize: '12px', color: 'var(--text-dim)', marginBottom: '8px', lineHeight: 1.6 }}>
+                        <p style={{ fontSize: '13px', color: 'var(--text-dim)', marginBottom: '8px', lineHeight: 1.6 }}>
                             {purpose === 'ehp'
                                 ? 'Paste the Battle Report from a recent run (copy it from the game’s run stats when the run ends). It tells the optimizer how often you really get recovery packages and how much of the killing your thorns do.'
                                 : purpose === 'edps'
@@ -145,9 +145,9 @@ export function BattleReportPanel({ purpose }: { purpose: 'farming' | 'ehp' | 'e
                             onChange={e => setDraft(e.target.value)}
                             placeholder={'Battle Report\nBattle Date\t…\nGame Time\t…'}
                             rows={6}
-                            style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '12px' }}
+                            style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '13px' }}
                         />
-                        {error && <p style={{ fontSize: '12px', color: 'var(--red, #e74c3c)', marginTop: '6px' }}>{error}</p>}
+                        {error && <p style={{ fontSize: '13px', color: 'var(--red, #e74c3c)', marginTop: '6px' }}>{error}</p>}
                         <div className="flex-row" style={{ marginTop: '8px' }}>
                             <button className="btn btn-accent" onClick={save} disabled={!draft.trim()}>Save Report</button>
                             {report && <button className="btn btn-dim" onClick={() => { setEditing(false); setError(null); }}>Cancel</button>}
@@ -183,7 +183,7 @@ export function EconomyStats({ calib }: { calib: FarmCalibration }) {
                             <span className="stat-pill-label">{FARM_EFFECT_LABELS[e]}</span>
                             <span className="stat-pill-val">
                                 ×{a.mult[e].toFixed(2)}
-                                <span style={{ color: 'var(--text-dim)', fontSize: '12px' }}> · {pct(calib.coverage[e])}</span>
+                                <span style={{ color: 'var(--text-dim)', fontSize: '13px' }}> · {pct(calib.coverage[e])}</span>
                             </span>
                         </div>
                     ))}
@@ -220,17 +220,17 @@ function FactorList({ title, factors, total, percent }: {
                 : `×${f.value.toFixed(f.value < 10 ? 3 : 2)}`;
     return (
         <div style={{ marginBottom: '10px' }}>
-            <div style={{ fontSize: '12px', fontWeight: 600, marginBottom: '4px' }}>{title}</div>
+            <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>{title}</div>
             {factors.map(f => (
-                <div key={f.label} className="flex-row" style={{ fontSize: '12px', gap: '8px' }}>
+                <div key={f.label} className="flex-row" style={{ fontSize: '13px', gap: '8px' }}>
                     <span style={{ flex: 1, color: 'var(--text-dim)' }}>
                         {f.label}
-                        {f.note && <span style={{ fontSize: '12px' }}> — {f.note}</span>}
+                        {f.note && <span style={{ fontSize: '13px' }}> — {f.note}</span>}
                     </span>
                     <span style={{ fontFamily: 'var(--font-mono)' }}>{fmt(f)}</span>
                 </div>
             ))}
-            <div className="flex-row" style={{ fontSize: '12px', gap: '8px', borderTop: '1px solid var(--border)', marginTop: '3px', paddingTop: '3px' }}>
+            <div className="flex-row" style={{ fontSize: '13px', gap: '8px', borderTop: '1px solid var(--border)', marginTop: '3px', paddingTop: '3px' }}>
                 <span style={{ flex: 1 }}>Total</span>
                 <strong style={{ fontFamily: 'var(--font-mono)' }}>{total}</strong>
             </div>
@@ -314,7 +314,7 @@ export function EhpStats({ calib }: { calib: EhpCalibration }) {
                 </div>
                 <BlockedInRun calib={calib} />
                 <details style={{ marginTop: '10px' }}>
-                    <summary style={{ cursor: 'pointer', fontSize: '12px', color: 'var(--accent)' }}>
+                    <summary style={{ cursor: 'pointer', fontSize: '13px', color: 'var(--accent)' }}>
                         How these are calculated
                     </summary>
                     <div style={{ marginTop: '8px', maxWidth: '640px' }}>
@@ -337,13 +337,13 @@ export function EhpStats({ calib }: { calib: EhpCalibration }) {
                             />
                         )}
                         {a.armorMainMissing && (
-                            <p style={{ fontSize: '12px', color: 'var(--gold)', lineHeight: 1.6 }}>
+                            <p style={{ fontSize: '13px', color: 'var(--gold)', lineHeight: 1.6 }}>
                                 Your Armor slot level isn&apos;t set, so your Armor module&apos;s ×Tower Health is
                                 undercounted. Set it on Modules → Loadouts (slot levels), or type the ×value from the
                                 module card into the module&apos;s Main effect.
                             </p>
                         )}
-                        <p style={{ fontSize: '12px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
+                        <p style={{ fontSize: '13px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
                             Perks count all-or-nothing: every perk you haven&apos;t banned is counted at 5 picks,
                             including trade-offs, except Defense %, which follows your Battle Report. Mid-run the game
                             only has the perks you&apos;ve picked so far, and

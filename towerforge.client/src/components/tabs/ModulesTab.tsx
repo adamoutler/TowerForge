@@ -187,7 +187,7 @@ function AssistEffRow({ label, part, max, onChange }: {
             <div className="field-row">
                 <label className="field-label">{label}<span className="field-sub">1–{max}%</span></label>
                 <NumericInput value={part.total} min={0} max={max} className="num-sm" onChange={onChange} />
-                <span style={{ fontSize: '12px', color: 'var(--text-dim)' }}>%</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-dim)' }}>%</span>
             </div>
             <div className="modg-assist-split">
                 1% + stones {part.stones}/{part.maxStones} + lab {part.lab}/30
@@ -462,7 +462,7 @@ export default function ModulesTab() {
                                     ✓ Equipped{moduleState.loadoutFor && ` in ${presetLabel(profile.presetNames, activePreset)}`}
                                 </span>
                             ) : (
-                                <button className="btn btn-accent" style={{ fontSize: '12px', padding: '3px 10px' }}
+                                <button className="btn btn-accent" style={{ fontSize: '13px', padding: '3px 10px' }}
                                     onClick={() => setModuleState({
                                         activeLoadout: viewed.id,
                                         // Equipping changes what this preset uses.
@@ -473,7 +473,7 @@ export default function ModulesTab() {
                                     Equip
                                 </button>
                             )}
-                            <button className="btn btn-danger" style={{ fontSize: '11px', padding: '3px 8px' }}
+                            <button className="btn btn-danger" style={{ fontSize: '12px', padding: '3px 8px' }}
                                 onClick={() => deletePreset(viewed.id)}>✕</button>
                         </div>
 
@@ -533,7 +533,7 @@ export default function ModulesTab() {
             {panel === 'assist' && (
                 <div className="modg-panel">
                     <div className="modg-inv-head">
-                        <span style={{ fontSize: '12px', color: 'var(--text-dim)' }}>
+                        <span style={{ fontSize: '13px', color: 'var(--text-dim)' }}>
                             You have {(currencies.stones ?? 0).toLocaleString()} stones
                         </span>
                     </div>
@@ -605,7 +605,7 @@ export default function ModulesTab() {
       ══════════════════════════════════════ */}
             {panel === 'inventory' && <div className="modg-panel">
                 <div className="modg-inv-head">
-                    <span style={{ fontSize: '12px', color: 'var(--text-dim)' }}>{library.length} modules</span>
+                    <span style={{ fontSize: '13px', color: 'var(--text-dim)' }}>{library.length} modules</span>
                     <span style={{ flex: 1 }} />
                     <button className="btn btn-accent" onClick={openAdd}>+ Add Module</button>
                 </div>
@@ -697,7 +697,7 @@ export default function ModulesTab() {
                                                 {' · '}Lv. {Math.min(lvl, cap)} /{cap}
                                             </div>
                                         </div>
-                                        <button className="btn btn-dim" style={{ fontSize: '11px', alignSelf: 'flex-start' }}
+                                        <button className="btn btn-dim" style={{ fontSize: '12px', alignSelf: 'flex-start' }}
                                             onClick={() => setInspectId(null)}>✕</button>
                                     </div>
 
@@ -728,7 +728,7 @@ export default function ModulesTab() {
                                             );
                                         })}
                                         {!(m.subs ?? []).some(s => s.effect) && (
-                                            <div style={{ fontSize: '12px', color: 'var(--text-dim)' }}>No effects entered.</div>
+                                            <div style={{ fontSize: '13px', color: 'var(--text-dim)' }}>No effects entered.</div>
                                         )}
                                     </div>
 
@@ -777,7 +777,7 @@ export default function ModulesTab() {
                                         <span className="modal-title">
                                             {TYPE_LABELS[type]} — {isAssist ? 'Assist' : 'Primary'} slot · {viewed.name}
                                         </span>
-                                        <button className="btn btn-dim" style={{ fontSize: '11px' }}
+                                        <button className="btn btn-dim" style={{ fontSize: '12px' }}
                                             onClick={() => setSlotEdit(null)}>✕</button>
                                     </div>
                                     <div className="modal-body">
@@ -789,7 +789,7 @@ export default function ModulesTab() {
                                             <NumericInput value={lv} min={0} max={MODULE_MAX_LEVEL} className="num-sm"
                                                 onChange={v => setSlotLevel(type, slot, v)} />
                                             {cap !== null && lv > cap && (
-                                                <span style={{ fontSize: '12px', color: 'var(--gold)' }}>
+                                                <span style={{ fontSize: '13px', color: 'var(--gold)' }}>
                                                     {slotEditMod!.name} caps at {cap}
                                                 </span>
                                             )}
@@ -814,13 +814,13 @@ export default function ModulesTab() {
                                                             <label className="field-label">Main effect<span className="field-sub">1–130%</span></label>
                                                             <NumericInput value={ad.multEff ?? 0} min={0} max={130} className="num-sm"
                                                                 onChange={v => updateAssist(type, 'multEff', v)} />
-                                                            <span style={{ fontSize: '12px', color: 'var(--text-dim)' }}>%</span>
+                                                            <span style={{ fontSize: '13px', color: 'var(--text-dim)' }}>%</span>
                                                         </div>
                                                         <div className="field-row">
                                                             <label className="field-label">Substats<span className="field-sub">1–100%</span></label>
                                                             <NumericInput value={ad.subEff ?? 0} min={0} max={100} className="num-sm"
                                                                 onChange={v => updateAssist(type, 'subEff', v)} />
-                                                            <span style={{ fontSize: '12px', color: 'var(--text-dim)' }}>%</span>
+                                                            <span style={{ fontSize: '13px', color: 'var(--text-dim)' }}>%</span>
                                                         </div>
                                                     </>
                                                 )}
@@ -841,7 +841,7 @@ export default function ModulesTab() {
                                                     title={m.id === otherId ? `In the ${other === 'main' ? 'primary' : 'assist'} slot — picking it moves it here` : undefined}>
                                                     <ModuleBadge type={type} module={m} size={44} />
                                                     <span style={{ flex: 1, textAlign: 'left' }}>{m.name}</span>
-                                                    <span style={{ fontSize: '12px', color: rarityColor(m.rarity) }}>{rarityLabel(m.rarity)}</span>
+                                                    <span style={{ fontSize: '13px', color: rarityColor(m.rarity) }}>{rarityLabel(m.rarity)}</span>
                                                     {m.id === otherId && <span className="modg-inv-tag static">{other === 'main' ? 'P' : 'A'}</span>}
                                                 </button>
                                             ))}
@@ -866,7 +866,7 @@ export default function ModulesTab() {
                             <span className="modal-title">
                                 {modal.editId ? 'Edit Module' : 'Add Module'}
                             </span>
-                            <button className="btn btn-dim" style={{ fontSize: '11px' }}
+                            <button className="btn btn-dim" style={{ fontSize: '12px' }}
                                 onClick={() => setModal(defaultModal())}>✕</button>
                         </div>
                         <div className="modal-body">
@@ -924,7 +924,7 @@ export default function ModulesTab() {
                                     onChange={e => setModal(m => ({ ...m, mainMult: parseFloat(e.target.value) || 0 }))}
                                     style={{ width: '140px' }}
                                 />
-                                <div style={{ fontSize: '12px', color: 'var(--text-dim)', marginTop: '4px' }}>
+                                <div style={{ fontSize: '13px', color: 'var(--text-dim)', marginTop: '4px' }}>
                                     Optional — the number on the module card (e.g. ×16.24). Leave blank to calculate it
                                     from the rarity and the slot level.
                                 </div>
@@ -943,7 +943,7 @@ export default function ModulesTab() {
                                     }}>
                                         {uniqueEffectVal}
                                     </span>
-                                    <div style={{ fontSize: '12px', color: 'var(--text-dim)', marginTop: '4px' }}>
+                                    <div style={{ fontSize: '13px', color: 'var(--text-dim)', marginTop: '4px' }}>
                                         {UNIQUE_MODULES[modal.type].find(([n]) => n === modal.name)?.[1]}
                                     </div>
                                 </div>
@@ -951,7 +951,7 @@ export default function ModulesTab() {
 
                             {/* ── Sub-effect slots ── */}
                             <div style={{
-                                fontSize: '12px', fontWeight: 700, textTransform: 'uppercase',
+                                fontSize: '13px', fontWeight: 700, textTransform: 'uppercase',
                                 letterSpacing: '.5px', color: 'var(--text-dim)', marginBottom: '8px',
                             }}>
                                 Sub-Effect Slots (8)
@@ -976,7 +976,7 @@ export default function ModulesTab() {
                                                 <span className="sub-slot-num">Slot {si + 1}</span>
                                                 {curVal && (
                                                     <span style={{
-                                                        fontFamily: 'var(--font-mono)', fontSize: '12px',
+                                                        fontFamily: 'var(--font-mono)', fontSize: '13px',
                                                         color: rarColor, fontWeight: 700,
                                                     }}>
                                                         {curVal}
@@ -986,7 +986,7 @@ export default function ModulesTab() {
                                             <select value={sub.rar}
                                                 onChange={e => onModalSubRarityChange(si, e.target.value as SubRarity)}
                                                 style={{
-                                                    width: '100%', fontSize: '12px', marginBottom: '4px',
+                                                    width: '100%', fontSize: '13px', marginBottom: '4px',
                                                     borderColor: rarColor, color: rarColor,
                                                 }}>
                                                 {SUB_RARITIES.map(r => (
@@ -995,7 +995,7 @@ export default function ModulesTab() {
                                             </select>
                                             <select value={sub.effect}
                                                 onChange={e => onModalSubEffectChange(si, e.target.value)}
-                                                style={{ width: '100%', fontSize: '12px' }}>
+                                                style={{ width: '100%', fontSize: '13px' }}>
                                                 <option value="">— No effect —</option>
                                                 {available.map(([name]) => (
                                                     <option key={name} value={name}>{name}</option>

@@ -60,14 +60,14 @@ export default function MySharesList() {
     }
 
     if (error) {
-        return <p style={{ fontSize: '12px', color: 'var(--red, #e74c3c)' }}>{error}</p>;
+        return <p style={{ fontSize: '13px', color: 'var(--red, #e74c3c)' }}>{error}</p>;
     }
     if (!shares) {
-        return <p style={{ fontSize: '12px', color: 'var(--text-dim)' }}>Loading your share codes…</p>;
+        return <p style={{ fontSize: '13px', color: 'var(--text-dim)' }}>Loading your share codes…</p>;
     }
     if (shares.length === 0) {
         return (
-            <p style={{ fontSize: '12px', color: 'var(--text-dim)' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-dim)' }}>
                 No active share codes. Create one on the Share tab.
             </p>
         );
@@ -80,7 +80,7 @@ export default function MySharesList() {
                     <strong style={{ letterSpacing: '2px', fontFamily: 'var(--font-mono)', minWidth: '100px' }}>
                         {share.code}
                     </strong>
-                    <span style={{ fontSize: '12px', color: 'var(--text-dim)', flex: 1, minWidth: '160px' }}>
+                    <span style={{ fontSize: '13px', color: 'var(--text-dim)', flex: 1, minWidth: '160px' }}>
                         {share.sections.map(s => SECTION_LABELS[s] ?? s).join(' · ') || '—'}
                         {' · '}expires in {daysLeft(share.expiresAt)} days
                     </span>

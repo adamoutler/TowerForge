@@ -121,15 +121,15 @@ export default function ShareTab() {
             <div className="section" style={{ marginBottom: '10px' }}>
                 <div className="section-head"><h3>Share My Stats</h3></div>
                 <div className="section-body" style={{ padding: '10px 14px' }}>
-                    <p style={{ fontSize: '12px', color: 'var(--text-dim)', marginBottom: '10px', lineHeight: 1.6 }}>
+                    <p style={{ fontSize: '13px', color: 'var(--text-dim)', marginBottom: '10px', lineHeight: 1.6 }}>
                         Creates a read-only snapshot of the sections you pick. Anyone with the link or code can view it.
                         Snapshots expire after 90 days. Your own data is never changed.
                     </p>
                     {accountStatus === 'signedOut' && (
-                        <p style={{ fontSize: '12px', color: 'var(--text-dim)', marginBottom: '10px', lineHeight: 1.6 }}>
+                        <p style={{ fontSize: '13px', color: 'var(--text-dim)', marginBottom: '10px', lineHeight: 1.6 }}>
                             <button
                                 className="btn btn-dim"
-                                style={{ fontSize: '12px', padding: '2px 8px', marginRight: '6px' }}
+                                style={{ fontSize: '13px', padding: '2px 8px', marginRight: '6px' }}
                                 onClick={() => setActiveTab('account')}
                             >
                                 Create an account
@@ -159,7 +159,7 @@ export default function ShareTab() {
                     </div>
 
                     {error && (
-                        <p style={{ fontSize: '12px', color: 'var(--red, #e74c3c)', marginTop: '8px' }}>{error}</p>
+                        <p style={{ fontSize: '13px', color: 'var(--red, #e74c3c)', marginTop: '8px' }}>{error}</p>
                     )}
 
                     {code && (
@@ -172,7 +172,7 @@ export default function ShareTab() {
                                     readOnly
                                     value={shareUrl(code)}
                                     onFocus={e => e.target.select()}
-                                    style={{ flex: 1, fontSize: '12px' }}
+                                    style={{ flex: 1, fontSize: '13px' }}
                                 />
                                 <button className="btn btn-dim" onClick={handleCopy}>
                                     {copied ? '✓ Copied' : 'Copy Link'}

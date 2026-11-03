@@ -120,7 +120,7 @@ export default function BotsTab() {
                     </button>
                 ))}
             </div>
-            <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: '0 0 12px', lineHeight: 1.6 }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-dim)', margin: '0 0 12px', lineHeight: 1.6 }}>
                 Switch bots ON or OFF and set medal levels for <strong>{presetLabel(profile.presetNames, activePreset)}</strong> —
                 each preset keeps its own and unlocks its own bots, like in game. Values include labs, the Bot
                 Range relic{vaultRange > 0 ? ', the Vault' : ''}{harnessRange > 0 ? ' and Singularity Harness' : ''}.

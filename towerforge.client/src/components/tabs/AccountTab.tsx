@@ -180,13 +180,13 @@ export default function AccountTab() {
                             </button>
                         </div>
                         <p style={{
-                            fontSize: '12px', marginTop: '8px',
+                            fontSize: '13px', marginTop: '8px',
                             color: syncState === 'error' ? 'var(--red, #e74c3c)' : 'var(--text-dim)',
                         }}>
                             {syncText}
                         </p>
                         {error && (
-                            <p style={{ fontSize: '12px', color: 'var(--red, #e74c3c)', marginTop: '6px' }}>{error}</p>
+                            <p style={{ fontSize: '13px', color: 'var(--red, #e74c3c)', marginTop: '6px' }}>{error}</p>
                         )}
                     </div>
                 </div>
@@ -259,11 +259,11 @@ export default function AccountTab() {
             <div className="section">
                 <div className="section-body" style={{ padding: '14px' }}>
                     {notice && (
-                        <p style={{ fontSize: '12px', color: 'var(--gold)', marginBottom: '10px' }}>{notice}</p>
+                        <p style={{ fontSize: '13px', color: 'var(--gold)', marginBottom: '10px' }}>{notice}</p>
                     )}
 
                     {mode === 'reset' && <h3 className="acc-title">Set a new password</h3>}
-                    <p style={{ fontSize: '12px', color: 'var(--text-dim)', marginBottom: '12px', lineHeight: 1.6 }}>{intro}</p>
+                    <p style={{ fontSize: '13px', color: 'var(--text-dim)', marginBottom: '12px', lineHeight: 1.6 }}>{intro}</p>
 
                     <form onSubmit={handleSubmit} className="acc-form">
                         <label className="field-label">
@@ -321,13 +321,13 @@ export default function AccountTab() {
                         )}
 
                         {mode === 'register' && (
-                            <p style={{ fontSize: '12px', color: 'var(--text-dim)' }}>
+                            <p style={{ fontSize: '13px', color: 'var(--text-dim)' }}>
                                 Usernames are 3–24 letters, numbers, _ or -. Passwords need 8+ characters. You&apos;ll
                                 get a recovery code once your account is made — keep it, it resets a forgotten password.
                             </p>
                         )}
                         {mode === 'reset' && (
-                            <p style={{ fontSize: '12px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
+                            <p style={{ fontSize: '13px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
                                 Spaces, dashes and capitals in the code don&apos;t matter. No recovery code? Ask in
                                 our <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">Discord</a> — once
                                 the site owner has checked the account is yours, they can give you one.
