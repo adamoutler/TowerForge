@@ -446,6 +446,32 @@
     }
 }
 
+/* Labs that open at later milestones (LabsTab, folded in MoreInfo). */
+.labs-later {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+    .labs-later li {
+        display: grid;
+        grid-template-columns: 170px 1fr;
+        gap: 4px 12px;
+        padding: 6px 0;
+        border-top: 1px solid var(--line-soft);
+    }
+
+.labs-later-at {
+    font-weight: 600;
+    color: var(--text-bright);
+}
+
+@media (max-width: 600px) {
+    .labs-later li {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ── Sub-tab bars (Workshop, Cards, Modules) ─────────────────── */
 .sub-tab-bar {
     display: flex;

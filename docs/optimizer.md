@@ -689,8 +689,14 @@ measured from the run's `FlameBotBlocked` (the made-up runs had none).
     campaign pushing and drops out for tournaments.
 - **Primary modules** run at 100%. The labs added in the latest update
   (unlocked T23 W500, one per type, +1%/level, 30 levels) take them to 130%:
-  1 + (×value − 1) × (1 + lab%). Site names `Primary-<Type> Mult`; their game
-  lab numbers aren't known yet.
+  1 + (×value − 1) × (1 + lab%). Site names `Primary-<Type> Mult` (the game's
+  Primary Module Bonus - <Type>; its text says it raises the primary module's
+  "efficiency", the word assists use). Costs checked 2026-11-04 against the
+  owner's community sheet and TheTowerSDK: 100 Q at Lv 1, ×1.5 a level
+  (12.78M Q at Lv 30), 400 h × level. TheTowerSDK numbers them 253–256 in
+  `ResearchLevel` (it agrees with 152 of the site's 154 confirmed lab
+  numbers; 99 and 148 differ); not mapped until an export shows a level.
+  The Labs tab lists labs not open yet, folded, by milestone.
 - UW stat / UW+ costs: see [ultimate-weapons.md](ultimate-weapons.md).
 
 ## Workshop and lab costs (checked 2026-10-18)

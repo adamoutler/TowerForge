@@ -2,7 +2,10 @@
 //  TowerForge Companion — Labs Tab
 //  179 labs across 11 categories with search and lock state, the labs
 //  being researched at the last import (29.1.3+ exports), and the Elite
-//  Cell boosts the player's runs keep up (LabBoostPanel).
+//  Cell boosts the player's runs keep up (LabBoostPanel). Labs whose
+//  milestone isn't reached are listed at the bottom, folded, by milestone
+//  (owner, 2026-11-04: hidden entirely, the Primary Module Bonus labs
+//  looked missing from the site).
 // ============================================================
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
@@ -14,6 +17,7 @@ import type { LabRunning } from '../../types/gameTypes';
 import { labFinishAt, labTimerLeft } from '../../engine/labTimer';
 import { boostSettings, boostsForLabs, cellIncome, planLabBoosts } from '../../engine/labBoosts';
 import LabBoostPanel from './LabBoostPanel';
+import MoreInfo from '../common/MoreInfo';
 
 const span = (sec: number) => {
     const m = Math.max(0, Math.round(sec / 60));
@@ -149,6 +153,22 @@ export default function LabsTab() {
         })).filter(group => group.l.length > 0);
     }, [search]);
 
+    // Labs not open yet, grouped by the milestone that opens them, soonest
+    // first. Tier 0 is Inner Land Mine's Chrono Jump, which needs the UW.
+    const laterLabs = useMemo(() => {
+        const byAt = new Map<string, { tier: number; wave: number; names: string[] }>();
+        for (const group of filteredGroups) {
+            for (const [name, , tier, wave] of group.l) {
+                if (isUnlocked(name)) continue;
+                const key = `${tier}/${wave}`;
+                if (!byAt.has(key)) byAt.set(key, { tier, wave, names: [] });
+                byAt.get(key)!.names.push(name);
+            }
+        }
+        return [...byAt.values()].sort((a, b) => a.tier - b.tier || a.wave - b.wave);
+    }, [filteredGroups, isUnlocked]);
+    const laterCount = laterLabs.reduce((n, g) => n + g.names.length, 0);
+
     return (
         <div>
             {!labsOpen(progress) && (
@@ -262,6 +282,21 @@ export default function LabsTab() {
                     </div>
                 </div>
             ))}
+
+            {labsOpen(progress) && laterCount > 0 && (
+                <MoreInfo summary={`${laterCount} ${laterCount === 1 ? 'lab opens' : 'labs open'} at later milestones`}>
+                    <ul className="labs-later">
+                        {laterLabs.map(g => (
+                            <li key={`${g.tier}/${g.wave}`}>
+                                <span className="labs-later-at">
+                                    {g.tier > 0 ? `Tier ${g.tier}, wave ${g.wave}` : 'With Inner Land Mine'}
+                                </span>
+                                <span>{g.names.join(', ')}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </MoreInfo>
+            )}
 
         </div>
     );
