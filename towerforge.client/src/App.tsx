@@ -6,7 +6,7 @@
 //  forward follow the address, and the tab bar's entries are links.
 // ============================================================
 
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useGameStore } from './store/useGameStore';
 import type { TabName } from './types/gameTypes';
 import { isGameExport, parseGameExport, SUPPORTED_EXPORT_VERSION } from './engine/gameExport';
@@ -152,6 +152,22 @@ export default function App() {
     // ?share=CODE opens the read-only viewer instead of the app shell.
     const [shareCode] = useState(() => new URLSearchParams(window.location.search).get('share'));
     const activeTab = useGameStore(s => s.activeTab);
+
+    // The header and currency bar fold away once a page is scrolled, and
+    // come back at its top (owner, 2026-11-03: the top bars took too much of
+    // the screen). Only the page area scrolls, so folding makes it taller;
+    // a page only folds when it's long enough to stay scrolled after that.
+    // A new page opens at its top.
+    const mainRef = useRef<HTMLElement>(null);
+    const [compact, setCompact] = useState(false);
+    const onMainScroll = useCallback(() => {
+        const el = mainRef.current;
+        if (!el) return;
+        setCompact(c => (c ? el.scrollTop > 12 : el.scrollTop > 80 && el.scrollHeight - el.clientHeight > 320));
+    }, []);
+    useEffect(() => {
+        mainRef.current?.scrollTo({ top: 0 });
+    }, [activeTab]);
     const setActiveTab = useGameStore(s => s.setActiveTab);
     const loadAll = useGameStore(s => s.loadAll);
     const profile = useGameStore(s => s.profile);
@@ -412,85 +428,89 @@ export default function App() {
     }
 
     return (
-        <div className="app-shell">
+        <div className={`app-shell${compact ? ' is-compact' : ''}`}>
             {pdfBusy && (
                 <div className="opt-apply-toast" role="status">Reading the PDF… this can take a few seconds.</div>
             )}
             {linkBusy && !linkModal && (
                 <div className="opt-apply-toast" role="status">Getting your data from the emulator…</div>
             )}
-            {/* ── Header ── */}
-            <header className="app-header">
-                <div className="app-logo">
-                    Tower<span className="logo-forge">Forge</span>
-                    <span className="logo-sub"> Companion</span>
-                </div>
-                <span className="app-version">v{__APP_VERSION__}</span>
+            {/* ── Header and currencies (fold away while a page is scrolled) ── */}
+            <div className="app-top-full" inert={compact}>
+                <div className="app-top-inner">
+                    <header className="app-header">
+                        <div className="app-logo">
+                            Tower<span className="logo-forge">Forge</span>
+                            <span className="logo-sub"> Companion</span>
+                        </div>
+                        <span className="app-version">v{__APP_VERSION__}</span>
 
-                <div className="header-actions">
-                    <DiscordLink />
-                    <ThemePicker />
-                    <span className="lnk-pair">
-                        <button
-                            className="btn btn-dim lnk-btn"
-                            onClick={() => void getFromEmulator()}
-                            disabled={linkBusy}
-                            title="Copy the game's data export straight from an emulator on this PC, or an Android phone on the same Wi-Fi (TowerForge Link)"
-                        >
-                            🖥 Get from emulator or phone
-                        </button>
-                        <button
-                            className="btn btn-dim lnk-btn lnk-gear"
-                            onClick={() => setLinkModal({ problem: null })}
-                            title="Set up TowerForge Link: emulators and Android phones"
-                            aria-label="Set up TowerForge Link"
-                        >
-                            ⚙
-                        </button>
-                    </span>
-                    <AutoImport
-                        onImport={raw => applyGameImport(parseGameExport(raw))}
-                        onNeedsLink={() => setLinkModal({ problem: null })}
-                    />
-                    <label className="btn btn-gold" style={{ cursor: 'pointer' }} title="Import the data export from The Tower (tool_export.json)">
-                        ⬆ Import Game Data
-                        <input
-                            type="file"
-                            accept=".json,application/json,.pdf,application/pdf"
-                            style={{ display: 'none' }}
-                            onChange={handleImport}
-                        />
-                    </label>
-                </div>
+                        <div className="header-actions">
+                            <DiscordLink />
+                            <ThemePicker />
+                            <span className="lnk-pair">
+                                <button
+                                    className="btn btn-dim lnk-btn"
+                                    onClick={() => void getFromEmulator()}
+                                    disabled={linkBusy}
+                                    title="Copy the game's data export straight from an emulator on this PC, or an Android phone on the same Wi-Fi (TowerForge Link)"
+                                >
+                                    🖥 Get from emulator or phone
+                                </button>
+                                <button
+                                    className="btn btn-dim lnk-btn lnk-gear"
+                                    onClick={() => setLinkModal({ problem: null })}
+                                    title="Set up TowerForge Link: emulators and Android phones"
+                                    aria-label="Set up TowerForge Link"
+                                >
+                                    ⚙
+                                </button>
+                            </span>
+                            <AutoImport
+                                onImport={raw => applyGameImport(parseGameExport(raw))}
+                                onNeedsLink={() => setLinkModal({ problem: null })}
+                            />
+                            <label className="btn btn-gold" style={{ cursor: 'pointer' }} title="Import the data export from The Tower (tool_export.json)">
+                                ⬆ Import Game Data
+                                <input
+                                    type="file"
+                                    accept=".json,application/json,.pdf,application/pdf"
+                                    style={{ display: 'none' }}
+                                    onChange={handleImport}
+                                />
+                            </label>
+                        </div>
 
-                <div className="summary-bar">
-                    <div className="sum-item">
-                        <span className="sum-label">Tier</span>
-                        <span className="sum-val green">
-                            {profile.highestTier ? `T${profile.highestTier}` : '—'}
-                        </span>
-                    </div>
-                    <div className="sum-item">
-                        <span className="sum-label">League</span>
-                        <span className="sum-val">{profile.league || '—'}</span>
-                    </div>
-                    <div className="sum-item">
-                        <span className="sum-label">Build</span>
-                        <span className="sum-val">{profile.build || '—'}</span>
-                    </div>
-                    <div className="sum-item">
-                        <span className="sum-label">UWs</span>
-                        <span className="sum-val">{ownedUWs}/9</span>
-                    </div>
-                    <div className="sum-item">
-                        <span className="sum-label">Labs</span>
-                        <span className="sum-val">{labsDone}</span>
-                    </div>
-                </div>
-            </header>
+                        <div className="summary-bar">
+                            <div className="sum-item">
+                                <span className="sum-label">Tier</span>
+                                <span className="sum-val green">
+                                    {profile.highestTier ? `T${profile.highestTier}` : '—'}
+                                </span>
+                            </div>
+                            <div className="sum-item">
+                                <span className="sum-label">League</span>
+                                <span className="sum-val">{profile.league || '—'}</span>
+                            </div>
+                            <div className="sum-item">
+                                <span className="sum-label">Build</span>
+                                <span className="sum-val">{profile.build || '—'}</span>
+                            </div>
+                            <div className="sum-item">
+                                <span className="sum-label">UWs</span>
+                                <span className="sum-val">{ownedUWs}/9</span>
+                            </div>
+                            <div className="sum-item">
+                                <span className="sum-label">Labs</span>
+                                <span className="sum-val">{labsDone}</span>
+                            </div>
+                        </div>
+                    </header>
 
-            {/* ── Currencies ── */}
-            <CurrencyBar />
+                    {/* ── Currencies ── */}
+                    <CurrencyBar />
+                </div>
+            </div>
 
             {/* ── Sections, then the tabs of the open section ── */}
             <nav className="tab-bar" aria-label="Sections">
@@ -502,6 +522,8 @@ export default function App() {
                             href={TAB_PATHS[tab]}
                             className={`tab-btn tab-group ${activeGroup.id === group.id ? 'active' : ''}`}
                             aria-current={activeGroup.id === group.id ? 'true' : undefined}
+                            aria-label={group.label}
+                            title={group.label}
                             onClick={e => { if (plainClick(e)) { e.preventDefault(); openTab(tab); } }}
                         >
                             <span className="tab-icon" aria-hidden="true">{group.icon}</span>
@@ -529,7 +551,7 @@ export default function App() {
             )}
 
             {/* ── Content ── */}
-            <main className="tab-content">
+            <main className="tab-content" ref={mainRef} onScroll={onMainScroll}>
                 <ErrorBoundary key={activeTab}>
                     <Suspense fallback={null}>{renderTab()}</Suspense>
                 </ErrorBoundary>

@@ -14,6 +14,34 @@
     min-height: 100vh;
 }
 
+/* ── Folding top bars ────────────────────────────────────────── */
+/* The header and currency bar fold away while a page is scrolled
+   (.is-compact, set in App.tsx) and open again at its top; the section
+   and page tabs stay. The row height animates, so the page area grows
+   smoothly instead of jumping. */
+.app-top-full {
+    display: grid;
+    grid-template-rows: 1fr;
+    flex-shrink: 0;
+    transition: grid-template-rows 0.25s ease, opacity 0.2s ease;
+}
+
+.app-top-inner {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.is-compact .app-top-full {
+    grid-template-rows: 0fr;
+    opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-top-full {
+        transition: none;
+    }
+}
+
 /* ── Header ──────────────────────────────────────────────────── */
 .app-header {
     position: relative;
@@ -393,6 +421,25 @@
     .tab-sub {
         flex-shrink: 0;
         padding: 5px 13px;
+    }
+
+    /* Folded: the sections in one row of icons (each keeps its name as
+       its label and tooltip). */
+    .is-compact .tab-bar {
+        flex-wrap: nowrap;
+    }
+
+    .is-compact .tab-group {
+        flex: 1 1 0;
+        padding: 9px 0 8px;
+    }
+
+        .is-compact .tab-group > span:not(.tab-icon) {
+            display: none;
+        }
+
+    .is-compact .tab-subbar {
+        padding: 6px 14px;
     }
 }
 
