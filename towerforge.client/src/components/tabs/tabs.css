@@ -68,6 +68,384 @@
     overflow-wrap: anywhere;
 }
 
+/* ── Profile home (home-): components/tabs/ProfileHome.tsx ───── */
+/* The tower in its range ring, the game's wave-counter badges, the
+   progress dials (range rings again) and what's ticking. */
+.home-hero {
+    display: grid;
+    grid-template-columns: minmax(180px, 250px) 1fr;
+    align-items: center;
+    gap: 12px 32px;
+    padding: 18px 28px 18px 14px;
+    margin-bottom: 18px;
+    border: 1px solid var(--panel-line);
+    border-radius: var(--radius-lg);
+    background:
+        radial-gradient(420px 300px at 16% 50%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 70%),
+        linear-gradient(135deg, var(--panel-a), var(--panel-b));
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--accent) 22%, transparent), 0 8px 26px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.home-scene {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+}
+
+.home-ring {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.5;
+    opacity: .8;
+    filter: drop-shadow(0 0 4px var(--accent));
+}
+
+.home-ring-inner {
+    stroke: var(--accent-2);
+    stroke-dasharray: 3 5;
+    opacity: .45;
+    filter: none;
+}
+
+.home-orbs {
+    transform-origin: 130px 130px;
+    animation: home-orbit 9s linear infinite;
+}
+
+    .home-orbs circle {
+        fill: var(--accent-2);
+        filter: drop-shadow(0 0 5px var(--accent-2));
+    }
+
+/* Each enemy walks in from outside the ring and bursts on it. */
+.home-enemy {
+    fill: color-mix(in srgb, currentColor 22%, transparent);
+    stroke: currentColor;
+    stroke-width: 1.8;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation-name: home-march;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-fill-mode: both;
+}
+
+@keyframes home-march {
+    0% {
+        transform: translate(var(--dx), var(--dy));
+        opacity: 0;
+    }
+
+    12% {
+        opacity: 1;
+    }
+
+    88% {
+        transform: translate(calc(var(--dx) * 0.05), calc(var(--dy) * 0.05));
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+@keyframes home-orbit {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.home-id {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    min-width: 0;
+}
+
+.home-name {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: .3px;
+    color: var(--text-bright);
+    overflow-wrap: anywhere;
+}
+
+.home-counters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* The game's wave counter: a glossy violet badge with a light rim. */
+.home-counter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 92px;
+    padding: 4px 16px 6px;
+    border: 2px solid color-mix(in srgb, var(--text-bright) 80%, var(--accent-2));
+    border-radius: 14px;
+    background: linear-gradient(180deg,
+        color-mix(in srgb, var(--accent-2) 82%, var(--text-bright) 10%),
+        color-mix(in srgb, var(--accent-2) 60%, var(--bg)));
+    box-shadow: 0 0 18px color-mix(in srgb, var(--accent-2) 45%, transparent), inset 0 1px 0 color-mix(in srgb, var(--text-bright) 30%, transparent);
+    color: var(--text-bright);
+}
+
+.home-counter-label {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    opacity: .92;
+}
+
+.home-counter-val {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+
+.home-facts {
+    font-size: 15px;
+    color: var(--text-dim);
+}
+
+.home-cta {
+    font-size: 14px;
+    padding: 9px 18px;
+    text-decoration: none;
+}
+
+.home-meters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.home-meter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg2);
+    color: var(--text);
+    text-decoration: none;
+    transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+    .home-meter:hover {
+        border-color: var(--hover-line);
+        background: color-mix(in srgb, var(--accent) 6%, var(--bg2));
+    }
+
+    .home-meter:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+.home-dial {
+    position: relative;
+    width: 76px;
+    height: 76px;
+}
+
+    .home-dial svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+    }
+
+.home-dial-track {
+    fill: none;
+    stroke: var(--bg4);
+    stroke-width: 5;
+}
+
+/* The arc fills to its share once, when the page opens. */
+.home-dial-arc {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 5;
+    stroke-linecap: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: calc(100 - var(--p));
+    filter: drop-shadow(0 0 3px var(--accent));
+    animation: home-dial-fill 1.1s cubic-bezier(.2, .7, .2, 1) both;
+}
+
+.home-meter.is-empty .home-dial-arc {
+    display: none;
+}
+
+.home-meter.is-max .home-dial-arc {
+    stroke: var(--gold);
+    filter: drop-shadow(0 0 4px var(--gold));
+}
+
+@keyframes home-dial-fill {
+    from {
+        stroke-dashoffset: 100;
+    }
+}
+
+.home-dial-num {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-bright);
+}
+
+    .home-dial-num small {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-dim);
+    }
+
+.home-meter.is-max .home-dial-num {
+    color: var(--gold);
+}
+
+.home-meter-label {
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    color: var(--text-bright);
+}
+
+.home-meter-note {
+    font-size: 12px;
+    color: var(--plus);
+}
+
+.home-now {
+    list-style: none;
+    margin: 0 0 18px;
+    padding: 2px 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg2);
+}
+
+    .home-now li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 16px;
+        font-size: 15px;
+    }
+
+        .home-now li + li {
+            border-top: 1px solid var(--line-soft);
+        }
+
+.home-now-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+}
+
+.home-now-text {
+    flex: 1;
+    min-width: 0;
+    color: var(--text);
+}
+
+    .home-now-text strong {
+        color: var(--text-bright);
+    }
+
+.home-now-link {
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--accent);
+    text-decoration: none;
+}
+
+    .home-now-link:hover {
+        text-decoration: underline;
+    }
+
+@media (prefers-reduced-motion: reduce) {
+    .home-enemy,
+    .home-orbs,
+    .home-dial-arc {
+        animation: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .home-hero {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        text-align: center;
+        padding: 12px 14px 18px;
+    }
+
+    .home-scene {
+        max-width: 180px;
+    }
+
+    .home-id {
+        align-items: center;
+    }
+
+    .home-counters {
+        justify-content: center;
+    }
+
+    .home-name {
+        font-size: 26px;
+    }
+
+    .home-counter-val {
+        font-size: 22px;
+    }
+
+    .home-meters {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .home-meter {
+        padding: 10px 4px;
+    }
+
+    .home-dial {
+        width: 62px;
+        height: 62px;
+    }
+
+    .home-dial-num {
+        font-size: 14px;
+    }
+
+    .home-meter-label {
+        font-size: 13px;
+    }
+
+    .home-now li {
+        flex-wrap: wrap;
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+}
+
 /* ── Sub-tab bars (Workshop, Cards, Modules) ─────────────────── */
 .sub-tab-bar {
     display: flex;

@@ -1,27 +1,40 @@
 // ============================================================
-//  TowerForge Companion — Profile Tab
-//  Player name, league, build type, preset count, wall toggle.
+//  TowerForge Companion — Profile Tab (the home page)
+//  Where the account stands (ProfileHome), the run in progress, then
+//  the profile settings: player name, league, build type, preset
+//  count, wall, tiers. Import fills the settings in, so they fold away
+//  once there's data and open by themselves on a new account.
 // ============================================================
 
+import { useState } from 'react';
 import { useGameStore } from '../../store/useGameStore';
 import type { BuildType, League } from '../../types/gameTypes';
 import { MAX_TIER, presetLabel } from '../../constants/gameData';
 import LiveRunPanel from './LiveRunPanel';
+import ProfileHome from './ProfileHome';
 import './tabs.css';
 
 export default function ProfileTab() {
     const profile = useGameStore(s => s.profile);
     const updateProfile = useGameStore(s => s.updateProfile);
+    const hasData = useGameStore(s => s.importedBattles.length > 0 || !!s.profile.highestTier);
+    const [settingsOpen, setSettingsOpen] = useState(!hasData);
 
     return (
         <div className="tab-pane-profile">
 
+            <ProfileHome />
+
             <LiveRunPanel />
 
-            {/* ── Player Info ── */}
-            <div className="section">
-                <div className="section-head">
-                    <h3>Player Profile</h3>
+            {/* ── Profile settings ── */}
+            <div className={`section${settingsOpen ? '' : ' collapsed'}`}>
+                <div className="section-head" onClick={() => setSettingsOpen(o => !o)}
+                    role="button" tabIndex={0} aria-expanded={settingsOpen}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSettingsOpen(o => !o); } }}>
+                    <h3>Profile settings</h3>
+                    <span className="field-sub">Name, league, build, presets, tiers</span>
+                    <span className="chevron">▼</span>
                 </div>
                 <div className="section-body">
                     <div className="profile-grid">
@@ -124,15 +137,8 @@ export default function ProfileTab() {
                         </div>
 
                     </div>
-                </div>
-            </div>
 
-            {/* ── Tier Settings ── */}
-            <div className="section">
-                <div className="section-head">
-                    <h3>Tier Settings</h3>
-                </div>
-                <div className="section-body">
+                    <div className="divider" />
                     <div className="profile-grid">
 
                         <div className="field-row">
@@ -176,70 +182,6 @@ export default function ProfileTab() {
                     </div>
                 </div>
             </div>
-
-            {/* ── Build Summary ── */}
-            {profile.build && (
-                <div className="section">
-                    <div className="section-head">
-                        <h3>Build Summary</h3>
-                    </div>
-                    <div className="section-body">
-                        <div className="profile-summary-grid">
-
-                            <div className="profile-stat-pill">
-                                <span className="stat-pill-label">Player</span>
-                                <span className="stat-pill-val">
-                                    {profile.name || '—'}
-                                </span>
-                            </div>
-
-                            <div className="profile-stat-pill">
-                                <span className="stat-pill-label">League</span>
-                                <span className="stat-pill-val">
-                                    {profile.league || '—'}
-                                </span>
-                            </div>
-
-                            <div className="profile-stat-pill">
-                                <span className="stat-pill-label">Build</span>
-                                <span className="stat-pill-val" style={{ color: 'var(--accent)' }}>
-                                    {profile.build || '—'}
-                                </span>
-                            </div>
-
-                            <div className="profile-stat-pill">
-                                <span className="stat-pill-label">Presets</span>
-                                <span className="stat-pill-val">{profile.presets}</span>
-                            </div>
-
-                            <div className="profile-stat-pill">
-                                <span className="stat-pill-label">Highest Tier</span>
-                                <span className="stat-pill-val" style={{ color: 'var(--gold)' }}>
-                                    {profile.highestTier ? `T${profile.highestTier}` : '—'}
-                                </span>
-                            </div>
-
-                            <div className="profile-stat-pill">
-                                <span className="stat-pill-label">Completed</span>
-                                <span className="stat-pill-val">
-                                    {profile.completedTier ? `T${profile.completedTier}` : 'None'}
-                                </span>
-                            </div>
-
-                            <div className="profile-stat-pill">
-                                <span className="stat-pill-label">Wall</span>
-                                <span
-                                    className="stat-pill-val"
-                                    style={{ color: profile.wall ? 'var(--accent)' : 'var(--text-dim)' }}
-                                >
-                                    {profile.wall ? 'Unlocked' : 'Locked'}
-                                </span>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            )}
 
         </div>
     );
