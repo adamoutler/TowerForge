@@ -3629,6 +3629,69 @@ button.gcard {
         background: var(--accent-glow);
     }
 
+/* The site maker's code: pinned first, a quiet accent outline. */
+.cc-card.cc-ours {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-glow);
+}
+
+.cc-ours-tag {
+    align-self: flex-start;
+    margin-bottom: 2px;
+    padding: 1px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-glow);
+    border-radius: 999px;
+}
+
+/* ── Support line (Profile page foot) ────────────────────────── */
+.sup-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 28px auto 8px;
+    max-width: 720px;
+    padding: 10px 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
+}
+
+.sup-heart {
+    flex-shrink: 0;
+    color: var(--accent);
+    font-size: 16px;
+}
+
+.sup-text {
+    flex: 1;
+    min-width: 0;
+}
+
+    .sup-text a {
+        color: var(--accent);
+    }
+
+.sup-code {
+    padding: 1px 7px;
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-bright);
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    user-select: all;   /* one tap selects the whole code */
+}
+
+.sup-line .cc-copy {
+    flex-shrink: 0;
+}
+
 .cc-player {
     font-size: 14px;
     font-weight: 600;

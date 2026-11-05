@@ -4,6 +4,7 @@
 //  the profile settings: player name, league, build type, preset
 //  count, wall, tiers. Import fills the settings in, so they fold away
 //  once there's data and open by themselves on a new account.
+//  At the foot, a quiet line with the site maker's creator code.
 // ============================================================
 
 import { useState } from 'react';
@@ -12,6 +13,7 @@ import type { BuildType, League } from '../../types/gameTypes';
 import { MAX_TIER, presetLabel } from '../../constants/gameData';
 import LiveRunPanel from './LiveRunPanel';
 import ProfileHome from './ProfileHome';
+import SupportCode from '../common/SupportCode';
 import './tabs.css';
 
 export default function ProfileTab() {
@@ -182,6 +184,8 @@ export default function ProfileTab() {
                     </div>
                 </div>
             </div>
+
+            <SupportCode />
 
         </div>
     );

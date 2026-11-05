@@ -3,12 +3,16 @@
 //  Every content creator's code in one list: search by code, name or
 //  what they're known for, copy a code with one tap, and open their
 //  channels. The YouTube button is the creator's profile picture.
+//  The site maker's code is pinned first, marked "Made TowerForge"
+//  (owner, 2026-11-05).
 // ============================================================
 
 import { useState } from 'react';
 import { CREATORS, CREATOR_SITES, WEBSTORE_URL, creatorSlug } from '../../constants/creatorCodes';
 import type { CreatorLink, CreatorSite } from '../../constants/creatorCodes';
+import { SITE_CREATOR_CODE } from '../../constants/community';
 import { trackEvent } from '../../analytics';
+import { copyText } from '../common/copyText';
 
 const SITES = Object.keys(CREATOR_SITES) as CreatorSite[];
 
@@ -16,6 +20,12 @@ const SITES = Object.keys(CREATOR_SITES) as CreatorSite[];
 const fold = (s: string) => s.normalize('NFKC').toLowerCase();
 const plain = (s: string) => fold(s).replace(/[^\p{L}\p{N}]/gu, '');
 const SEARCH_TEXT = new Map(CREATORS.map(c => [c, fold([c.code, c.name, c.player, c.about ?? ''].join(' '))]));
+
+// The site maker's code first, the rest in list order.
+const ORDERED = [
+    ...CREATORS.filter(c => c.code === SITE_CREATOR_CODE),
+    ...CREATORS.filter(c => c.code !== SITE_CREATOR_CODE),
+];
 
 // Links in site order; a website shows its address unless it has a label.
 const byFixedOrder = (a: CreatorLink, b: CreatorLink) => SITES.indexOf(a.site) - SITES.indexOf(b.site);
@@ -28,38 +38,12 @@ const AVATARS: Record<string, string> = Object.fromEntries(
         .map(([path, url]) => [path.split('/').pop()!.replace(/\.\w+$/, ''), url]),
 );
 
-// navigator.clipboard is missing or blocked in some in-app browsers (the
-// ones Discord and Reddit open links in), so fall back to the older copy
-// command.
-async function copyText(text: string): Promise<boolean> {
-    try {
-        await navigator.clipboard.writeText(text);
-        return true;
-    } catch {
-        const box = document.createElement('textarea');
-        box.value = text;
-        box.setAttribute('readonly', '');
-        box.style.position = 'fixed';
-        box.style.opacity = '0';
-        document.body.appendChild(box);
-        box.select();
-        let ok: boolean;
-        try {
-            ok = document.execCommand('copy');
-        } catch {
-            ok = false;
-        }
-        box.remove();
-        return ok;
-    }
-}
-
 export default function CreatorCodesTab() {
     const [search, setSearch] = useState('');
     const [copied, setCopied] = useState<string | null>(null);
 
     const q = fold(search.trim());
-    const shown = q ? CREATORS.filter(c => SEARCH_TEXT.get(c)!.includes(q)) : CREATORS;
+    const shown = q ? ORDERED.filter(c => SEARCH_TEXT.get(c)!.includes(q)) : ORDERED;
 
     // Copies a code; if the browser won't, selects it on screen so the
     // player can copy it themselves.
@@ -102,8 +86,10 @@ export default function CreatorCodesTab() {
                     const avatar = AVATARS[creatorSlug(c.code)];
                     // The code-list name, when it isn't just the name above it.
                     const showPlayer = !plain(c.name).includes(plain(c.player));
+                    const ours = c.code === SITE_CREATOR_CODE;
                     return (
-                        <div key={c.code} className="cc-card">
+                        <div key={c.code} className={`cc-card ${ours ? 'cc-ours' : ''}`}>
+                            {ours && <span className="cc-ours-tag">Made TowerForge</span>}
                             <div className="cc-top">
                                 <span className="cc-code">{c.code}</span>
                                 <button
