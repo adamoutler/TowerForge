@@ -2,8 +2,8 @@
 //  TowerForge Companion — Career Tab
 //  What the game's file says about the whole account: what the player earns
 //  between imports, lifetime totals, the game's yearly recap, best coins and
-//  cells per tier, modules, research history and records from the saved runs
-//  (engine/career.ts).
+//  cells per tier, modules (with the game's reroll settings), research history
+//  and records from the saved runs (engine/career.ts).
 // ============================================================
 
 import { useMemo, useState } from 'react';
@@ -12,6 +12,8 @@ import { formatGameNumber } from '../../engine/gameNumbers';
 import { EPIC_PITY_PULLS, GEMS_PER_PULL, incomeSummary, labsByMonth, runRecords } from '../../engine/career';
 import type { Career, CareerYear } from '../../engine/career';
 import { GAME_LABS, GAME_LEAGUES } from '../../constants/gameExportMaps';
+import type { ModuleType } from '../../types/gameTypes';
+import MoreInfo from '../common/MoreInfo';
 
 const big = (n: number): string => (n >= 1e4 ? formatGameNumber(n) : Math.round(n).toLocaleString());
 const days = (ms: number): string => `${Math.round(ms / 86400000).toLocaleString()} days`;
@@ -98,6 +100,25 @@ function Earned() {
 function Lifetime({ career }: { career: Career }) {
     const t = career.totals;
     const n = (k: string) => t[k] ?? 0;
+    // Enhancement coins by tab when the file splits them (they add up to the total).
+    const enhSplit: [string, number][] = [
+        ['Attack enhancements', n('CoinsSpentAttackEnhancements')],
+        ['Defense enhancements', n('CoinsSpentDefenseEnhancements')],
+        ['Utility enhancements', n('CoinsSpentUtilityEnhancements')],
+    ];
+    const enh = enhSplit.some(([, v]) => v > 0) ? enhSplit : [['Enhancements', n('CoinsSpentEnhancements')] as [string, number]];
+    // The game keeps lifetime kills by weapon for these four only (the others read 0).
+    const killedBy: [string, number][] = [
+        ['Orbs', n('EnemiesDestroyedByOrbs')], ['Land Mines', n('EnemiesDestroyedByDroppedLandMines')],
+        ['Death Ray', n('EnemiesDestroyedByDeathRay')], ['Thorns', n('EnemiesDestroyedByThorn')],
+    ];
+    // Less central numbers, folded away; a file without one leaves it out.
+    const more = ([
+        ['Workshop upgrades bought', 'WorkshopUpgradesBought'], ['Land mines dropped', 'DroppedLandMinesSpawned'],
+        ['Health from Lifesteal', 'LifestealAbsorbed'], ['Cash earned', 'CashEarned'], ['Cash from interest', 'CashEarnedFromInterest'],
+        ['Gems bought', 'GemsBought'], ['Stones bought', 'StonesBought'], ['Stones spent', 'StonesSpent'],
+        ['Medals spent', 'MedalsSpent'], ['Tokens spent', 'TokensSpent'], ['Bits spent', 'BitsSpent'], ['Skins bought', 'SkinsBought'],
+    ] as [string, string][]).flatMap(([label, key]): Pill[] => (key in t ? [[label, big(t[key])]] : []));
     const pills: Pill[] = [
         ...(career.started ? [['Playing since', dateText(career.started)] as Pill] : []),
         ['Waves completed', big(n('WavesCompleted'))],
@@ -122,7 +143,7 @@ function Lifetime({ career }: { career: Career }) {
                         ['Guardian', n('CoinsByGuardian')], ['Waves', n('CoinsEarnedFromWaves')],
                     ]} />
                     <Counts title="Coins spent on" rows={[
-                        ['Enhancements', n('CoinsSpentEnhancements')], ['Labs', n('CoinsSpentOnResearch')], ['Workshop', n('CoinsSpentWorkshop')],
+                        ...enh, ['Labs', n('CoinsSpentOnResearch')], ['Workshop', n('CoinsSpentWorkshop')],
                     ]} />
                     <Counts title="Enemies destroyed" rows={[
                         ['Basic', n('EnemiesDestroyedNormal')], ['Fast', n('EnemiesDestroyedFast')], ['Tank', n('EnemiesDestroyedTank')],
@@ -133,7 +154,16 @@ function Lifetime({ career }: { career: Career }) {
                         ['Guardian', n('DamageByGuardian')], ['Smart Missiles', n('DamageBySmartMissiles')], ['Poison Swamp', n('DamageBySwamp')],
                         ['Death Wave', n('DamageByDeathWave')], ['Land Mines', n('DamageByLandMines')], ['Bots', n('DamageByBot')],
                     ]} />
+                    <Counts title="Enemies destroyed by" rows={killedBy} />
                 </div>
+                {killedBy.some(([, v]) => v > 0) && (
+                    <p className="car-note">The game keeps lifetime kills by weapon only for orbs, land mines, Death Ray and thorns.</p>
+                )}
+                {more.length > 0 && (
+                    <MoreInfo summary="More lifetime numbers">
+                        <Pills pills={more} />
+                    </MoreInfo>
+                )}
             </div>
         </div>
     );
@@ -246,6 +276,27 @@ function TierBests({ career }: { career: Career }) {
     );
 }
 
+const MODULE_TYPES: [ModuleType, string][] = [['cannon', 'Cannon'], ['armor', 'Armor'], ['generator', 'Generator'], ['core', 'Core']];
+
+// The game's substat bans and auto reroll picks, by module type.
+function RerollSettings({ bans, auto }: { bans?: Record<ModuleType, string[]>; auto?: Record<ModuleType, string[]> }) {
+    const rows = MODULE_TYPES.filter(([t]) => (bans?.[t].length ?? 0) + (auto?.[t].length ?? 0) > 0);
+    if (!rows.length) return null;
+    return (
+        <div className="car-rr">
+            <div className="car-sub">Reroll settings in your game</div>
+            {rows.map(([t, label]) => (
+                <div key={t} className="car-rr-row">
+                    <strong>{label}</strong>
+                    {(auto?.[t].length ?? 0) > 0 && <span><em>Auto reroll:</em> {auto![t].join(', ')}</span>}
+                    {(bans?.[t].length ?? 0) > 0 && <span><em>Banned:</em> {bans![t].join(', ')}</span>}
+                </div>
+            ))}
+            <p className="car-note">Read by the game&apos;s substat numbers; so far only the Core bans are checked against the game&apos;s screen.</p>
+        </div>
+    );
+}
+
 function Modules({ career }: { career: Career }) {
     const m = career.modules;
     if (!m) return null;
@@ -257,6 +308,7 @@ function Modules({ career }: { career: Career }) {
                 <Pills pills={[
                     ['Epic pity', `${m.epicPity} of ${EPIC_PITY_PULLS} pulls`],
                     ['To a sure Epic', `${(left * GEMS_PER_PULL).toLocaleString()} gems`],
+                    ...(m.rarePity !== undefined ? [['Pulls since a Rare', big(m.rarePity)] as Pill] : []),
                     ['Common pulled', big(m.common)],
                     ['Rare pulled', big(m.rare)],
                     ['Epic pulled', big(m.epic)],
@@ -267,6 +319,7 @@ function Modules({ career }: { career: Career }) {
                     ['Slot coins', big(m.slotCoins)],
                     ['Slot shards', big(m.slotShards)],
                 ]} />
+                <RerollSettings bans={m.bans} auto={m.autoReroll} />
             </div>
         </div>
     );

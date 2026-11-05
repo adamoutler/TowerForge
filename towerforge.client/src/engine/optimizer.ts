@@ -212,6 +212,7 @@ export interface OptimizerSnapshot {
     // The chosen run's free upgrades (engine/freeUpgrades.ts): scores read the
     // levels a run reaches. Omitted = the workshop's levels.
     free?: FreeUpgradeRun;
+    freeLocked?: string[];   // stats locked from free upgrades in the game ("attack|Range")
     // What upgrades are scored on: tower eDPS (Glass Cannon), coins per
     // hour (Farming, calibrated by `farm`) or survival (eHP, calibrated by
     // `ehp`). Defaults to eDPS.

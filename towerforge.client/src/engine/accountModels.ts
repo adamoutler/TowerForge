@@ -83,6 +83,7 @@ export function snapshotFromState(s: AccountState): OptimizerSnapshot {
         vault: s.vaultLevels ? { ...s.vaultLevels } : undefined,
         progress: { tierWaves: { ...(s.tierWaves ?? {}) }, completedTier: s.profile.completedTier || 0 },
         wsUnlocked: s.profile.wsUnlocked ? { ...s.profile.wsUnlocked } : undefined,
+        freeLocked: s.profile.freeLocked?.length ? [...s.profile.freeLocked] : undefined,
         free: freeUpgradeRun(run, s.importedBattles, s.wsData[s.activePreset]) ?? undefined,
         metric: metricOf(effectiveBuild(s.profile.build, s.importedBattles)),
     };

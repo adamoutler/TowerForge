@@ -103,6 +103,27 @@ export const GAME_MODULE_EFFECT_RUNS: [ModuleType, (string | number)[]][] = [
     ['generator', [1, 'Max Recovery']],
 ];
 
+// Substat bans and auto-reroll picks (…SubstatBans, …AutoRerollSubstats)
+// number effects from 1 across the four types, one number per effect (not per
+// rarity): cannon 1–17, armor 18–34, generator 35–47, core 48 on. The owner's
+// Core Effect Bans screen (2026-11-02) lists 48–56 in this order, with exactly
+// 51–53 (the Smart Missiles stats) banned. The code's assumptions: generator's
+// 13th (47) is Max Recovery, the generator effect added later, and Poison
+// Swamp's two stats after Damage are Duration then Cooldown.
+export const SUBSTAT_NUMBERS: [ModuleType, string][] = GAME_MODULE_EFFECT_RUNS.flatMap(([type, run]) =>
+    run.flatMap((e): [ModuleType, string][] => {
+        if (typeof e === 'string') return [[type, e]];
+        // Unconfirmed runs of codes stand for effects: Poison Swamp's two, and Max Recovery's lower rarity.
+        return type === 'core' ? [[type, 'Poison Swamp - Duration'], [type, 'Poison Swamp - Cooldown']] : [];
+    }),
+).reduce<[ModuleType, string][]>((out, pair) => {
+    // Max Recovery was appended after core in the code runs; here it ends the generator block.
+    if (pair[1] === 'Max Recovery') return out;
+    out.push(pair);
+    if (pair[0] === 'generator' && pair[1] === 'Enemy HP Level Skip') out.push(['generator', 'Max Recovery']);
+    return out;
+}, []);
+
 // Level each effect slot unlocks at, by slot. Every slot is pre-rolled; how
 // many a module has depends on its rarity (6 Legendary/Ancestral, 7 at 1 star,
 // 8 at 5 stars). The highest level ever reached counts, even after a Restore.
@@ -113,8 +134,10 @@ export const MODULE_EFFECT_SLOT_UNLOCK = [0, 0, 0, 101, 141, 161, 0, 241];
 // ── Cards ─────────────────────────────────────────────────────
 // CardLevel / CardUnlocked / CardMasteryUnlocked / SlotPresetCardInt index.
 // The in-game inventory lists cards by rarity, then by this number.
-// Numbers 8, 9, 14, 17, 24, 35, 36, 38, 39 hold no card on a full
-// account; Area of Effect (newest epic) is one of 35/36/38/39 — unconfirmed.
+// Numbers 8, 9, 14, 17, 24, 36, 38, 39 hold no card. Area of Effect is 35:
+// TheTowerSDK's CARD_IMPORT_CATALOG, taken from the game's own card list
+// (CARDS_ASSET_TABLE.cardNames), which matches every other number here. Not
+// owned on the owner's account, so not seen on one yet (2026-11-05).
 export const GAME_CARDS: Record<number, string> = {
     0: 'Damage', 1: 'Attack Speed', 2: 'Health', 3: 'Health Regen',
     4: 'Range', 5: 'Cash', 6: 'Coins', 7: 'Slow Aura',
@@ -123,7 +146,7 @@ export const GAME_CARDS: Record<number, string> = {
     20: 'Wave Skip', 21: 'Intro Sprint', 22: 'Land Mine Stun', 23: 'Recovery Pkg Chance',
     25: 'Death Ray', 26: 'Energy Net', 27: 'Super Tower', 28: 'Second Wind',
     29: 'Demon Mode', 30: 'Energy Shield', 31: 'Wave Accelerator', 32: 'Berserker',
-    33: 'Ultimate Crit', 34: 'Nuke',
+    33: 'Ultimate Crit', 34: 'Nuke', 35: 'Area of Effect',
     37: 'Cells',
 };
 
@@ -136,10 +159,10 @@ export const MASTERY_LAB_CARDS: string[] = Object.entries(GAME_CARDS)
     .sort((a, b) => a[0] - b[0])
     .map(([, name]) => name);
 
-// Mastery labs of cards added later, by card. Cells is 251 (lab-number list
-// and TheTowerSDK; level 0 on the owner's account, so not seen yet). Area of
-// Effect's is 200, but its card number isn't known, so it can't be placed.
-export const MASTERY_LAB_OTHER: Record<string, number> = { Cells: 251 };
+// Mastery labs of cards added later, by card: Area of Effect 200, Cells 251
+// (lab-number list and TheTowerSDK; level 0 on the owner's account, so not
+// seen yet).
+export const MASTERY_LAB_OTHER: Record<string, number> = { 'Area of Effect': 200, Cells: 251 };
 
 export const CARD_PRESET_SLOTS = 28;   // SlotPresetCardInt holds 28 slots per card preset
 

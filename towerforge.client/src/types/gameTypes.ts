@@ -95,6 +95,9 @@ export interface Profile {
     // Workshop groups bought, per section (the export's Upgrade…TierUnlocked;
     // constants/gameData WS_UNLOCK_GROUPS). Absent = not known: everything open.
     wsUnlocked?: WsUnlocked;
+    // Workshop stats locked from free upgrades in the game ("attack|Range"),
+    // from the export's Upgrades…LockedFreeUpgrades. Absent = none known.
+    freeLocked?: string[];
     // Lab boosts (Labs tab): lab slots owned (the export's LabsUnlocked + 1),
     // and what the player typed over the cells an hour and hours a day in a
     // run read from their runs. Absent = from the runs / the import.

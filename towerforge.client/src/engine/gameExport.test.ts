@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import { defaultBattleIndex, isGameExport, isRealRun, parseGameExport } from './gameExport';
 import { MAX_STORED_BATTLES, mergeBattles } from './battleReport';
-import { LABS, UWS, WS_ENH, WS_STATS } from '../constants/gameData';
+import { CARDS, LABS, UWS, WS_ENH, WS_STATS } from '../constants/gameData';
 import { GAME_CARDS, GAME_LABS, MASTERY_LAB_CARDS, MASTERY_LAB_START, CARD_PRESET_SLOTS } from '../constants/gameExportMaps';
 import { SUB_EFFECTS, SUB_RARITIES } from '../constants/moduleData';
 import { battle, gameModule, labIndex, makeExport, research, zeros } from '../test/makeExport';
@@ -143,6 +143,26 @@ describe('cards', () => {
         expect(GAME_CARDS[37]).toBe('Cells');
         expect(imp.cards!.data.Cells.m).toBe(6);
     });
+
+    // Area of Effect is card 35 (TheTowerSDK's list from the game's own card
+    // order) and its mastery lab 200 (the lab-number list), 2026-11-05.
+    it('reads Area of Effect from card 35 and its mastery from lab 200', () => {
+        const unlocked = Array(40).fill(false);
+        const levels = zeros(40);
+        const mastery = Array(40).fill(false);
+        unlocked[35] = true;
+        levels[35] = 7;
+        mastery[35] = true;
+        const imp = parseGameExport(makeExport({
+            CardLevel: levels, CardUnlocked: unlocked, CardMasteryUnlocked: mastery,
+            ResearchLevel: research({ 200: 3 }),
+        }));
+        expect(imp.cards!.data['Area of Effect']).toEqual({ s: 7, m: 3, mu: true });
+    });
+
+    it('names every card the site has', () => {
+        expect(Object.values(GAME_CARDS).sort()).toEqual(CARDS.map(([n]) => n).sort());
+    });
 });
 
 describe('perks, league, preset names', () => {
@@ -174,6 +194,20 @@ describe('perks, league, preset names', () => {
             WorkshopPresetName: ['GC Farm', 'tournament', 'Preset 3', 'eHP', 'Preset 5'],
         }));
         expect(imp.presetNames).toEqual(['GC Farm', 'Tourney', '', '', '']);
+    });
+});
+
+describe('stats locked from free upgrades', () => {
+    it('reads them by workshop index, and nothing from a file without them', () => {
+        const at = (section: 'attack' | 'defense' | 'utility', stat: string) => WS_STATS[section].findIndex(([n]) => n === stat);
+        const locks = (i: number) => Array.from({ length: 20 }, (_, k) => k === i);
+        const imp = parseGameExport(makeExport({
+            UpgradesLockedFreeUpgrades: locks(at('attack', 'Range')),
+            UpgradesDefenseLockedFreeUpgrades: locks(-1),
+            UpgradesUtilityLockedFreeUpgrades: locks(at('utility', 'Interest/Wave')),
+        }));
+        expect(imp.freeLocked).toEqual(['attack|Range', 'utility|Interest/Wave']);
+        expect(parseGameExport(makeExport({})).freeLocked).toBeNull();
     });
 });
 

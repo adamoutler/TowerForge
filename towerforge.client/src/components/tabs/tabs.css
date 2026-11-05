@@ -7985,6 +7985,31 @@ p.ehpl-note {
         background: var(--accent);
     }
 
+/* The game's reroll settings, by module type (Career → Modules). */
+.car-rr {
+    margin-top: 16px;
+}
+
+.car-rr-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 12px;
+    padding: 8px 0;
+    font-size: 14px;
+    line-height: 1.5;
+    border-top: 1px solid var(--border);
+}
+
+    .car-rr-row strong {
+        flex-basis: 100%;
+        color: var(--text-bright);
+    }
+
+    .car-rr-row em {
+        font-style: normal;
+        color: var(--text-dim);
+    }
+
 .car-years {
     display: flex;
     gap: 6px;

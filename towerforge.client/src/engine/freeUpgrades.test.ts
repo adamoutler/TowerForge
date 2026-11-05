@@ -48,6 +48,17 @@ const gained = (ws: WSPreset, r: BattleReport, digestor = false) => {
 };
 
 describe('free upgrades in a run', () => {
+    // Upgrades…LockedFreeUpgrades (all false on the owner's export, 2026-11-05).
+    it('leave a stat the player locked at its workshop level, and say so', () => {
+        const r = run(18, 9302, 299, 0, 267);
+        const snap = { ...input(FARM, freeUpgradeRun(r, [], FARM), true), freeLocked: ['attack|Rend Armor Mult'] };
+        const stats = statsInRun(snap);
+        expect(stats.some(s => s.stat === 'Rend Armor Mult')).toBe(false);
+        expect(freeFillNote(filledInRun(snap))).toContain('locked Rend Armor Mult from free upgrades');
+        // Unlocked, the run takes it to its max.
+        expect(statsInRun(input(FARM, freeUpgradeRun(r, [], FARM), true)).some(s => s.stat === 'Rend Armor Mult')).toBe(true);
+    });
+
     it('fill exactly what the workshop has room for on a long run', () => {
         // The counts on the owner's long runs of each workshop.
         expect(gained(FARM, run(18, 9302, 299, 0, 267), true)).toEqual([299, 0, 267]);

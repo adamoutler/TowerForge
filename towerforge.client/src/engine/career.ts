@@ -18,6 +18,8 @@
 // ============================================================
 
 import type { BattleReport } from './battleReport';
+import type { ModuleType } from '../types/gameTypes';
+import { SUBSTAT_NUMBERS } from '../constants/gameExportMaps';
 
 // Key, label, lifetime total, and the name in the cycle counters (null where
 // those don't add up).
@@ -51,8 +53,11 @@ export interface IncomePoint {
 export const EPIC_PITY_PULLS = 150;
 export const GEMS_PER_PULL = 20;
 
+export type SubstatPicks = Record<ModuleType, string[]>;
+
 export interface CareerModules {
     epicPity: number;      // pulls since the last Epic (ModulePity)
+    rarePity?: number;     // ModuleRarePity: pulls since the last Rare (its limit isn't known)
     common: number;        // modules pulled, by rarity
     rare: number;
     epic: number;
@@ -61,6 +66,25 @@ export interface CareerModules {
     slotCoins: number;     // spent levelling the four module slots
     slotShards: number;
     rerollShards: number;  // Reroll Shards ever earned
+    bans?: SubstatPicks;        // substats banned from rerolls, by module type
+    autoReroll?: SubstatPicks;  // substats auto reroll stops on
+}
+
+const MODULE_TYPES: ModuleType[] = ['cannon', 'armor', 'generator', 'core'];
+
+// The game's substat numbers (constants/gameExportMaps SUBSTAT_NUMBERS) by type.
+// Undefined for a file without these fields.
+function substatPicks(raw: Record<string, unknown>, suffix: string): SubstatPicks | undefined {
+    if (!MODULE_TYPES.some(t => Array.isArray(raw[`${t[0].toUpperCase()}${t.slice(1)}${suffix}`]))) return undefined;
+    const out = { cannon: [], armor: [], generator: [], core: [] } as SubstatPicks;
+    for (const t of MODULE_TYPES) {
+        for (const n of numbers(raw[`${t[0].toUpperCase()}${t.slice(1)}${suffix}`])) {
+            const hit = SUBSTAT_NUMBERS[n - 1];
+            // A number past the list (an effect added later) is left out.
+            if (hit && hit[0] === t) out[t].push(hit[1]);
+        }
+    }
+    return out;
 }
 
 // One year of the game's recap: numbers by the game's own field names.
@@ -125,6 +149,9 @@ function modulesFrom(raw: Record<string, unknown>): CareerModules {
         slotCoins: total(numbers(raw.SlotCoinsSpent)) + assistSpent('CoinsSpent'),
         slotShards: total(numbers(raw.SlotShardsSpent)) + assistSpent('ShardsSpent'),
         rerollShards: n('ModuleRerollCurrencyLifetime'),
+        ...(typeof raw.ModuleRarePity === 'number' ? { rarePity: raw.ModuleRarePity } : {}),
+        ...(substatPicks(raw, 'SubstatBans') ? { bans: substatPicks(raw, 'SubstatBans') } : {}),
+        ...(substatPicks(raw, 'AutoRerollSubstats') ? { autoReroll: substatPicks(raw, 'AutoRerollSubstats') } : {}),
     };
 }
 

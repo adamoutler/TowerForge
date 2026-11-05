@@ -6,6 +6,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { addIncomePoint, incomeSummary, labsByMonth, parseCareer, parseIncomePoint, runRecords } from './career';
 import type { IncomePoint } from './career';
+import { SUBSTAT_NUMBERS } from '../constants/gameExportMaps';
 import { parseGameExport } from './gameExport';
 import { accountSummary } from '../ai/aiTools';
 import { useGameStore } from '../store/useGameStore';
@@ -84,6 +85,34 @@ describe('parseCareer', () => {
         })!.modules!;
         expect(m.slotShards).toBe(3225451);
         expect(m.slotCoins).toBe(1.01e18);
+    });
+
+    // The owner's export (2026-11-05): Core bans 51, 52, 53, 60 — the Core
+    // Effect Bans screen showed the three Smart Missiles stats banned (2026-11-02).
+    it('reads rare pity and the reroll settings by the game\'s substat numbers', () => {
+        const m = parseCareer({
+            TotalCoinsEarned: 5, ModuleRarePity: 5,
+            CannonSubstatBans: [], ArmorSubstatBans: [], GeneratorSubstatBans: [], CoreSubstatBans: [51, 52, 53, 60],
+            CannonAutoRerollSubstats: [3, 13], ArmorAutoRerollSubstats: [18], GeneratorAutoRerollSubstats: [47, 46], CoreAutoRerollSubstats: [67, 99],
+        })!.modules!;
+        expect(m.rarePity).toBe(5);
+        expect(m.bans!.core).toEqual(['Smart Missiles - Damage', 'Smart Missiles - Quantity', 'Smart Missiles - Cooldown', 'ILM - Damage']);
+        expect(m.bans!.cannon).toEqual([]);
+        expect(m.autoReroll!.cannon).toEqual(['Crit Factor', 'Super Crit Chance']);
+        expect(m.autoReroll!.armor).toEqual(['Health Regen']);
+        expect(m.autoReroll!.generator).toEqual(['Max Recovery', 'Enemy HP Level Skip']);
+        expect(m.autoReroll!.core).toEqual(['Poison Swamp - Duration']);   // 99 is past the list
+        expect(parseCareer({ TotalCoinsEarned: 5 })!.modules!.bans).toBeUndefined();
+    });
+
+    it('numbers substats as the bans screen does', () => {
+        expect(SUBSTAT_NUMBERS[0]).toEqual(['cannon', 'Attack Speed']);
+        expect(SUBSTAT_NUMBERS[16]).toEqual(['cannon', 'Max Rend Armor Multi']);
+        expect(SUBSTAT_NUMBERS[17]).toEqual(['armor', 'Health Regen']);
+        expect(SUBSTAT_NUMBERS[34]).toEqual(['generator', 'Cash Bonus']);
+        expect(SUBSTAT_NUMBERS[47]).toEqual(['core', 'Chain Lightning - Damage']);
+        expect(SUBSTAT_NUMBERS[55]).toEqual(['core', 'Death Wave - Cooldown']);
+        expect(SUBSTAT_NUMBERS.at(-1)).toEqual(['core', 'Spotlight - Angle']);
     });
 
     it('keeps all the levels ever researched and the cards bought', () => {

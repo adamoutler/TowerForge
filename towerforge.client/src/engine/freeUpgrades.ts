@@ -12,6 +12,8 @@
 //  for, and long T20 and T21 runs read 598 / 1800 / 1227, exactly what the
 //  tournament workshop has room for. In a run in progress, UpgradeLevel is the
 //  workshop's level plus the free upgrades.
+//  A stat the player locked from free upgrades in the game (the export's
+//  Upgrades…LockedFreeUpgrades) gets none either; no real lock seen yet.
 //  Black Hole Digestor keeps free upgrades off Range while it's equipped, in a
 //  main or assist slot: its text says "Free Upgrades can not increase Tower
 //  Range" (wiki, the owner, 2026-11-02). Range stayed at 0 with 79 levels of
@@ -89,6 +91,7 @@ export interface RunLevelsInput {
     wsData?: WSPreset[];
     presetIdx?: number;
     wsUnlocked?: WsUnlocked;
+    freeLocked?: string[];   // "attack|Range": locked from free upgrades in the game
     modBonuses?: { uniques?: Record<string, number> };
 }
 
@@ -101,10 +104,12 @@ export function statsInRun(snap: RunLevelsInput): StatInRun[] {
     const ws = snap.wsData?.[snap.presetIdx ?? 0];
     if (!free || !ws) return [];
     const kept = rangeKept(snap);
+    const locked = new Set(snap.freeLocked ?? []);
     return SECTIONS.flatMap(section => {
         const open = (WS_STATS[section] ?? []).flatMap(([stat, max], idx) => {
             const start = ws[section]?.[idx] ?? 0;
-            return start < max && !(kept && stat === RANGE) && workshopOpen(section, stat, start, snap.wsUnlocked)
+            return start < max && !(kept && stat === RANGE) && !locked.has(`${section}|${stat}`)
+                && workshopOpen(section, stat, start, snap.wsUnlocked)
                 ? [{ stat, idx, start, room: max - start }] : [];
         });
         const rooms = open.map(s => s.room).sort((a, b) => a - b);
@@ -147,6 +152,7 @@ export interface FilledInRun {
     byWave: number;       // about when the last of them gets there
     rangeKept: boolean;   // Black Hole Digestor is keeping Range below its max
     stillFilling: boolean;   // some stat isn't full when the run ends
+    locked: string[];     // stats below their max that the player locked from free upgrades
 }
 
 // For the Optimizer's note.
@@ -157,8 +163,16 @@ export function filledInRun(snap: RunLevelsInput): FilledInRun | null {
     const filled = stats.filter(s => s.filledAt !== null);
     const rangeIdx = WS_STATS.attack.findIndex(([n]) => n === RANGE);
     const kept = rangeKept(snap) && (ws.attack[rangeIdx] ?? 0) < WS_STATS.attack[rangeIdx][1];
-    if (!filled.length && !kept) return null;
-    return { stats: filled.map(s => s.stat), byWave: Math.max(0, ...filled.map(s => s.filledAt!)), rangeKept: kept, stillFilling: stats.some(s => s.filledAt === null) };
+    const locked = (snap.freeLocked ?? []).flatMap(key => {
+        const [section, stat] = key.split('|') as [WsSection, string];
+        const idx = (WS_STATS[section] ?? []).findIndex(([n]) => n === stat);
+        return idx >= 0 && (ws[section]?.[idx] ?? 0) < WS_STATS[section][idx][1] ? [stat] : [];
+    });
+    if (!filled.length && !kept && !locked.length) return null;
+    return {
+        stats: filled.map(s => s.stat), byWave: Math.max(0, ...filled.map(s => s.filledAt!)),
+        rangeKept: kept, stillFilling: stats.some(s => s.filledAt === null), locked,
+    };
 }
 
 // "about W220": the pace is an average, so round up to a clean wave.
@@ -178,5 +192,8 @@ export function freeFillNote(filled: FilledInRun | null): string | undefined {
         ? `Free upgrades take ${names}${more > 0 ? ` and ${more} more` : ''} to their max by about ${aboutWave(filled.byWave)} in your chosen run, so workshop levels on these only help before that${filled.stillFilling ? ', and by leaving one more free upgrade for the stats that aren’t full by the end' : ''}.`
         : '';
     const range = filled.rangeKept ? 'Black Hole Digestor keeps free upgrades off Range, so Range stays at its workshop level.' : '';
-    return [fills, range].filter(Boolean).join(' ');
+    const locked = filled.locked.length
+        ? `You've locked ${filled.locked.join(', ')} from free upgrades in the game, so ${filled.locked.length === 1 ? 'it stays' : 'they stay'} at the workshop level.`
+        : '';
+    return [fills, range, locked].filter(Boolean).join(' ');
 }

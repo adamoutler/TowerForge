@@ -466,6 +466,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             ...(imp.currentLeague ? { currentLeague: imp.currentLeague } : {}),
             ...(imp.wallUnlocked ? { wall: true } : {}),
             ...(imp.wsUnlocked ? { wsUnlocked: imp.wsUnlocked } : {}),
+            ...(imp.freeLocked ? { freeLocked: imp.freeLocked } : {}),
             ...(imp.labSlots ? { labSlots: imp.labSlots } : {}),
             ...(imp.presetNames.some(n => n) ? { presetNames: imp.presetNames } : {}),
         };

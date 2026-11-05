@@ -37,6 +37,7 @@ import { vaultGroupKey } from '../constants/vaultData';
 import { vaultCardSlots } from './vault';
 import { parseCareer, parseIncomePoint } from './career';
 import { liveBattle, livePerks, liveUpgrades } from './liveRun';
+import type { WsSection } from './unlocks';
 import type { Career, IncomePoint } from './career';
 
 type Raw = Record<string, unknown>;
@@ -62,6 +63,7 @@ export interface GameImport {
     league: League;                    // highest league reached ('' = unknown)
     wallUnlocked: boolean;             // a workshop preset has Wall Health
     wsUnlocked: WsUnlocked | null;     // workshop groups bought per section (Upgrade…TierUnlocked)
+    freeLocked: string[] | null;       // workshop stats locked from free upgrades ("attack|Range")
     presetNames: string[];             // per app preset ('' = keep the default name)
     guardian: GuardianData | null;     // null when the file has no Guardian fields
     // 29.1.3+ exports (ExportVersion 1) — null / '' on older files.
@@ -185,6 +187,20 @@ function parseWsUnlocked(raw: Raw): WsUnlocked | null {
         defense: count(raw.UpgradeDefenseTierUnlocked),
         utility: count(raw.UpgradeUtilityTierUnlocked),
     };
+}
+
+// Stats the player locked from free upgrades: Upgrades…LockedFreeUpgrades,
+// by the same index as the workshop levels (WS_STATS order). All false on the
+// owner's export, so a real lock hasn't been seen yet (2026-11-05).
+const FREE_LOCK_FIELDS: [WsSection, string][] = [
+    ['attack', 'UpgradesLockedFreeUpgrades'],
+    ['defense', 'UpgradesDefenseLockedFreeUpgrades'],
+    ['utility', 'UpgradesUtilityLockedFreeUpgrades'],
+];
+function parseFreeLocked(raw: Raw): string[] | null {
+    if (!Array.isArray(raw.UpgradesLockedFreeUpgrades)) return null;
+    return FREE_LOCK_FIELDS.flatMap(([section, field]) =>
+        WS_STATS[section].flatMap(([stat], i) => (arr(raw[field])[i] === true ? [`${section}|${stat}`] : [])));
 }
 
 function parseEnhancements(raw: Raw): EnhData | null {
@@ -655,6 +671,7 @@ export function parseGameExport(raw: Raw): GameImport {
         league: typeof raw.HighestLeague === 'number' ? GAME_LEAGUES[raw.HighestLeague] ?? '' : '',
         wallUnlocked: (workshop ?? []).some(p => (p.defense[WS_STATS.defense.findIndex(([n]) => n === 'Wall Health')] ?? 0) > 0),
         wsUnlocked: parseWsUnlocked(raw),
+        freeLocked: parseFreeLocked(raw),
         presetNames: parsePresetNames(raw),
         guardian: parseGuardian(raw),
         exportVersion: typeof raw.ExportVersion === 'number' ? raw.ExportVersion : null,
