@@ -1,6 +1,7 @@
 // ============================================================
 //  TowerForge Companion — Labs Tab
-//  179 labs across 11 categories with search and lock state, the labs
+//  198 labs across 11 categories (the 32 card mastery labs are on the
+//  Cards tab) with search and lock state, the labs
 //  being researched at the last import (29.1.3+ exports), and the Elite
 //  Cell boosts the player's runs keep up (LabBoostPanel). Labs whose
 //  milestone isn't reached are listed at the bottom, folded, by milestone

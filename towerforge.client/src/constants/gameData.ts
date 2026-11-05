@@ -771,8 +771,8 @@ export const LABS: { c: string; l: [string, number, number, number, number?][] }
             ['Ray Health', 30, 19, 60],
             ['Scatter Attack', 30, 19, 60],
             ['Scatter Health', 30, 19, 60],
-            // Newer enemy labs — not on the wiki yet; max level assumed 30 like the
-            // others and the unlock tier approximate.
+            // Newer enemy labs — not on the wiki yet. Max level 30 matches the
+            // owner's full lab list (2026-11-05); the unlock tier is approximate.
             ['Overcharge Enemy Health', 30, 22, 60],
             ['Overcharge Enemy Damage', 30, 22, 60],
             ['Commander Enemy Health', 30, 22, 60],
