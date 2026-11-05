@@ -806,8 +806,9 @@ export const LABS: { c: string; l: [string, number, number, number, number?][] }
             ['Assist-Core Substat', 30, 19, 50],
             // Primary modules run at 100% efficiency; each of these adds 1% a
             // level to that type's primary module (130% max): the game's
-            // Primary Module Bonus labs. TheTowerSDK numbers them 253-256; the
-            // import leaves them as entered until an export shows a level.
+            // Primary Module Bonus labs. Imported from game numbers 253–256 (the
+            // owner's lab-number list and TheTowerSDK, 2026-11-05) — not yet
+            // seen on an account with a level.
             ['Primary-Cannon Mult', 30, 23, 500],
             ['Primary-Armor Mult', 30, 23, 500],
             ['Primary-Generator Mult', 30, 23, 500],

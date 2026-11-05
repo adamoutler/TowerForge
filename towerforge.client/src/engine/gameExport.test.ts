@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest';
 import { defaultBattleIndex, isGameExport, isRealRun, parseGameExport } from './gameExport';
 import { MAX_STORED_BATTLES, mergeBattles } from './battleReport';
 import { LABS, UWS, WS_ENH, WS_STATS } from '../constants/gameData';
-import { GAME_CARDS, MASTERY_LAB_CARDS, MASTERY_LAB_START, CARD_PRESET_SLOTS } from '../constants/gameExportMaps';
+import { GAME_CARDS, GAME_LABS, MASTERY_LAB_CARDS, MASTERY_LAB_START, CARD_PRESET_SLOTS } from '../constants/gameExportMaps';
 import { SUB_EFFECTS, SUB_RARITIES } from '../constants/moduleData';
 import { battle, gameModule, labIndex, makeExport, research, zeros } from '../test/makeExport';
 import { useGameStore } from '../store/useGameStore';
@@ -128,6 +128,21 @@ describe('cards', () => {
         expect(imp.cards!.presets[0]).toEqual(['Damage']);
         expect(imp.cards!.presets[1]).toEqual(['Coins']);
     });
+
+    // Cells' mastery lab is 251, outside the original 30-card run (the
+    // owner's lab-number list and TheTowerSDK, 2026-11-05). It used to import as 0.
+    it('reads Cells mastery from its own lab number', () => {
+        const unlocked = Array(40).fill(false);
+        const levels = zeros(40);
+        unlocked[37] = true;
+        levels[37] = 7;
+        const imp = parseGameExport(makeExport({
+            CardLevel: levels, CardUnlocked: unlocked, CardMasteryUnlocked: Array(40).fill(false),
+            ResearchLevel: research({ 251: 6 }),
+        }));
+        expect(GAME_CARDS[37]).toBe('Cells');
+        expect(imp.cards!.data.Cells.m).toBe(6);
+    });
 });
 
 describe('perks, league, preset names', () => {
@@ -171,14 +186,40 @@ describe('labs', () => {
         expect(imp.labs!['Health Lab']).toBe(labMax('Health Lab'));
     });
 
-    it('imports a lab group only when every number in it agrees', () => {
+    // The owner's lab-number list (2026-11-05), agreeing with TheTowerSDK:
+    // numbers the owner's account couldn't tell apart (equal levels, or 0).
+    it('reads the labs the lab-number list placed', () => {
         const imp = parseGameExport(makeExport({
-            ResearchLevel: research({ 132: 1, 133: 1, 150: 1, 151: 1, 134: 10, 193: 10, 199: 9 }),
+            ResearchLevel: research({
+                19: 12, 99: 1, 147: 3, 148: 1, 149: 5, 133: 1, 132: 0, 150: 1, 151: 0,
+                134: 4, 193: 6, 199: 9, 155: 40, 198: 2, 209: 3, 220: 11, 248: 30, 253: 12,
+            }),
         }));
-        expect(imp.labs!['Unmerge Module']).toBe(1);
-        expect(imp.labs!['Light Speed Shots']).toBe(1);
-        expect(imp.labs!['Garlic Thorns']).toBeUndefined();
-        expect(imp.labs!['BC Reduction']).toBeUndefined();
+        expect(imp.labs!['Recovery Pkg Amount']).toBe(12);   // 19, not 99
+        expect(imp.labs!['SM-Recharge Barrage']).toBe(3);
+        expect(imp.labs!['Recharge Nuke']).toBe(5);
+        expect(imp.labs!['Reroll Daily Missions']).toBe(1);
+        expect(imp.labs!['BH-Disable Ranged(unlock)']).toBe(1);
+        expect(imp.labs!['Light Speed Shots']).toBe(0);
+        expect(imp.labs!['Workshop Enhancement']).toBe(1);
+        expect(imp.labs!['Unmerge Module']).toBe(0);
+        expect(imp.labs!['Common Drop Chance']).toBe(4);
+        expect(imp.labs!['Garlic Thorns']).toBe(6);
+        expect(imp.labs!['BC Reduction']).toBe(9);
+        expect(imp.labs!['Enh Def Discount']).toBe(40);
+        expect(imp.labs!['ILM-Chrono Jump']).toBe(2);
+        expect(imp.labs!['EnemyLvlSkip Reduction']).toBe(3);
+        expect(imp.labs!['Ray Attack']).toBe(11);
+        expect(imp.labs!['Saboteur Attack Speed']).toBe(30);
+        expect(imp.labs!['Primary-Cannon Mult']).toBe(12);
+    });
+
+    it('has one game number for every lab on the Labs tab', () => {
+        const names = Object.values(GAME_LABS);
+        expect(new Set(names).size).toBe(names.length);
+        expect(LABS.flatMap(c => c.l).map(([n]) => n).filter(n => !names.includes(n))).toEqual([]);
+        // The removed labs and Bastion's (not out yet) aren't site labs.
+        for (const n of [86, 99, 135, 136, 137, 138, 249, 250]) expect(GAME_LABS[n]).toBeUndefined();
     });
 });
 

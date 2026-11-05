@@ -128,13 +128,18 @@ export const GAME_CARDS: Record<number, string> = {
 };
 
 // Card mastery labs: one lab per card, starting at this ResearchLevel index,
-// for the original 30 cards in game-number order (Cells' lab is elsewhere).
+// for the original 30 cards in game-number order (the newer ones below).
 export const MASTERY_LAB_START = 160;
 export const MASTERY_LAB_CARDS: string[] = Object.entries(GAME_CARDS)
     .map(([n, name]) => [Number(n), name] as const)
     .filter(([n]) => n < 35)
     .sort((a, b) => a[0] - b[0])
     .map(([, name]) => name);
+
+// Mastery labs of cards added later, by card. Cells is 251 (lab-number list
+// and TheTowerSDK; level 0 on the owner's account, so not seen yet). Area of
+// Effect's is 200, but its card number isn't known, so it can't be placed.
+export const MASTERY_LAB_OTHER: Record<string, number> = { Cells: 251 };
 
 export const CARD_PRESET_SLOTS = 28;   // SlotPresetCardInt holds 28 slots per card preset
 
@@ -172,7 +177,14 @@ export const MAPPED_PERK_IDS = new Set(
 // ResearchLevel index → site lab name (LABS in gameData). The game numbers
 // labs in blocks in the wiki's category order; labs added later got numbers
 // further down. Each run below lines up level-for-level with a real account
-// (most levels sitting exactly on that lab's max).
+// (most levels sitting exactly on that lab's max). Where that account had
+// equal levels (so its screens couldn't tell labs apart) or level 0, the
+// numbers come from the lab-number list the owner sent (2026-11-05), which
+// agrees with TheTowerSDK (data/labs/research.js) on every number. That list
+// also names 86, 99 and 135–138 (labs the game no longer shows: First
+// Trade-off Choice, Black Hole ignore Protector, Cannon/Armor/Generator/Core
+// Stats) and 249/250 (Bastion Mastery, Recharge Bastion, for a card not out
+// yet); none of those is a lab on the site.
 const labRun = (start: number, names: string[]): Record<number, string> =>
     Object.fromEntries(names.map((name, i) => [start + i, name]));
 
@@ -216,8 +228,13 @@ export const GAME_LABS: Record<number, string> = {
         'SM-Amplifier', 'SM-Barrage(unlock)', 'SM-Barrage Qty', 'ILM-Stun(unlock)',
         'BH-Damage', 'BH-Extra(unlock)', 'BH-Coin Bonus', 'SL-Coin Bonus', 'SL-Missiles',
     ]),
-    // 99–125 confirmed from the in-game Utility, Bots and Enemies screens.
-    ...labRun(99, ['Recovery Pkg Amount', 'Recovery Pkg Max', 'Recovery Pkg Chance']),
+    // 100–125 confirmed from the in-game Utility, Bots and Enemies screens.
+    // Recovery Package Amount is 19 (the list and TheTowerSDK; the owner's
+    // account has it at 0, so it couldn't tell 19 from 99, the removed Black
+    // Hole ignore Protector). Until 2026-11-05 the site read 99, so it always
+    // imported 0.
+    19: 'Recovery Pkg Amount',
+    ...labRun(100, ['Recovery Pkg Max', 'Recovery Pkg Chance']),
     ...labRun(102, [
         'Flame Bot Cooldown', 'Thunder Bot Cooldown', 'Golden Bot Cooldown', 'Amplify Bot Cooldown',
         'Flame Bot Burn Stack', 'Thunder Bot Linger', 'Golden Bot Duration', 'Amplify Bot Duration',
@@ -234,20 +251,26 @@ export const GAME_LABS: Record<number, string> = {
         'Wall Health Lab', 'Wall Rebuild Lab', 'Wall Regen', 'Wall Thorns', 'Wall Invincibility',
         'Rend Armor Max',
     ]),
+    // 132–134, 145–151, 193 and 199 sat at equal levels on the owner's account
+    // (one-level unlocks, maxed level-7 recharges, maxed level-10 labs): their
+    // order is the list's (2026-11-05).
+    ...labRun(132, ['Light Speed Shots', 'BH-Disable Ranged(unlock)', 'Common Drop Chance']),
     ...labRun(139, [
         'Reroll Shards', 'Daily Mission Shards', 'Module Shard Cost', 'Module Coin Cost', 'Rare Drop Chance',
     ]),
     144: 'Wall Fortification',
     ...labRun(145, [
-        'Recharge SW', 'Recharge Demon Mode', 'Recharge Nuke',
-        'BH-Disable Ranged(unlock)', 'SM-Recharge Barrage',
+        'Recharge SW', 'Recharge Demon Mode', 'SM-Recharge Barrage', 'Reroll Daily Missions', 'Recharge Nuke',
+        'Workshop Enhancement', 'Unmerge Module',
     ]),
     ...labRun(152, ['Shatter Shards', 'Auto Pick Ranking', 'Enh Atk Discount']),
     ...labRun(156, ['PS-Swamp Rend', 'PS-Swamp Rend Extra', 'CL-Chain Thunder', 'CL-Lightning Amp']),
     // Confirmed from the in-game Ultimate Weapon Research screen (ILM Chrono
     // Jump is at level 0 there, so its number isn't known).
     ...labRun(190, ['DW-Cell Bonus', 'DW-Dmg Amplifier', 'DW-Armor Stripping']),
+    193: 'Garlic Thorns',
     ...labRun(194, ['Cannon Effect Bans', 'Armor Effect Bans', 'Generator Effect Bans', 'Core Effect Bans']),
+    199: 'BC Reduction',
     226: 'Ranged Enemy Range',   // the only remaining lab at its on-screen level
     227: 'Enh Util Discount',
     228: 'Bot Bot Cooldown',     // Bot Bot came later than the other bots
@@ -261,23 +284,32 @@ export const GAME_LABS: Record<number, string> = {
     ...labRun(238, ['Dissonant Echo-Util', 'Dissonant Echo-Atk', 'Dissonant Echo-Def', 'Dissonant Echo-UW']),
     242: 'Overcharge Enemy Health',  // the only remaining lab at its on-screen level
     252: 'Global Presets',           // researched the day the game added it
+
+    // Not seen on an account yet: level 0 on the owner's, so these numbers are
+    // the list's and TheTowerSDK's only (added on the owner's word, 2026-11-05).
+    // The first export with one of them part-way confirms it.
+    155: 'Enh Def Discount',
+    198: 'ILM-Chrono Jump',
+    ...labRun(201, [
+        'Knockback Resist', 'Thorns Resist', 'Orb Resist', 'Plasma Cannon Resist', 'Death Ray Resist',
+        'UW Durations BC', 'Death Defy Down BC', 'Energy Shields Down BC', 'EnemyLvlSkip Reduction',
+        "Fast's Ultimate", 'Ranged Ultimate', "Boss's Ultimate", "Basic's Ultimate", "Tank's Ultimate",
+        "Protector's Ultimate",
+        'Armored Enemies BC', 'Enemy Speed BC', 'More Enemies BC', 'Enemy Atk Speed BC',
+        'Ray Attack', 'Ray Health', 'Vampire Attack', 'Vampire Health', 'Scatter Attack', 'Scatter Health',
+    ]),
+    ...labRun(243, [
+        'Overcharge Enemy Damage', 'Commander Enemy Health', 'Saboteur Enemy Health',
+        'Overcharge Exponent Reducer', 'Commander Radius', 'Saboteur Attack Speed',
+    ]),
+    ...labRun(253, ['Primary-Cannon Mult', 'Primary-Armor Mult', 'Primary-Generator Mult', 'Primary-Core Mult']),
 };
 
 // Labs known to occupy a set of numbers in an unknown order. A set is only
 // imported when every number in it holds the same level — then the order
-// can't change the result.
-export const GAME_LAB_GROUPS: { labs: string[]; numbers: number[] }[] = [
-    {
-        // The one-level unlocks left after Workshop Respec (41) and Global Presets (252).
-        labs: ['Reroll Daily Missions', 'Workshop Enhancement', 'Light Speed Shots', 'Unmerge Module'],
-        numbers: [132, 133, 150, 151],
-    },
-    {
-        // The three maxed level-10 labs left after every other level-10 lab was placed.
-        labs: ['Common Drop Chance', 'Garlic Thorns', 'BC Reduction'],
-        numbers: [134, 193, 199],
-    },
-];
+// can't change the result. None left: the lab-number list (2026-11-05)
+// placed the last two (132/133/150/151 and 134/193/199).
+export const GAME_LAB_GROUPS: { labs: string[]; numbers: number[] }[] = [];
 
 // HighestLeague → league name (the game's 7 leagues, lowest first).
 export const GAME_LEAGUES = ['Copper', 'Silver', 'Gold', 'Platinum', 'Champion', 'Legend', 'Mythic'] as const;

@@ -49,11 +49,16 @@ describe('lab progress in the import', () => {
         expect(store().labProgress).toEqual({});
     });
 
-    it('leaves out labs that share a number in an unknown order', () => {
+    // 132 and 134 had no single lab until the lab-number list placed them
+    // (2026-11-05); 99 is a removed lab, not one on the site.
+    it('reads progress on the labs the lab-number list placed, not on removed ones', () => {
         const imp = parseGameExport(makeExport({
-            ResearchLevel: research({}), ResearchPercentComplete: percent({ 132: 0.5, 134: 0.5 }),
+            ResearchLevel: research({ 134: 3 }), ResearchPercentComplete: percent({ 132: 0.5, 134: 0.25, 99: 0.5 }),
         }));
-        expect(imp.labProgress).toEqual({});
+        expect(imp.labProgress).toEqual({
+            'Light Speed Shots': { toLevel: 1, done: 0.5 },
+            'Common Drop Chance': { toLevel: 4, done: 0.25 },
+        });
     });
 });
 

@@ -18,7 +18,7 @@ import type { BattleField, BattleReport } from './battleReport';
 import { isDissonantRun } from './battleReport';
 import { MAX_TIER, WS_STATS, WS_ENH, UWS, LABS, RELICS } from '../constants/gameData';
 import {
-    GAME_CARDS, MASTERY_LAB_START, MASTERY_LAB_CARDS, CARD_PRESET_SLOTS, GAME_PERKS, GAME_LABS, GAME_LAB_GROUPS,
+    GAME_CARDS, MASTERY_LAB_START, MASTERY_LAB_CARDS, MASTERY_LAB_OTHER, CARD_PRESET_SLOTS, GAME_PERKS, GAME_LABS, GAME_LAB_GROUPS,
     GAME_MODULES, GAME_MODULE_RARITY, GAME_MODULE_EFFECT_RUNS, MODULE_EFFECT_SLOT_UNLOCK, isUniqueModule,
     GAME_LEAGUES,
 } from '../constants/gameExportMaps';
@@ -259,9 +259,10 @@ function parseCards(raw: Raw): Pick<CardData, 'data' | 'presets'> | null {
         const idx = Number(n);
         const stars = unlocked[idx] === true ? clamp(levels[idx] ?? 0, 1, 7) : 0;
         const labIdx = MASTERY_LAB_CARDS.indexOf(name);
+        const labNo = labIdx >= 0 ? MASTERY_LAB_START + labIdx : MASTERY_LAB_OTHER[name];
         const entry: CardEntry = {
             s: stars,
-            m: labIdx >= 0 ? clamp(research[MASTERY_LAB_START + labIdx] ?? 0, 0, 9) : 0,
+            m: labNo !== undefined ? clamp(research[labNo] ?? 0, 0, 9) : 0,
             mu: stars >= 7 && masteryOn[idx] === true,
         };
         data[name] = entry;
@@ -820,7 +821,8 @@ function parseLabsRunning(raw: Raw): LabRunning[] | null {
         const labIndex = num(arr(raw.LabResearchInt)[slot]);
         // Card mastery labs aren't in GAME_LABS: "Enemy Balance Mastery" (169,
         // owner's Labs screen 2026-10-21).
-        const mastery = MASTERY_LAB_CARDS[labIndex - MASTERY_LAB_START];
+        const mastery = MASTERY_LAB_CARDS[labIndex - MASTERY_LAB_START]
+            ?? Object.keys(MASTERY_LAB_OTHER).find(card => MASTERY_LAB_OTHER[card] === labIndex);
         out.push({
             lab: GAME_LABS[labIndex] ?? (mastery ? `${mastery} Mastery` : null),
             labIndex,
