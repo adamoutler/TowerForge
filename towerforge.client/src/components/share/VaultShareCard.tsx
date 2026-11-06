@@ -12,7 +12,7 @@ import { VAULT_SECTIONS, VAULT_TREES } from '../../constants/vaultData';
 import { vaultKeys, vaultLevel } from '../../engine/vault';
 import VaultRow from '../common/VaultRow';
 import { SHARE_COLORS, shareRootStyle } from './shareTheme';
-import { ShareHeader, ShareFooter } from './shareCommon';
+import { ShareHeader, ShareFooter, ShareHeading } from './shareCommon';
 import PosterPages from './PosterPages';
 import type { PosterBlock } from './PosterPages';
 
@@ -26,15 +26,6 @@ function boughtGroups(levels: Record<string, number>) {
         fallback: s.enemy?.[0],
         upgrades: s.upgrades.filter(u => vaultLevel(levels, u) > 0),
     })).filter(g => g.upgrades.length > 0);
-}
-
-function Heading({ label, note, poster }: { label: string; note?: string; poster?: boolean }) {
-    return (
-        <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: '2px 10px', paddingTop: poster ? 8 : 0, marginBottom: poster ? 0 : 8 }}>
-            <span style={{ fontSize: poster ? 23 : 18, fontWeight: 700, color: SHARE_COLORS.text }}>{label}</span>
-            {note && <span style={{ fontSize: poster ? 16 : 13, color: SHARE_COLORS.dim }}>{note}</span>}
-        </div>
-    );
 }
 
 // `snapshot`: someone else's Vault levels (a shared link); else the store's.
@@ -65,10 +56,10 @@ export default function VaultShareCard({ ref, snapshot, poster, onPages }: {
                             {g.upgrades.slice(i, i + COLS).map(u => <VaultRow key={u.id} u={u} level={vaultLevel(levels, u)} fallback={g.fallback} />)}
                         </div>
                     ),
-                    cont: <Heading label={g.label} note="continued" poster />,
+                    cont: <ShareHeading label={g.label} note="continued" poster />,
                 });
             }
-            return [{ key: `${g.key}:h`, keepWithNext: true, node: <Heading label={g.label} poster /> }, ...rows];
+            return [{ key: `${g.key}:h`, keepWithNext: true, node: <ShareHeading label={g.label} poster /> }, ...rows];
         });
         return <PosterPages ref={ref} title={title} subtitle={subtitle} onPages={onPages} blocks={blocks.length ? blocks : [{ key: 'empty', node: empty }]} />;
     }
@@ -78,7 +69,7 @@ export default function VaultShareCard({ ref, snapshot, poster, onPages }: {
             <ShareHeader title={title} subtitle={subtitle} />
             {groups.map(g => (
                 <div key={g.key} style={{ marginBottom: 18 }}>
-                    <Heading label={g.label} />
+                    <ShareHeading label={g.label} />
                     <div className="vltg-rows">
                         {g.upgrades.map(u => <VaultRow key={u.id} u={u} level={vaultLevel(levels, u)} fallback={g.fallback} />)}
                     </div>
