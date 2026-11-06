@@ -13,7 +13,7 @@ import { activeChips, guardianPreset } from '../../engine/guardian';
 import type { GuardianData } from '../../types/gameTypes';
 import GuardianBoard, { ChipTile } from '../common/GuardianBoard';
 import { SHARE_COLORS, shareRootStyle } from './shareTheme';
-import { ShareHeader, ShareFooter } from './shareCommon';
+import { ShareHeader, ShareFooter, ShareHeading } from './shareCommon';
 import PosterPages from './PosterPages';
 import type { PosterBlock } from './PosterPages';
 
@@ -31,9 +31,7 @@ export default function GuardianShareCard({ ref, guardian, preset, presetName, p
     const skins = guardian.skinsOwned ?? 0;
     const title = 'Guardian';
     const subtitle = [presetName, p?.name].filter(Boolean).join(' · ') || 'Guardian';
-    const label = (text: string) => (
-        <div style={{ fontSize: poster ? 23 : 18, fontWeight: 700, color: SHARE_COLORS.text, paddingTop: poster ? 8 : 0, marginBottom: poster ? 0 : 8 }}>{text}</div>
-    );
+    const label = (text: string) => <ShareHeading label={text} poster={poster} />;
 
     const board = p
         ? <GuardianBoard chips={p.chips.slice(0, open)} open={open} title={p.name} sub={`${skins} skins · +${(skins * SKIN_COIN_BONUS * 100).toFixed(1)}% coins`} />

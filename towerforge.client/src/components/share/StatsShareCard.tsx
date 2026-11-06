@@ -10,8 +10,8 @@
 // ============================================================
 
 import type { Ref } from 'react';
-import { SHARE_COLORS, shareRootStyle } from './shareTheme';
-import { ShareHeader, ShareFooter } from './shareCommon';
+import { SHARE_COLORS, shareRootStyle, shareTileStyle } from './shareTheme';
+import { ShareHeader, ShareFooter, ShareHeading } from './shareCommon';
 import PosterPages from './PosterPages';
 import type { PosterBlock } from './PosterPages';
 
@@ -28,26 +28,10 @@ export interface StatGroup {
     tiles: StatTile[];
 }
 
-function GroupHeading({ label, note, poster }: { label: string; note?: string; poster?: boolean }) {
-    return (
-        <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: '2px 10px', marginBottom: poster ? 0 : 8, paddingTop: poster ? 8 : 0 }}>
-            <span style={{ fontSize: poster ? 23 : 18, fontWeight: 700, color: SHARE_COLORS.accent }}>{label}</span>
-            {note && <span style={{ fontSize: poster ? 16 : 13, color: SHARE_COLORS.dim }}>{note}</span>}
-        </div>
-    );
-}
-
-const tileBox = (t: StatTile) => ({
-    background: SHARE_COLORS.panel,
-    border: `1px solid ${t.maxed ? SHARE_COLORS.gold : SHARE_COLORS.border}`,
-    borderRadius: 8,
-    minWidth: 0,
-});
-
 // The poster's tile: name, then the value with its level beside it.
 function PosterTile({ t }: { t: StatTile }) {
     return (
-        <div style={{ ...tileBox(t), padding: '10px 12px' }}>
+        <div style={{ ...shareTileStyle(t.maxed), padding: '10px 12px' }}>
             <div style={{ fontSize: 16, color: SHARE_COLORS.dim, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {t.name}
             </div>
@@ -67,7 +51,7 @@ function statBlocks(groups: StatGroup[], columns: number): PosterBlock[] {
         const rows: StatTile[][] = [];
         for (let i = 0; i < group.tiles.length; i += columns) rows.push(group.tiles.slice(i, i + columns));
         return [
-            { key: `${group.label}:h`, node: <GroupHeading label={group.label} note={group.note} poster />, keepWithNext: true },
+            { key: `${group.label}:h`, node: <ShareHeading label={group.label} note={group.note} poster />, keepWithNext: true },
             ...rows.map((row, r): PosterBlock => ({
                 key: `${group.label}:${r}`,
                 node: (
@@ -75,7 +59,7 @@ function statBlocks(groups: StatGroup[], columns: number): PosterBlock[] {
                         {row.map(t => <PosterTile key={t.name} t={t} />)}
                     </div>
                 ),
-                cont: <GroupHeading label={group.label} note="continued" poster />,
+                cont: <ShareHeading label={group.label} note="continued" poster />,
             })),
         ];
     });
@@ -108,10 +92,10 @@ export default function StatsShareCard({ ref, title, subtitle, groups, empty, po
 
             {shown.map(group => (
                 <div key={group.label} style={{ marginBottom: 20 }}>
-                    <GroupHeading label={group.label} note={group.note} />
+                    <ShareHeading label={group.label} note={group.note} />
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 200px), 1fr))', gap: 8 }}>
                         {group.tiles.map(t => (
-                            <div key={t.name} style={{ ...tileBox(t), padding: '8px 10px' }}>
+                            <div key={t.name} style={{ ...shareTileStyle(t.maxed), padding: '8px 10px' }}>
                                 <div style={{ fontSize: 13, color: SHARE_COLORS.dim, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                     {t.name}
                                 </div>
