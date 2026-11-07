@@ -4970,6 +4970,35 @@ button.gcard {
         color: var(--text-dim);
     }
 
+/* "This is a copy" note (OfficialSiteNote): above the header on a copy
+   of the site hosted anywhere but towerforge.net. Gold like the site's
+   other heads-ups, calm rather than alarming. */
+.ofc-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    padding: 8px 16px;
+    background: color-mix(in srgb, var(--gold) 13%, var(--bg2));
+    border-bottom: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--text);
+    text-align: center;
+}
+
+    .ofc-note strong {
+        color: var(--gold);
+        font-weight: 600;
+    }
+
+.ofc-link {
+    color: var(--gold);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
 /* Discord link (header): Discord's own blurple in every theme, so it
    reads as Discord. */
 .dsc-btn {

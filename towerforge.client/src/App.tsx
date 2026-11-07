@@ -22,6 +22,7 @@ import LinkSourcePicker from './components/LinkSourcePicker';
 import AutoImport from './components/common/AutoImport';
 import ThemePicker from './components/common/ThemePicker';
 import DiscordLink from './components/common/DiscordLink';
+import OfficialSiteNote from './components/common/OfficialSiteNote';
 import WelcomeGuide from './components/common/WelcomeGuide';
 import { exportAge, linkExport, linkSources, phoneLinkRemembered, rememberSource } from './engine/linkClient';
 import type { LinkSource } from './engine/linkClient';
@@ -438,6 +439,7 @@ export default function App() {
             {/* ── Header and currencies (fold away while a page is scrolled) ── */}
             <div className="app-top-full" inert={compact}>
                 <div className="app-top-inner">
+                    <OfficialSiteNote />
                     <header className="app-header">
                         <div className="app-logo">
                             Tower<span className="logo-forge">Forge</span>
