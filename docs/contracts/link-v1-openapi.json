@@ -1,0 +1,821 @@
+{
+  "openapi": "3.1.0",
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "info": {
+    "title": "TowerForge Link HTTP Wire Contract (Path 1 Loopback Helper)",
+    "version": "1.0.0",
+    "summary": "Loopback HTTP wire contract between towerforge.client (src/engine/linkClient.ts) and TowerForge Link (127.0.0.1:47821).",
+    "description": "Defines the exact request and response wire schemas for Path 1 (Windows helper TowerForge.Link and Android helper TowerForge.Link.Android listening on 127.0.0.1:47821 / localhost:47821). Enforces Host header validation (localhost:47821 or 127.0.0.1:47821), Origin allowlist validation, Private Network Access CORS preflight headers (Access-Control-Allow-Private-Network: true), and export metadata headers (X-Export-Modified, X-Export-Source, X-Export-Source-Id)."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:47821",
+      "description": "TowerForge Link loopback listener address (IPv4 loopback)"
+    },
+    {
+      "url": "http://localhost:47821",
+      "description": "TowerForge Link browser client target URL (LINK_URL in src/engine/linkClient.ts)"
+    }
+  ],
+  "paths": {
+    "/status": {
+      "get": {
+        "operationId": "getStatus",
+        "summary": "Check LinkServer health, discovered emulators, wireless ADB phone status, iPhone backups, or Android Shizuku status",
+        "description": "Called by linkStatus() in src/engine/linkClient.ts with a 15,000 ms timeout.",
+        "responses": {
+          "200": {
+            "description": "LinkServer is running and returns current platform/device discovery state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkStatus"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden Host or Origin header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sources": {
+      "get": {
+        "operationId": "getSources",
+        "summary": "List all available game data export sources (emulators, Android phones, iPhone backups)",
+        "description": "Called by linkSources() in src/engine/linkClient.ts with a 60,000 ms timeout. Performs a single scan without pulling full export files.",
+        "parameters": [
+          {
+            "name": "forceRefresh",
+            "in": "query",
+            "required": false,
+            "description": "Optional query parameter to bypass any cached source discovery state.",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of discovered sources ordered newest export first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceListResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Endpoint not supported on legacy Link (< 0.4); client falls back to null.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error while enumerating sources.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/export": {
+      "get": {
+        "operationId": "getExport",
+        "summary": "Read tool_export.json from the selected or newest source",
+        "description": "Called by linkExport(newerThan?, source?) in src/engine/linkClient.ts with a 90,000 ms timeout.",
+        "parameters": [
+          {
+            "name": "newerThan",
+            "in": "query",
+            "required": false,
+            "description": "Unix timestamp in seconds of the last imported export. If the export on device is not newer than this value, LinkServer returns HTTP 204 No Content.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "description": "Source identifier from GET /sources (e.g., 'bluestacks:5555', 'mumuplayer:16384', 'phone:<serial>', 'iphone-backup').",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Raw JSON text of tool_export.json along with export metadata headers.",
+            "headers": {
+              "X-Export-Modified": {
+                "description": "Unix timestamp (seconds) when tool_export.json was last modified.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-Export-Source": {
+                "description": "Human-readable name of the source device (e.g., 'BlueStacks', 'MuMu Player', 'your phone').",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Export-Source-Id": {
+                "description": "Stable identifier of the source device (e.g., 'bluestacks:5555').",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportResult"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "Export on device is not newer than the requested newerThan timestamp.",
+            "headers": {
+              "X-Export-Modified": {
+                "description": "Unix timestamp (seconds) when tool_export.json was last modified.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-Export-Source": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Export-Source-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Requested export or route not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Actionable device/export problem (e.g. no_emulator, adb_off, no_game, no_export, unauthorized, shizuku_off).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected helper failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/phone/adb": {
+      "post": {
+        "operationId": "phoneAdb",
+        "summary": "Download or provision Google Platform-Tools ADB for Wireless Debugging",
+        "description": "Called by linkPhone('adb') in src/engine/linkClient.ts with a 180,000 ms timeout.",
+        "responses": {
+          "200": {
+            "description": "Google ADB is ready.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkActionResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed on legacy Link (< 0.3); mapped to code 'old_link'.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Provisioning problem.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Download or extraction failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/phone/enable-wireless": {
+      "post": {
+        "operationId": "enableWirelessAdb",
+        "summary": "Contract alias for enabling/provisioning wireless ADB support (/phone/adb)",
+        "description": "Contract endpoint corresponding to linkPhone('adb') / wireless ADB setup on 127.0.0.1:47821.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Wireless ADB enabled / provisioned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkActionResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Unable to enable wireless ADB.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/phone/pair": {
+      "post": {
+        "operationId": "pairPhone",
+        "summary": "Pair with an Android 11+ phone over Wi-Fi using IP:port and 6-digit pairing code",
+        "description": "Called by linkPhone('pair', { address, code }) in src/engine/linkClient.ts with a 180,000 ms timeout.",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "query",
+            "required": true,
+            "description": "Private LAN IPv4 address and pairing port shown on the phone (e.g. '192.168.1.23:37415').",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{1,3}(\\.[0-9]{1,3}){3}:[0-9]{1,5}$"
+            }
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "description": "6-digit numeric Wi-Fi pairing code shown on the phone.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{6}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhonePairRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Phone paired successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkActionResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Invalid address (bad_address), invalid 6-digit code (bad_code), missing Google ADB (adb_missing), or pairing refused.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected ADB execution error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/phone/connect": {
+      "post": {
+        "operationId": "connectPhone",
+        "summary": "Connect to a paired Android phone over Wi-Fi debugging IP:port",
+        "description": "Called by linkPhone('connect', { address }) in src/engine/linkClient.ts with a 180,000 ms timeout.",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "query",
+            "required": true,
+            "description": "Private LAN IPv4 address and wireless debugging port (e.g. '192.168.1.23:41235').",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{1,3}(\\.[0-9]{1,3}){3}:[0-9]{1,5}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhoneConnectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Phone connected successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkActionResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Invalid address (bad_address), missing Google ADB (adb_missing), or connection failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected ADB execution error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/phone/forget": {
+      "post": {
+        "operationId": "forgetPhone",
+        "summary": "Disconnect and forget all phones paired through TowerForge Link",
+        "description": "Called by linkPhone('forget') in src/engine/linkClient.ts with a 180,000 ms timeout.",
+        "responses": {
+          "200": {
+            "description": "Paired phones forgotten and disconnected.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkActionResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error forgetting paired phones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/phone/disconnect": {
+      "post": {
+        "operationId": "disconnectPhone",
+        "summary": "Contract alias for disconnecting/forgetting paired wireless ADB phones (/phone/forget)",
+        "description": "Contract endpoint corresponding to linkPhone('forget') on 127.0.0.1:47821.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Phone disconnected.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkActionResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Disconnect failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "LinkStatus": {
+        "type": "object",
+        "required": [
+          "version",
+          "emulators"
+        ],
+        "properties": {
+          "app": {
+            "type": "string",
+            "example": "TowerForge Link"
+          },
+          "ok": {
+            "type": "boolean",
+            "description": "Optional status indicator for compatibility checks."
+          },
+          "adbAvailable": {
+            "type": "boolean",
+            "description": "Optional ADB availability indicator for compatibility checks."
+          },
+          "version": {
+            "type": "string",
+            "example": "0.4.2"
+          },
+          "emulators": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EmulatorStatus"
+            }
+          },
+          "phone": {
+            "$ref": "#/components/schemas/PhoneStatus"
+          },
+          "iphoneBackups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IPhoneBackupStatus"
+            }
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "android"
+            ]
+          },
+          "android": {
+            "$ref": "#/components/schemas/AndroidAppStatus"
+          }
+        }
+      },
+      "EmulatorStatus": {
+        "type": "object",
+        "required": [
+          "name",
+          "running",
+          "adbEnabled"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "BlueStacks"
+          },
+          "running": {
+            "type": "boolean"
+          },
+          "adbEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      },
+      "PhoneStatus": {
+        "type": "object",
+        "required": [
+          "adbReady",
+          "paired",
+          "connected"
+        ],
+        "properties": {
+          "adbReady": {
+            "type": "boolean"
+          },
+          "adbVersion": {
+            "type": "string",
+            "example": "1.0.41"
+          },
+          "paired": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "connected": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "IPhoneBackupStatus": {
+        "type": "object",
+        "required": [
+          "encrypted",
+          "hasExport"
+        ],
+        "properties": {
+          "backedUp": {
+            "type": "integer"
+          },
+          "encrypted": {
+            "type": "boolean"
+          },
+          "hasExport": {
+            "type": "boolean"
+          },
+          "exportModified": {
+            "type": "integer"
+          }
+        }
+      },
+      "AndroidAppStatus": {
+        "type": "object",
+        "required": [
+          "shizuku"
+        ],
+        "properties": {
+          "shizuku": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "not_installed",
+              "not_running",
+              "no_permission"
+            ]
+          },
+          "export": {
+            "type": "string",
+            "enum": [
+              "found",
+              "none",
+              "no_game",
+              "unreadable",
+              "unknown"
+            ]
+          },
+          "exportModified": {
+            "type": "integer"
+          }
+        }
+      },
+      "LinkSource": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "state"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "bluestacks:5555"
+          },
+          "name": {
+            "type": "string",
+            "example": "BlueStacks"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "emulator",
+              "phone",
+              "iphone"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "no_export",
+              "no_game",
+              "blocked",
+              "offline",
+              "unauthorized",
+              "encrypted"
+            ]
+          },
+          "modified": {
+            "type": "integer",
+            "description": "Unix timestamp in seconds when the source's export was last modified."
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable explanation when state is not 'ready'."
+          }
+        }
+      },
+      "SourceListResult": {
+        "type": "object",
+        "required": [
+          "sources"
+        ],
+        "properties": {
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LinkSource"
+            }
+          },
+          "has_save_data": {
+            "type": "boolean"
+          },
+          "adb_available": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "ExportResult": {
+        "type": "object",
+        "description": "Game export JSON payload (tool_export.json) returned as body by GET /export and wrapped into LinkResult by linkExport().",
+        "additionalProperties": true,
+        "properties": {
+          "VersionNumber": {
+            "type": "integer"
+          },
+          "ok": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "string"
+          }
+        }
+      },
+      "PhonePairRequest": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string",
+            "example": "192.168.1.23:37415"
+          },
+          "code": {
+            "type": "string",
+            "example": "123456"
+          }
+        }
+      },
+      "PhoneConnectRequest": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string",
+            "example": "192.168.1.23:41235"
+          }
+        }
+      },
+      "LinkActionResponse": {
+        "type": "object",
+        "required": [
+          "ok",
+          "message"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Google's adb 1.0.41 is ready."
+          }
+        }
+      },
+      "LinkErrorResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "no_export"
+          },
+          "message": {
+            "type": "string",
+            "example": "The Tower on BlueStacks has no data export yet."
+          }
+        }
+      }
+    }
+  }
+}

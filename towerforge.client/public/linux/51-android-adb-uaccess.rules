@@ -1,0 +1,4 @@
+# TowerForge Link — Hardened Android ADB WebUSB udev rule
+# Grants the active local seat user access to USB devices exposing an
+# Android ADB interface (class 0xff, subclass 0x42, protocol 0x01).
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ENV{ID_USB_INTERFACES}=="*:ff4201:*", TAG+="uaccess"

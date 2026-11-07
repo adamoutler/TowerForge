@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { fileURLToPath, URL } from 'node:url';
 
 import { defineConfig, searchForWorkspaceRoot } from 'vite';
@@ -15,24 +16,35 @@ const baseFolder =
 const certificateName = "towerforge.client";
 const certFilePath = path.join(baseFolder, `${certificateName}.pem`);
 const keyFilePath = path.join(baseFolder, `${certificateName}.key`);
+const useAspNetHttps = env.VITE_USE_ASPNET_HTTPS === 'true';
 
-if (!fs.existsSync(baseFolder)) {
-    fs.mkdirSync(baseFolder, { recursive: true });
-}
+if (useAspNetHttps) {
+    if (!fs.existsSync(baseFolder)) {
+        fs.mkdirSync(baseFolder, { recursive: true });
+    }
 
-if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
-    if (0 !== child_process.spawnSync('dotnet', [
-        'dev-certs',
-        'https',
-        '--export-path',
-        certFilePath,
-        '--format',
-        'Pem',
-        '--no-password',
-    ], { stdio: 'inherit', }).status) {
-        throw new Error("Could not create certificate.");
+    if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
+        if (0 !== child_process.spawnSync('dotnet', [
+            'dev-certs',
+            'https',
+            '--export-path',
+            certFilePath,
+            '--format',
+            'Pem',
+            '--no-password',
+        ], { stdio: 'inherit', }).status) {
+            throw new Error("Could not create certificate.");
+        }
     }
 }
+
+const allowedHosts = [
+    'thetower.hackedyour.info',
+    'towerforge.hackedyour.info',
+    'localhost',
+    '127.0.0.1',
+    '192.168.1.133',
+];
 
 // The site's version comes from package.json ("version") and shows in the header.
 const appVersion: string = JSON.parse(fs.readFileSync(new URL('./package.json', import.meta.url), 'utf-8')).version;
@@ -42,13 +54,32 @@ const target = env.ASPNETCORE_HTTPS_PORT ? `https://localhost:${env.ASPNETCORE_H
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [plugin()],
+    plugins: [
+        plugin(),
+        {
+            name: 'towerforge-lazy-webusb-chunk',
+            apply: 'build',
+            buildStart() {
+                this.emitFile({
+                    type: 'chunk',
+                    id: fileURLToPath(new URL('./src/engine/usbTangoLoader.ts', import.meta.url)),
+                    preserveSignature: 'exports-only',
+                });
+            },
+        },
+    ],
     define: {
         __APP_VERSION__: JSON.stringify(appVersion),
     },
     build: {
         rollupOptions: {
             output: {
+                manualChunks(id) {
+                    if (id.includes('node_modules/@yume-chan/') || id.includes('node_modules\\@yume-chan\\')) {
+                        return 'vendor-webusb';
+                    }
+                    return undefined;
+                },
                 // pdf.js's worker ships as .mjs; nginx serves .mjs as a plain
                 // download, which browsers won't run as a module worker. A .js
                 // name gets the JavaScript type.
@@ -64,6 +95,10 @@ export default defineConfig({
         }
     },
     server: {
+        host: '0.0.0.0',
+        port: parseInt(env.DEV_SERVER_PORT || '8096'),
+        strictPort: true,
+        allowedHosts,
         proxy: {
             '^/weatherforecast': {
                 target,
@@ -74,14 +109,26 @@ export default defineConfig({
                 secure: false
             }
         },
-        port: parseInt(env.DEV_SERVER_PORT || '58132'),
         // Ask AI bundles the game notes from the repo's docs/ folder.
         fs: {
             allow: [searchForWorkspaceRoot(process.cwd()), '../docs'],
         },
-        https: {
-            key: fs.readFileSync(keyFilePath),
-            cert: fs.readFileSync(certFilePath),
-        }
-    }
+        ...(useAspNetHttps
+            ? {
+                https: {
+                    key: fs.readFileSync(keyFilePath),
+                    cert: fs.readFileSync(certFilePath),
+                },
+            }
+            : {}),
+    },
+    preview: {
+        host: '0.0.0.0',
+        port: parseInt(env.DEV_SERVER_PORT || '8096'),
+        strictPort: true,
+        allowedHosts,
+    },
+    test: {
+        exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**'],
+    },
 })

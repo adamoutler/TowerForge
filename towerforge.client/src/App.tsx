@@ -18,12 +18,14 @@ import CurrencyBar from './components/common/CurrencyBar';
 // ── Tab Components (stubs for now — filled in one by one) ────
 import ProfileTab from './components/tabs/ProfileTab';
 import LinkModal from './components/LinkModal';
+import UsbLinkModal, { type UsbModalMode } from './components/UsbLinkModal';
 import LinkSourcePicker from './components/LinkSourcePicker';
-import AutoImport from './components/common/AutoImport';
+import AutoImport, { setAutoImportOn } from './components/common/AutoImport';
+import { saveLastUsbConnectState } from './components/UsbLinkModal';
 import ThemePicker from './components/common/ThemePicker';
 import DiscordLink from './components/common/DiscordLink';
 import WelcomeGuide from './components/common/WelcomeGuide';
-import { exportAge, linkExport, linkSources, phoneLinkRemembered, rememberSource } from './engine/linkClient';
+import { exportAge, linkExport, linkSources, phoneLinkRemembered, rememberedSource, rememberSource } from './engine/linkClient';
 import type { LinkSource } from './engine/linkClient';
 import PerksTab from './components/tabs/PerksTab';
 import TiersTab from './components/tabs/TiersTab';
@@ -143,6 +145,7 @@ export default function App() {
     // "Get from emulator or phone": TowerForge Link's setup dialog (with its message, if it answered).
     const [linkBusy, setLinkBusy] = useState(false);
     const [linkModal, setLinkModal] = useState<{ problem: string | null } | null>(null);
+    const [usbModalOpen, setUsbModalOpen] = useState<UsbModalMode | null>(null);
     const [linkChoices, setLinkChoices] = useState<LinkSource[] | null>(null);
     // The tab last opened in each section, so going back to a section returns to it.
     const [lastInGroup, setLastInGroup] = useState<Record<string, TabName>>(() => {
@@ -311,11 +314,15 @@ export default function App() {
                     return;
                 }
                 setLinkModal(null);
+                saveLastUsbConnectState({ method: 'link', lastFailed: false });
+                setAutoImportOn(true);
                 const when = r.modified ? `, exported ${exportAge(r.modified)}` : '';
                 importJson(json, r.text, 'link', `Read from ${r.source}${when}. Export again in the game whenever you want fresh data.`);
                 return;
             }
             if (r.reason === 'unchanged') return;   // only when asked for a newer export
+            saveLastUsbConnectState({ method: 'link', lastFailed: true });
+            setAutoImportOn(false);
             trackEvent(r.reason === 'unreachable' ? 'Emulator link not running' : `Emulator link: ${r.code}`);
             setLinkModal({ problem: r.reason === 'problem' ? r.message : null });
         } finally {
@@ -466,9 +473,24 @@ export default function App() {
                                     ⚙
                                 </button>
                             </span>
+                            <button
+                                type="button"
+                                className="btn btn-dim lnk-btn"
+                                data-testid="connect-usb-phone-btn"
+                                onClick={() => setUsbModalOpen('webusb')}
+                                title="Connect an Android phone directly over USB (WebUSB ADB)"
+                            >
+                                🔌 Connect USB phone
+                            </button>
                             <AutoImport
                                 onImport={raw => applyGameImport(parseGameExport(raw))}
-                                onNeedsLink={() => setLinkModal({ problem: null })}
+                                onNeedsLink={() => {
+                                    if (rememberedSource()?.startsWith('webusb:')) {
+                                        setUsbModalOpen('webusb');
+                                    } else {
+                                        setLinkModal({ problem: null });
+                                    }
+                                }}
                             />
                             <label className="btn btn-gold" style={{ cursor: 'pointer' }} title="Import the data export from The Tower (tool_export.json)">
                                 ⬆ Import Game Data
@@ -575,6 +597,32 @@ export default function App() {
                     busy={linkBusy}
                     onRetry={() => void getFromEmulator()}
                     onClose={() => setLinkModal(null)}
+                    onSwitchMode={mode => {
+                        setLinkModal(null);
+                        setUsbModalOpen(mode);
+                    }}
+                />
+            )}
+
+            {usbModalOpen && (
+                <UsbLinkModal
+                    initialMode={usbModalOpen}
+                    onSwitchToLinkModal={() => {
+                        setUsbModalOpen(null);
+                        setLinkModal({ problem: null });
+                    }}
+                    onImport={rawJson => {
+                        let json: unknown;
+                        try {
+                            json = JSON.parse(rawJson);
+                        } catch {
+                            alert('Import failed — that file isn’t valid JSON.');
+                            return;
+                        }
+                        setUsbModalOpen(null);
+                        importJson(json, rawJson, 'json', 'Read directly from your USB-connected Android phone. Export again in the game whenever you want fresh data.');
+                    }}
+                    onClose={() => setUsbModalOpen(null)}
                 />
             )}
 

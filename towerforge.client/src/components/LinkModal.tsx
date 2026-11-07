@@ -30,6 +30,7 @@ interface Props {
     busy: boolean;
     onRetry: () => void;
     onClose: () => void;
+    onSwitchMode?: (mode: 'webusb' | 'python') => void;
 }
 
 type Where = 'emulator' | 'phone' | 'iphone';
@@ -63,7 +64,7 @@ function GuideLink({ part, onClose, children }: { part: string; onClose: () => v
     );
 }
 
-export default function LinkModal({ problem, busy, onRetry, onClose }: Props) {
+export default function LinkModal({ problem, busy, onRetry, onClose, onSwitchMode }: Props) {
     // undefined: not asked yet · null: Link isn't running.
     const [status, setStatus] = useState<LinkStatus | null | undefined>(undefined);
     const [where, setWhere] = useState<Where | null>(null);
@@ -128,7 +129,38 @@ export default function LinkModal({ problem, busy, onRetry, onClose }: Props) {
         <div className="lnk-overlay" role="dialog" aria-modal="true" aria-labelledby="lnk-title" onClick={onClose}>
             <div className="lnk-modal" onClick={e => e.stopPropagation()}>
                 <div className="lnk-head">
-                    <h2 id="lnk-title">Get your data with TowerForge Link</h2>
+                    <h2 id="lnk-title">Get your data with</h2>
+                    <div className="lnk-mode-tabs" role="tablist" aria-label="Get your data with" data-testid="get-data-mode-tabs">
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected={true}
+                            className="lnk-mode-tab on"
+                            data-testid="mode-tab-link"
+                        >
+                            TowerForge Link
+                        </button>
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected={false}
+                            className="lnk-mode-tab"
+                            data-testid="mode-tab-webusb"
+                            onClick={() => onSwitchMode?.('webusb')}
+                        >
+                            WebUSB
+                        </button>
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected={false}
+                            className="lnk-mode-tab"
+                            data-testid="mode-tab-python"
+                            onClick={() => onSwitchMode?.('python')}
+                        >
+                            TowerForge Link Python
+                        </button>
+                    </div>
                     <button className="lnk-close" onClick={onClose} aria-label="Close">✕</button>
                 </div>
                 <div className="lnk-body">

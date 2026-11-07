@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "towerforge-link-py"
+version = "0.1.0"
+description = "Hardened zero-dependency macOS and Linux companion for TowerForge Link"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Proprietary" }
+authors = [
+    { name = "TowerForge Security Engineering" }
+]
+dependencies = []
+
+[project.scripts]
+towerforge-link = "towerforge_link.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["towerforge_link*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-ra"

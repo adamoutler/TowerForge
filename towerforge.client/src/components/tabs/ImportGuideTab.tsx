@@ -19,6 +19,9 @@ import { trackEvent } from '../../analytics';
 const SHIZUKU_PLAY = 'https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api';
 const SHIZUKU_GUIDE = 'https://shizuku.rikka.app/guide/setup/';
 const SOURCE = 'https://github.com/mannypein/TowerForge';
+export const USB_UDEV_RULES_HREF = '/linux/51-android-adb-uaccess.rules';
+export const LINK_PYZ_DOWNLOAD = '/downloads/towerforge-link.pyz';
+export const LINK_PY_DOWNLOAD = '/downloads/towerforge-link.py';
 
 // Opening the page at a part jumps there; a link on the page glides.
 function scrollTo(id: string, glide = true) {
@@ -28,6 +31,8 @@ function scrollTo(id: string, glide = true) {
 
 const CHOICES: { id: string; icon: string; title: string; what: string }[] = [
     { id: 'file', icon: '📄', title: 'I already have the file', what: 'Any phone, tablet or computer.' },
+    { id: 'usb', icon: '🔌', title: 'Direct USB Connect — WebUSB', what: 'Plug an Android phone in over USB in Chrome, Edge, Brave, Opera or Vivaldi (no install).' },
+    { id: 'linux-macos', icon: '🐧', title: 'Python Companion — macOS & Linux', what: 'towerforge-link.pyz for Waydroid, AVDs, macOS containers, Firefox, Safari and USB/Wi-Fi phones.' },
     { id: 'emulator', icon: '🖥', title: 'I play on an emulator on my PC', what: 'BlueStacks, LDPlayer, MuMu, MEmu or Nox on Windows.' },
     { id: 'android-phone', icon: '📱', title: 'I play on an Android phone (no PC needed)', what: 'TowerForge Link for Android, on the phone itself.' },
     { id: 'android-pc', icon: '📶', title: 'I play on an Android phone and have a Windows PC', what: 'The PC reads the phone over Wi-Fi.' },
@@ -523,9 +528,237 @@ export default function ImportGuideTab() {
                 </Box>
             </Section>
 
+            {/* ── Direct USB Connect — WebUSB ── */}
+            <Section id="usb" icon="🔌" title="Direct USB Connect — WebUSB (Android phone over USB)"
+                lead="Plug your Android phone in with a USB cable and click 🔌 Connect USB phone directly in the browser — no helper app or desktop program needed on Windows, macOS, Linux or Android OTG.">
+                <Need items={[
+                    'An Android phone with The Tower and a data-capable USB cable.',
+                    'A Chromium-based browser with WebUSB support: Google Chrome, Microsoft Edge, Brave, Opera or Vivaldi.',
+                    'Linux only: one uaccess udev rule so your desktop user can open the USB ADB interface.',
+                ]} />
+
+                <Part title="Part 1 — Browser support matrix (WebUSB)">
+                    <p>
+                        Direct USB Connect uses the browser’s <strong>WebUSB</strong> API (<code>navigator.usb</code>) to speak the
+                        Android Debug Bridge (ADB) protocol directly to your phone’s USB interface (<code>class 0xff, subclass 0x42, protocol 0x01</code>).
+                    </p>
+                    <div className="igd-table-wrap">
+                        <table className="igd-table">
+                            <thead>
+                                <tr>
+                                    <th>Browser</th>
+                                    <th>Platforms</th>
+                                    <th>Direct USB Connect (WebUSB)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Chrome, Edge, Brave, Opera, Vivaldi</strong> (Chromium)</td>
+                                    <td>Windows, macOS, Linux, ChromeOS, Android OTG</td>
+                                    <td>✅ Supported directly in the browser (over HTTPS or <code>localhost</code>)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Firefox</strong></td>
+                                    <td>Windows, macOS, Linux</td>
+                                    <td>❌ No WebUSB — use <Go to="linux-macos">Python Companion (#linux-macos)</Go> or <Go to="emulator">TowerForge Link for Windows</Go></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Safari</strong></td>
+                                    <td>macOS, iOS / iPadOS</td>
+                                    <td>❌ No WebUSB — use <Go to="linux-macos">Python Companion (#linux-macos)</Go> on macOS</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </Part>
+
+                <Part title="Part 2 — Turn on USB debugging & File Transfer / MTP mode">
+                    <Steps>
+                        <li>Unlock <strong>Developer options</strong> on your Android phone if you haven’t already (Settings → About phone → tap <strong>Build number</strong> 7 times — see <Go to="android-phone">Android phone, Part 1</Go>).</li>
+                        <li>Open <strong>Settings → Developer options</strong> and turn on <strong>USB debugging</strong>.</li>
+                        <li>Plug the phone into your computer with a USB cable that carries data (not a charge-only cable) and unlock the phone screen.</li>
+                        <li>
+                            Pull down the phone’s notification shade, tap the <strong>USB charging this device</strong> notification,
+                            and set <strong>Use USB for</strong> to <strong>File Transfer / MTP</strong> (or <em>File transfer / Android Auto</em>).
+                            Many phones keep the ADB interface hidden while set to <em>Charging only</em>.
+                        </li>
+                        <li>In The Tower on the phone, export your data (<Go to="export">step 0</Go> — turning on <strong>Auto</strong> is best).</li>
+                    </Steps>
+                </Part>
+
+                <Part title="Part 3 — Connect and accept the RSA key fingerprint prompt">
+                    <Steps>
+                        <li>On TowerForge, click <strong>🔌 Connect USB phone</strong> in the top header.</li>
+                        <li>Your browser shows a WebUSB picker listing your phone — select it and click <strong>Connect</strong>.</li>
+                        <li>
+                            Look at your phone screen: Android shows <Says>Allow USB debugging?</Says> along with an
+                            <strong> RSA key fingerprint</strong>. Verify that the SHA-256 fingerprint matches the ephemeral session
+                            fingerprint shown in TowerForge, optionally tick <strong>Always allow from this computer</strong> if you
+                            turned on “Remember key in this browser”, and tap <strong>Allow</strong>.
+                        </li>
+                        <li>
+                            TowerForge pulls <code>tool_export.json</code> (up to 8 MiB) straight into the page and closes the USB
+                            session cleanly. You can also download a backup copy of <code>playerInfo.dat</code> from the USB dialog.
+                        </li>
+                    </Steps>
+                    <Box kind="why">
+                        By default, TowerForge generates an ephemeral 2048-bit RSA key pair in memory for a single pull and wipes
+                        the private key bytes as soon as the transfer finishes. Nothing is uploaded to any server.
+                    </Box>
+                </Part>
+
+                <Part title="Part 4 — Conflict resolution: when local adb or Android Studio holds the phone">
+                    <p>
+                        Only one program on your computer can claim the phone’s USB ADB interface at a time. If a local
+                        <code> adb</code> server, <strong>Android Studio</strong>, <code>scrcpy</code>, or another browser tab is
+                        already connected to the phone, the browser reports <Says>Unable to claim interface</Says> (<code>DeviceBusyError</code>).
+                    </p>
+                    <Steps>
+                        <li>Close Android Studio, <code>scrcpy</code>, or any other browser tab using WebUSB.</li>
+                        <li>
+                            Stop the host ADB server so it releases the USB interface:
+                            <pre className="igd-code">adb kill-server</pre>
+                        </li>
+                        <li>Click <strong>🔌 Connect USB phone</strong> again.</li>
+                    </Steps>
+                    <Box kind="tip">
+                        If the <Go to="linux-macos">Python Companion</Go> is running on port <code>47821</code>, TowerForge
+                        automatically queries <code>/usb/owner</code> and shows the exact process name and PID holding your phone’s USB interface.
+                    </Box>
+                </Part>
+
+                <Part title="Part 5 — Linux udev rule installation (51-android-adb-uaccess.rules)">
+                    <p>
+                        On Linux, USB device nodes under <code>/dev/bus/usb/</code> default to root-only permissions unless a
+                        <code> udev</code> rule grants your logged-in desktop session access (<code>TAG+=&quot;uaccess&quot;</code>). Without it,
+                        the browser says <Says>Access denied</Says> when opening the phone.
+                    </p>
+                    <Download
+                        href={USB_UDEV_RULES_HREF}
+                        label="Download 51-android-adb-uaccess.rules"
+                        event="Linux udev rules download (guide)"
+                    />
+                    <Steps>
+                        <li>
+                            Download <a href={USB_UDEV_RULES_HREF} download><code>/linux/51-android-adb-uaccess.rules</code></a> using
+                            the button above, then install it and reload <code>udev</code>:
+                            <pre className="igd-code">{`sudo cp ~/Downloads/51-android-adb-uaccess.rules /etc/udev/rules.d/51-android-adb-uaccess.rules
+sudo chmod 644 /etc/udev/rules.d/51-android-adb-uaccess.rules
+sudo udevadm control --reload-rules && sudo udevadm trigger`}</pre>
+                        </li>
+                        <li>Unplug your Android phone’s USB cable and plug it back in, then click <strong>🔌 Connect USB phone</strong>.</li>
+                    </Steps>
+                </Part>
+            </Section>
+
+            {/* ── Python Companion — macOS & Linux ── */}
+            <Section id="linux-macos" icon="🐧" title="Python Companion — macOS & Linux (towerforge-link.pyz)"
+                lead="A single-file Python 3.10+ companion (stdlib only, zero third-party pip packages) that brings the 🖥 Get from emulator or phone button and ⟳ Auto import to Linux and macOS across all browsers (including Firefox and Safari).">
+                <Need items={[
+                    'Linux or macOS with Python 3.10 or newer (python3 --version).',
+                    'System adb (Android Platform Tools) for Android phones, Waydroid or emulators — not needed for the macOS Apple Silicon native app container.',
+                    'Any browser (Firefox, Safari, Chrome, Brave, Edge).',
+                ]} />
+
+                <Part title="Part 1 — Download towerforge-link.py or towerforge-link.pyz, verify SHA-256 & start the server">
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <Download
+                            href={LINK_PY_DOWNLOAD}
+                            label="Download towerforge-link.py (Plain-Text Script)"
+                            event="Link py download (guide)"
+                        />
+                        <Download
+                            href={LINK_PYZ_DOWNLOAD}
+                            label="Download towerforge-link.pyz (macOS & Linux)"
+                            event="Link pyz download (guide)"
+                        />
+                    </div>
+                    <Steps>
+                        <li>
+                            Download <a href={LINK_PY_DOWNLOAD} download><code>/downloads/towerforge-link.py</code></a> (single-file
+                            plain-text Python script) or <a href={LINK_PYZ_DOWNLOAD} download><code>/downloads/towerforge-link.pyz</code></a> using the
+                            buttons above.
+                        </li>
+                        <li>
+                            Verify the SHA-256 checksum before running:
+                            <pre className="igd-code">{`# Linux:
+sha256sum towerforge-link.py
+sha256sum towerforge-link.pyz
+# macOS:
+shasum -a 256 towerforge-link.py
+shasum -a 256 towerforge-link.pyz`}</pre>
+                        </li>
+                        <li>
+                            Start the local companion on <code>127.0.0.1:47821</code>:
+                            <pre className="igd-code">{`python3 ~/Downloads/towerforge-link.py
+# Or using the zipapp archive:
+python3 towerforge-link.pyz serve`}</pre>
+                        </li>
+                        <li>
+                            Leave that terminal running, open TowerForge in your browser, and click <strong>🖥 Get from emulator or
+                            phone</strong> (or turn on <strong>⟳ Auto import</strong>).
+                        </li>
+                    </Steps>
+                    <Box kind="why">
+                        <code>towerforge-link.pyz</code> binds strictly to <code>127.0.0.1:47821</code> with <code>Origin</code>,
+                        <code> Host</code>, Private Network Access, and (on Linux) <code>/proc/net/tcp</code> same-UID socket checks,
+                        and invokes <code>adb</code> with <code>shell=False</code> and a sanitized environment.
+                    </Box>
+                </Part>
+
+                <Part title="Part 2 — Using with Waydroid, Android Studio AVD, Genymotion, BlueStacks Air & macOS Apple Silicon">
+                    <ul className="igd-list">
+                        <li>
+                            <strong>Waydroid (Linux):</strong> Start your Waydroid session (`waydroid session start`) and export in
+                            The Tower. <code>towerforge-link.pyz</code> discovers Waydroid automatically via <code>adb devices -l</code>
+                            (typically <code>192.168.240.112:5555</code>) and reads <code>tool_export.json</code>.
+                        </li>
+                        <li>
+                            <strong>Android Studio AVD &amp; Genymotion (Linux &amp; macOS):</strong> Start your virtual device in
+                            Android Studio or Genymotion. The companion detects <code>emulator-5554</code> / <code>127.0.0.1:6555</code>
+                            automatically through system <code>adb</code>.
+                        </li>
+                        <li>
+                            <strong>BlueStacks Air (macOS):</strong> Turn on Android Debug Bridge in BlueStacks Air settings; the
+                            companion connects to its local ADB bridge (<code>127.0.0.1:5555</code>).
+                        </li>
+                        <li>
+                            <strong>macOS Apple Silicon native container:</strong> If you play the iOS/iPadOS version of The Tower
+                            natively on an M-series Mac, <code>towerforge-link.pyz</code> reads <code>tool_export.json</code> directly
+                            from <code>~/Library/Containers/&lt;UUID&gt;/Data/Documents/tool_export.json</code> — no <code>adb</code> needed.
+                        </li>
+                        <li>
+                            <strong>USB &amp; Wireless Debugging phones:</strong> Plug in over USB or pair over Wireless Debugging
+                            using the <strong>⚙</strong> setup dialog right in the site header.
+                        </li>
+                    </ul>
+                </Part>
+
+                <Part title="Part 3 — CLI commands: pull --pull-save (playerInfo.dat backup), doctor & udev-rules">
+                    <p>
+                        You can also run <code>towerforge-link.pyz</code> directly from the terminal to check your setup, install
+                        Linux <code>udev</code> rules, or pull both <code>tool_export.json</code> and a backup of your raw game save
+                        (<code>playerInfo.dat</code>):
+                    </p>
+                    <pre className="igd-code">{`# Pull tool_export.json AND back up playerInfo.dat alongside it:
+python3 towerforge-link.pyz pull --pull-save
+
+# Check Python version, system adb permissions, USB ownership, and connected sources:
+python3 towerforge-link.pyz doctor
+
+# Print or install the Linux uaccess udev rule (/etc/udev/rules.d/51-android-adb-uaccess.rules):
+python3 towerforge-link.pyz udev-rules
+python3 towerforge-link.pyz install-udev`}</pre>
+                    <Box kind="tip">
+                        <code>playerInfo.dat</code> is the game’s internal save file (backed up by <code>--pull-save</code> for
+                        safekeeping); always import <code>tool_export.json</code> into TowerForge.
+                    </Box>
+                </Part>
+            </Section>
+
             {/* ── Mac ── */}
             <Section id="mac" icon="💻" title="A Mac"
-                lead="TowerForge Link runs on Windows only for now, but a Mac can still get the file to the site.">
+                lead={<>Use the <Go to="linux-macos">Python Companion (towerforge-link.pyz)</Go> for one-click and Auto import on macOS, or copy the file directly below.</>}>
                 <Part title="The Tower running on the Mac itself (Apple silicon)">
                     <Steps>
                         <li>In The Tower on the Mac, export your data — <Go to="export">step 0</Go>.</li>
@@ -575,6 +808,9 @@ export default function ImportGuideTab() {
                             <tr><td><Says>Phones need Google’s adb first</Says></td><td>Click <strong>Get Google’s adb</strong> in the ⚙ setup’s Android tab.</td></tr>
                             <tr><td><Says>This TowerForge Link … can’t reach phones</Says></td><td>Download the new TowerForge Link, close the old window, run the new one.</td></tr>
                             <tr><td><Says>Your phone is asking whether to allow USB debugging</Says></td><td>Tap <strong>Allow</strong> on the phone (tick “Always allow from this computer”).</td></tr>
+                            <tr><td><Says>Unable to claim interface</Says> (WebUSB <code>DeviceBusyError</code>)</td><td>Another program on your computer (<code>adb</code>, Android Studio, <code>scrcpy</code> or another browser tab) is holding the phone’s USB ADB interface. Run <code>adb kill-server</code> in a terminal and try again (<Go to="usb">Direct USB Connect, Part 4</Go>).</td></tr>
+                            <tr><td><Says>Access denied</Says> when opening the phone over WebUSB on Linux</td><td>Install <a href={USB_UDEV_RULES_HREF} download><code>/linux/51-android-adb-uaccess.rules</code></a> into <code>/etc/udev/rules.d/</code>, run <code>sudo udevadm control --reload-rules &amp;&amp; sudo udevadm trigger</code>, and replug the cable (<Go to="usb">Direct USB Connect, Part 5</Go>).</td></tr>
+                            <tr><td><Says>WebUSB isn’t supported in this browser</Says></td><td>Open TowerForge in Chrome, Edge, Brave, Opera or Vivaldi, or run <code>python3 towerforge-link.pyz serve</code> in <Go to="linux-macos">Python Companion (#linux-macos)</Go> for Firefox and Safari.</td></tr>
                             <tr><td><Says>Your iPhone backup is encrypted</Says></td><td>Apple Devices → General → untick <strong>Encrypt local backup</strong>, then <strong>Back Up Now</strong> (<Go to="iphone">why</Go>).</td></tr>
                             <tr><td><Says>Your newest iPhone backup doesn’t have the game’s data export</Says></td><td>Export in the game first, then back up again.</td></tr>
                             <tr><td><Says>Shizuku isn’t running</Says></td><td>It stops when the phone restarts: Wi-Fi on → open Shizuku → <strong>Start</strong>.</td></tr>

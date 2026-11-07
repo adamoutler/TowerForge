@@ -80,3 +80,54 @@ Share links and accounts need the API: start `towerforge-server-local` instead (
 
 - Windows: PowerShell 5.1 and Git Bash. For multi-line file edits from the shell, write a Python script to a temp file and run it with `python -I`. Heredocs that pipe into `python3 -` work for short patches.
 - Pillow isn't installed. Image work uses PowerShell `System.Drawing` (see `import-icons.ps1`).
+
+## TowerForge Link 2 Architecture & Security
+
+TowerForge Link 2 provides three independent, self-contained paths for importing `tool_export.json` (and optional `playerInfo.dat` save backups) from *The Tower* into the web application across Windows, macOS, Linux, and Android:
+
+### Three Import Paths & Module Boundaries
+
+1. **Path 1 — Existing `"🖥 Get from emulator or phone"` Button (Untouched Wire Contract on `:47821`)**
+   - **Frontend Modules:** `towerforge.client/src/engine/linkClient.ts`, `towerforge.client/src/components/LinkModal.tsx`, `towerforge.client/src/components/LinkSourcePicker.tsx`, and `towerforge.client/src/components/common/AutoImport.tsx`.
+   - **Contract Fixtures:** `towerforge.client/src/engine/__tests__/linkClient.contract.test.ts` and `docs/contracts/link-v1-openapi.json` lock byte-for-byte parity with `TowerForge.Link/LinkServer.cs` on `http://localhost:47821` (`GET /`, `GET /status`, `GET /sources`, `GET /export[?newerThan=&source=]`, and `POST /phone/{adb,pair,connect,forget}`).
+   - **Backends:** Served by `TowerForge.Link` (`TowerForgeLink.exe`) on Windows, `TowerForge.Link.Android` (`TowerForgeLink.apk` + Shizuku) on Android, and `towerforge-link-py` (`towerforge-link.pyz`) on macOS and Linux.
+
+2. **Path 2 — `"🔌 Connect USB phone"` WebUSB Direct (`navigator.usb` + Tango ADB 2.x)**
+   - **Frontend Modules:**
+     - `towerforge.client/src/engine/usbTangoLoader.ts` — Lazy-loads exact-pinned `@yume-chan/adb@2.6.4`, `@yume-chan/adb-daemon-webusb@2.3.2`, and `@yume-chan/adb-credential-web@2.1.0` into an isolated async Rollup chunk (`vendor-webusb`) so zero bytes are added to the initial bundle.
+     - `towerforge.client/src/engine/usbLink.ts` — WebUSB ADB state machine filtering for ADB interfaces (`classCode: 0xff, subclassCode: 0x42, protocolCode: 0x01`), ephemeral RSA-2048 session key generation + SHA-256 fingerprint computation + zero-fill key cleanup, 30-second authorization timeout, bounded 8 MiB `sync.lstat`/`sync.read` pull with mid-write `mtime` re-verification, and optional `playerInfo.dat` backup download (`usbDownloadPlayerInfo`).
+     - `towerforge.client/src/engine/usbDiagnose.ts` — Cross-tab Web Locks (`navigator.locks` `'towerforge-usb'`) contention detector, OS error classifier distinguishing `device.open()` `SecurityError`/`Access denied` from `claimInterface()` `DeviceBusyError` (`Unable to claim interface`), and optional `GET http://127.0.0.1:47821/usb/owner` enrichment.
+     - `towerforge.client/src/components/UsbLinkModal.tsx` — Step-by-step WebUSB connection modal displaying live RSA key fingerprints, `adb kill-server` conflict remediation, and platform-specific instructions.
+     - `towerforge.client/public/linux/51-android-adb-uaccess.rules` — Downloadable Linux `udev` rule (`SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ENV{ID_USB_INTERFACES}=="*:ff4201:*", TAG+="uaccess"`) granting active local seat users access to Android ADB USB interfaces without root or `plugdev` group changes.
+
+3. **Path 3 — `towerforge-link-py` Python 3.10+ Stdlib Companion (`towerforge-link.pyz`)**
+   - **Companion Package (`towerforge-link-py/towerforge_link/`):** 100% Python 3.10+ standard library (zero third-party runtime PyPI dependencies), packaged as a reproducible `.pyz` zipapp at `towerforge.client/public/downloads/towerforge-link.pyz`:
+     - `adb_finder.py` / `adb.py` & `adb_runner.py` — Deterministic `adb` binary locator (`PATH`, Android SDK `platform-tools`, Homebrew, `/usr/bin/adb`) with `os.stat` permission/ownership guards (rejects world/group-writable binaries), argv-only `subprocess.Popen(..., shell=False)`, sanitized environment, process-group timeout kills (`os.killpg`), and strict `SERIAL_RE` (`^[A-Za-z0-9._:-]{1,128}$`) validation.
+     - `security.py` & `http_server.py` / `server.py` — `ThreadingHTTPServer` bound strictly to `127.0.0.1:47821` (`allow_reuse_address = False`, 8-socket concurrency semaphore, 30-minute idle auto-shutdown).
+     - `sources.py` / `discovery.py` — Multi-source discovery across USB phones, Wireless Debugging phones, Waydroid (`192.168.240.112:5555`), Android Studio AVDs (`emulator-*`), Genymotion, BlueStacks Air, and the macOS Apple Silicon native container (`~/Library/Containers/<UUID>/Data/Documents/tool_export.json`).
+     - `exporter.py` — Pulls `tool_export.json` and `playerInfo.dat` (`--pull-save`) into a `0700` temporary directory with an 8 MiB size cap (`413 Payload Too Large`), `204 No Content` `newerThan` semantics, mid-write `mtime` retry, and `X-Export-Modified` / `X-Export-Source` / `X-Export-Source-Id` headers.
+     - `wireless.py` / `phones.py` — Implements `/phone/adb`, `/phone/pair`, `/phone/connect`, and `/phone/forget` with literal RFC1918 IPv4 validation, 6-digit pairing code checks, token-bucket rate limiting, and `0600` `phones.json` persistence.
+     - `usb_owner.py` — Implements `GET /usb/owner?vid=&pid=&serial=` using Linux `sysfs` + same-UID `/proc/<pid>/fd` inspection and macOS `ioreg` + `lsof` so the browser can identify which local process (`adb`, Android Studio, `scrcpy`) holds the USB interface.
+     - `ws.py` & `towerforge.client/src/engine/wsLinkClient.ts` — Restricted RFC 6455 `/ws` JSON-RPC endpoint (`<= 4 KiB` frames, allowlisted methods `status`, `sources`, `export`, `usb_owner` only; never a raw ADB socket relay).
+   - **In-App Documentation:** `towerforge.client/src/components/tabs/ImportGuideTab.tsx` (and `towerforge.client/src/components/ImportGuideTab.tsx`) provides addressable `#usb` and `#linux-macos` sections (`guideNav.ts`).
+
+### Security Controls
+
+- **Loopback Origin, Host & Private Network Access (PNA) Enforcement:** `towerforge-link-py` validates `Host` (`localhost:47821` or `127.0.0.1:47821`) and `Origin` (`https://towerforge.net`, `https://towerforge.hackedyour.info`, `https://thetower.hackedyour.info`, `http://localhost:*`, `http://127.0.0.1:*`), and responds to `OPTIONS` preflights with `Access-Control-Allow-Private-Network: true` and `Vary: Origin, Access-Control-Request-Private-Network`.
+- **Linux `/proc/net/tcp` Same-UID Peer Verification:** On Linux, `security.py` inspects `/proc/net/tcp` for every accepted loopback connection and rejects sockets whose owning UID does not match `os.getuid()` (`403 Forbidden`).
+- **Subprocess & Filesystem Hardening:** All `adb` invocations use `shell=False`, a stripped environment (`PATH`, `HOME`, `ANDROID_ADB_SERVER_PORT`, `TMPDIR`), validated device serials (`SERIAL_RE`), and `0700` temporary directories.
+- **8 MiB Bounded Transfers:** Both `usbLink.ts` (WebUSB sync stream) and `exporter.py` (companion HTTP/CLI pull) enforce a strict `8 MiB` (`8,388,608` bytes) ceiling before and during streaming.
+- **Ephemeral WebUSB RSA-2048 Keys:** `usbLink.ts` generates an ephemeral RSA-2048 key pair per session by default, zeroes the PKCS#8 `Uint8Array` buffer on disconnect, and calls `device.raw.forget()` in `finally`.
+- **CSP & Permissions-Policy:** Third-party tracking scripts (`utt.impactcdn.com`) are removed. Nginx enforces `Permissions-Policy: usb=(self), geolocation=(), microphone=(), camera=()` and a strict `Content-Security-Policy` (`script-src 'self' 'wasm-unsafe-eval'`, `connect-src 'self' http://localhost:47821 http://127.0.0.1:47821 ws://localhost:47821 ws://127.0.0.1:47821`).
+- **Repository Hygiene:** This repository uses `CLAUDE.md` exclusively; zero `GEMINI.md` files are permitted anywhere in the repository tree.
+
+### Containerized Dev & Test Commands (`docker-compose.dev.yml`)
+
+| Task | Command |
+|---|---|
+| Start dev container stack | `docker compose -f docker-compose.dev.yml up -d` |
+| Frontend unit tests (Vitest) | `docker exec -w /workspace/towerforge.client towerforge-dev npx vitest run` |
+| Frontend type-check & production build | `docker exec -w /workspace/towerforge.client towerforge-dev npm run build` |
+| Python companion unit tests (Pytest) | `docker exec -w /workspace towerforge-dev pytest towerforge-link-py/tests` |
+| Build `towerforge-link.pyz` zipapp | `docker exec -w /workspace towerforge-dev python3 towerforge-link-py/packaging/build_zipapp.py` |
+| Playwright Chromium E2E suite | `docker exec -w /workspace/towerforge.client towerforge-dev npx playwright test` |

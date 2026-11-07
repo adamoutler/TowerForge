@@ -16,6 +16,9 @@
   },
   "dependencies": {
     "@mlc-ai/web-llm": "0.2.85",
+    "@yume-chan/adb": "2.6.4",
+    "@yume-chan/adb-credential-web": "2.1.0",
+    "@yume-chan/adb-daemon-webusb": "2.3.2",
     "html-to-image": "^1.11.13",
     "pdfjs-dist": "^6.3.289",
     "react": "^19.2.6",
@@ -24,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.0",
     "@types/node": "^24.12.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

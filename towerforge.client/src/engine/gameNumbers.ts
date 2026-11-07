@@ -13,7 +13,7 @@ const NAMED: [string, number][] = [
 ];
 // aa, ab … az continue in steps of a thousand from 1e36.
 const LETTERED: [string, number][] = Array.from({ length: 26 }, (_, i) =>
-    [`a${String.fromCharCode(97 + i)}`, 10 ** (36 + 3 * i)]);
+    [`a${String.fromCharCode(97 + i)}`, Number(`1e${36 + 3 * i}`)]);
 
 // Largest first, for formatting.
 const SUFFIXES: [string, number][] = [...NAMED, ...LETTERED].reverse();
