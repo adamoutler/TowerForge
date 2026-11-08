@@ -1,7 +1,8 @@
 // ============================================================
 //  TowerForge Companion — Site footer
 //  At the end of every page and shared-stats link: that TowerForge is
-//  fan-made and not Tech Tree Games' (whose game art it shows), and
+//  fan-made and not Tech Tree Games' (whose game art it shows, with
+//  their written permission — owner, 2026-11-08), and
 //  links to Privacy, Terms, the open-source licenses
 //  (third-party-licenses.txt, written at build by licensesPlugin.ts)
 //  and the Discord. Added 2026-11-08 with the legal pages.
@@ -26,7 +27,7 @@ export default function SiteFooter({ onOpen }: { onOpen?: (tab: TabName) => void
         <footer className="site-foot">
             <p>
                 TowerForge is a free, fan-made companion for The Tower. It isn&apos;t affiliated with or endorsed by
-                Tech Tree Games; The Tower and its game art belong to Tech Tree Games.
+                Tech Tree Games; The Tower and its game art belong to Tech Tree Games and are used with their permission.
             </p>
             <nav aria-label="About TowerForge">
                 {page('privacy', 'Privacy')}

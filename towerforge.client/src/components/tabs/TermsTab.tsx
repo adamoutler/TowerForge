@@ -26,7 +26,7 @@ export default function TermsTab() {
             <p>
                 TowerForge is a free companion for The Tower, made by a player. It isn&apos;t affiliated with, endorsed
                 by or run by Tech Tree Games. The Tower, its names and its game art belong to Tech Tree Games and are
-                shown here to describe the game; TowerForge will take down anything Tech Tree Games asks it to.
+                used here with their permission; TowerForge will take down anything Tech Tree Games asks it to.
             </p>
 
             <h3>The numbers are estimates</h3>
