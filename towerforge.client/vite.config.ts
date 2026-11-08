@@ -2,6 +2,7 @@ import { fileURLToPath, URL } from 'node:url';
 
 import { defineConfig, searchForWorkspaceRoot } from 'vite';
 import plugin from '@vitejs/plugin-react';
+import licensesPlugin from './licensesPlugin';
 import fs from 'fs';
 import path from 'path';
 import child_process from 'child_process';
@@ -42,7 +43,8 @@ const target = env.ASPNETCORE_HTTPS_PORT ? `https://localhost:${env.ASPNETCORE_H
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [plugin()],
+    // licensesPlugin: third-party-licenses.txt, linked from the site footer.
+    plugins: [plugin(), licensesPlugin(fileURLToPath(new URL('.', import.meta.url)))],
     define: {
         __APP_VERSION__: JSON.stringify(appVersion),
     },

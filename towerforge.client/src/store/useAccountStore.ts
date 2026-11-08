@@ -54,6 +54,7 @@ interface AccountStore {
     changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
     recoveryCodeSaved: () => void;
     logout: () => Promise<void>;
+    deleteAccount: (password: string) => Promise<void>;
     sharesChanged: () => void;
 }
 
@@ -272,6 +273,24 @@ export const useAccountStore = create<AccountStore>((set) => ({
         writeKey(DIRTY_KEY, null);
         set({
             status: 'signedOut', username: null, features: [], syncState: 'idle', lastSyncedAt: null, notice: null,
+            hasRecoveryCode: false, recoveryCode: null,
+        });
+    },
+
+    // Deletes the account on the server (it checks the password), then
+    // clears this device like signing out. Nothing is pushed first: the
+    // account's copy is about to go.
+    deleteAccount: async (password) => {
+        clearTimeout(pushTimer);
+        await accountApi.deleteAccount(password);
+        stopSync();
+        applyingRemote = true;
+        try { useGameStore.getState().resetAll(); } finally { applyingRemote = false; }
+        writeKey(LINKED_USER_KEY, null);
+        writeKey(DIRTY_KEY, null);
+        set({
+            status: 'signedOut', username: null, features: [], syncState: 'idle', lastSyncedAt: null,
+            notice: 'Your account and everything saved with it were deleted.',
             hasRecoveryCode: false, recoveryCode: null,
         });
     },

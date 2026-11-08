@@ -23,6 +23,7 @@ import AutoImport from './components/common/AutoImport';
 import ThemePicker from './components/common/ThemePicker';
 import DiscordLink from './components/common/DiscordLink';
 import OfficialSiteNote from './components/common/OfficialSiteNote';
+import SiteFooter from './components/common/SiteFooter';
 import WelcomeGuide from './components/common/WelcomeGuide';
 import { exportAge, linkExport, linkSources, phoneLinkRemembered, rememberSource } from './engine/linkClient';
 import type { LinkSource } from './engine/linkClient';
@@ -58,6 +59,8 @@ const TournamentTab = lazy(() => import('./components/tabs/TournamentTab'));
 const TourneyHistoryTab = lazy(() => import('./components/tabs/TourneyHistoryTab'));
 const AiTab = lazy(() => import('./components/tabs/AiTab'));
 const ImportGuideTab = lazy(() => import('./components/tabs/ImportGuideTab'));
+const PrivacyTab = lazy(() => import('./components/tabs/PrivacyTab'));
+const TermsTab = lazy(() => import('./components/tabs/TermsTab'));
 
 // ── Tab Definitions ───────────────────────────────────────────
 // The tabs, grouped into sections so the menu fits a phone: the top row
@@ -65,13 +68,15 @@ const ImportGuideTab = lazy(() => import('./components/tabs/ImportGuideTab'));
 // for a section with one tab). A section with a long name has a short one
 // for phones, and an icon (on phones the icon sits over the name). A
 // preview section shows only for the accounts the server lists for it
-// (features.json), and always in development.
+// (features.json), and always in development. Privacy and Terms open from
+// the site footer: their tab shows only while one is open, and going back
+// to the section doesn't return to it.
 interface TabGroup {
     id: string;
     label: string;
     icon: string;
     short?: string;
-    tabs: { id: TabName; label: string; title?: string }[];   // title: the page title, when the label needs its section
+    tabs: { id: TabName; label: string; title?: string; footer?: boolean }[];   // title: the page title, when the label needs its section
     preview?: string;
 }
 const TAB_GROUPS: TabGroup[] = [
@@ -83,6 +88,8 @@ const TAB_GROUPS: TabGroup[] = [
             { id: 'share', label: 'Share' },
             { id: 'account', label: 'Account' },
             { id: 'importguide', label: 'Import Guide' },
+            { id: 'privacy', label: 'Privacy', footer: true },
+            { id: 'terms', label: 'Terms', title: 'Terms of use', footer: true },
         ],
     },
     {
@@ -129,6 +136,9 @@ const TAB_GROUPS: TabGroup[] = [
 ];
 
 const groupOf = (tab: TabName): TabGroup => TAB_GROUPS.find(g => g.tabs.some(t => t.id === tab)) ?? TAB_GROUPS[0];
+const isFooterTab = (tab: TabName) => !!groupOf(tab).tabs.find(t => t.id === tab)?.footer;
+// The tab a section returns to, after opening `tab` (footer pages aren't kept).
+const remember = (last: Record<string, TabName>, tab: TabName) => (isFooterTab(tab) ? last : { ...last, [groupOf(tab).id]: tab });
 
 const HOME_TITLE = 'TowerForge — The Tower Companion';
 const titleOf = (tab: TabName) => (tab === 'profile'
@@ -147,8 +157,7 @@ export default function App() {
     const [linkChoices, setLinkChoices] = useState<LinkSource[] | null>(null);
     // The tab last opened in each section, so going back to a section returns to it.
     const [lastInGroup, setLastInGroup] = useState<Record<string, TabName>>(() => {
-        const tab = useGameStore.getState().activeTab;
-        return { [groupOf(tab).id]: tab };
+        return remember({}, useGameStore.getState().activeTab);
     });
     // ?share=CODE opens the read-only viewer instead of the app shell.
     const [shareCode] = useState(() => new URLSearchParams(window.location.search).get('share'));
@@ -224,7 +233,7 @@ export default function App() {
         const onPop = () => {
             const tab = tabFromPath(window.location.pathname) ?? 'profile';
             setActiveTab(tab);
-            setLastInGroup(last => ({ ...last, [groupOf(tab).id]: tab }));
+            setLastInGroup(last => remember(last, tab));
         };
         window.addEventListener('popstate', onPop);
         return () => window.removeEventListener('popstate', onPop);
@@ -387,7 +396,7 @@ export default function App() {
     const activeGroup = groupOf(activeTab);
     function openTab(tab: TabName) {
         setActiveTab(tab);
-        setLastInGroup(last => ({ ...last, [groupOf(tab).id]: tab }));
+        setLastInGroup(last => remember(last, tab));
     }
 
     // ── Active tab renderer ──────────────────────────────────────
@@ -423,6 +432,8 @@ export default function App() {
             case 'share': return <ShareTab />;
             case 'account': return <AccountTab />;
             case 'importguide': return <ImportGuideTab />;
+            case 'privacy': return <PrivacyTab />;
+            case 'terms': return <TermsTab />;
             case 'ai': return hiddenTab ? null : <AiTab />;
             default: return null;
         }
@@ -538,7 +549,7 @@ export default function App() {
             </nav>
             {activeGroup.tabs.length > 1 && (
                 <nav className="tab-subbar" aria-label={activeGroup.label}>
-                    {activeGroup.tabs.map(tab => (
+                    {activeGroup.tabs.filter(tab => !tab.footer || tab.id === activeTab).map(tab => (
                         <a
                             key={tab.id}
                             href={TAB_PATHS[tab.id]}
@@ -557,6 +568,7 @@ export default function App() {
                 <ErrorBoundary key={activeTab}>
                     <Suspense fallback={null}>{renderTab()}</Suspense>
                 </ErrorBoundary>
+                <SiteFooter onOpen={openTab} />
             </main>
 
             {linkChoices && (

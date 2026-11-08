@@ -1,0 +1,19 @@
+/* ============================================================
+   TowerForge Companion — Fonts
+   Exo 2 (text) and JetBrains Mono (numbers), served from
+   towerforge.net itself (npm @fontsource, SIL Open Font License).
+   They came from Google Fonts until 2026-11-08, which handed every
+   visitor's IP address to Google on each page; European courts have
+   found that needs consent. Each weight's file covers Latin, Latin
+   Extended, Cyrillic and Vietnamese, and the browser fetches only
+   the parts a page's text uses, as Google's did.
+   ============================================================ */
+
+@import '@fontsource/exo-2/400.css';
+@import '@fontsource/exo-2/500.css';
+@import '@fontsource/exo-2/600.css';
+@import '@fontsource/exo-2/700.css';
+@import '@fontsource/exo-2/800.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/jetbrains-mono/600.css';

@@ -15,6 +15,7 @@ import type { ReactNode } from 'react';
 import { LINK_DOWNLOAD, LINK_DOWNLOAD_ANDROID } from '../../engine/linkClient';
 import { GUIDE_EVENT, takeGuideSection } from '../../guideNav';
 import { trackEvent } from '../../analytics';
+import { TAB_PATHS } from '../../routes';
 
 const SHIZUKU_PLAY = 'https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api';
 const SHIZUKU_GUIDE = 'https://shizuku.rikka.app/guide/setup/';
@@ -602,8 +603,10 @@ export default function ImportGuideTab() {
                 </Part>
                 <Part title="Where does my data go?">
                     <p>
-                        Into this browser only. If you create an account (Player → Account), your stats are saved with it so they
-                        follow you to other devices. Share links (Player → Share) only show what you choose to share.
+                        What you import stays in this browser. It only goes to TowerForge&apos;s server if you make an account
+                        (Player → Account), so your stats follow you to other devices, or a share link (Player → Share), which
+                        shows only what you pick. The site also counts visits, without cookies.
+                        The <a href={TAB_PATHS.privacy}>Privacy</a> page has the details.
                     </p>
                 </Part>
                 <Part title="Why does Android need Shizuku?">
@@ -618,7 +621,7 @@ export default function ImportGuideTab() {
                         <li><strong>Windows:</strong> close TowerForge Link and delete <code>TowerForgeLink.exe</code>; to remove Google’s adb and paired phones too, delete the folder <code>%LOCALAPPDATA%\TowerForgeLink</code>.</li>
                         <li><strong>Android:</strong> uninstall TowerForge Link and Shizuku, then turn off Wireless debugging (and Developer options, at the top of that page).</li>
                         <li><strong>iPhone:</strong> in Apple Devices, General → <strong>Manage Backups</strong> deletes old backups.</li>
-                        <li><strong>The site:</strong> Player → Account (signed in) or your browser’s site data for towerforge.net.</li>
+                        <li><strong>The site:</strong> clear your browser’s site data for towerforge.net; with an account, Player → Account → <strong>Delete account</strong> first.</li>
                     </ul>
                 </Part>
                 <Part title="Can I do it without any of this?">

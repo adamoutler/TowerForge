@@ -42,7 +42,8 @@ export type TabName =
     | 'profile' | 'perks' | 'tiers' | 'workshop'
     | 'labs' | 'cards' | 'uw' | 'puws' | 'relics'
     | 'bots' | 'modules' | 'guardian' | 'optimizer' | 'enemies' | 'runcoins' | 'runlength' | 'whatif' | 'tournament' | 'creators' | 'share' | 'account'
-    | 'ai' | 'tourneyhistory' | 'importguide' | 'vault' | 'career';
+    | 'ai' | 'tourneyhistory' | 'importguide' | 'vault' | 'career'
+    | 'privacy' | 'terms';
 
 // The run in progress when the game exported.
 export interface LiveRun {

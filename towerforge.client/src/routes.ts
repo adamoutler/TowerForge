@@ -38,6 +38,8 @@ export const TAB_PATHS: Record<TabName, string> = {
     runlength: '/run-length',
     creators: '/creators',
     ai: '/ai',
+    privacy: '/privacy',
+    terms: '/terms',
 };
 
 // Other spellings that open a tab: the tab ids (the analytics' page names

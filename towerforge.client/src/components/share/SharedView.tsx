@@ -29,6 +29,7 @@ import { SHARE_OFFSCREEN_STYLE } from './shareTheme';
 import { openExportDialog } from './exportImages';
 import { BOTS_CONFIG, botsForPreset, getPresetBots, isBotEntryOwned } from '../../constants/botData';
 import { presetLabel } from '../../constants/gameData';
+import SiteFooter from '../common/SiteFooter';
 
 interface Props {
     code: string;
@@ -293,6 +294,7 @@ export default function SharedView({ code }: Props) {
                     </ShareSection>
                 )}
             </main>
+            <SiteFooter />
         </div>
     );
 }

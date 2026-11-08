@@ -22,6 +22,9 @@ import { trackEvent } from '../analytics';
 
 const SOURCE = 'https://github.com/mannypein/TowerForge/tree/main/TowerForge.Link';
 const SHIZUKU = 'https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api';
+// Google offers Platform-Tools under its Android SDK License Agreement,
+// which its own download page has people accept first.
+const ANDROID_SDK_TERMS = 'https://developer.android.com/studio/terms';
 const GUIDE = TAB_PATHS.importguide;
 const POLL_MS = 4000;
 
@@ -339,7 +342,10 @@ export default function LinkModal({ problem, busy, onRetry, onClose }: Props) {
                                                 onClick={() => void act('adb', 'adb')}>
                                                 {working === 'adb' ? '⏳ Downloading…' : '⬇ Get Google’s adb'}
                                             </button>
-                                            <span className="lnk-sub">About 8 MB, straight from Google (Android SDK Platform-Tools), kept in Link&apos;s folder.</span>
+                                            <span className="lnk-sub">
+                                                About 8 MB, straight from Google (Android SDK Platform-Tools), kept in Link&apos;s folder.
+                                                Getting it means you accept <a href={ANDROID_SDK_TERMS} target="_blank" rel="noopener noreferrer">Google&apos;s terms for it</a>.
+                                            </span>
                                         </>
                                     )}
                                 </li>

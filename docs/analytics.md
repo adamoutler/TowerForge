@@ -8,6 +8,9 @@ server. Set up 2026-10-16 with Umami v3.4.0.
 
 - Every page load (towerforge.net and share links), with referrer, country,
   device, browser and OS — Umami's standard, anonymous counts.
+- Not from browsers that send Do Not Track (`data-do-not-track="true"` on the
+  tag, since 2026-11-08; the live script reads it). The Privacy page
+  (`/privacy`, docs/privacy.md) says what's counted; change it with this list.
 - **Tab views**: since 2026-10-20 every tab has its own address
   (`towerforge.net/creators`, `/what-if`… — `src/routes.ts`), and the tracker
   counts each address change as a page view by itself (it wraps

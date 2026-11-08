@@ -4999,6 +4999,119 @@ button.gcard {
     white-space: nowrap;
 }
 
+/* Privacy and Terms (PrivacyTab, TermsTab): one readable column of
+   text, like a letter rather than a dashboard. */
+.lgl-page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 4px 4px 8px;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--text);
+}
+
+    .lgl-page h2 {
+        font-size: 24px;
+        margin-bottom: 2px;
+    }
+
+    .lgl-page h3 {
+        font-size: 17px;
+        margin: 26px 0 6px;
+        color: var(--text);
+    }
+
+    .lgl-page p,
+    .lgl-page ul {
+        margin-bottom: 10px;
+    }
+
+    .lgl-page ul {
+        padding-left: 22px;
+    }
+
+    .lgl-page li {
+        margin-bottom: 4px;
+    }
+
+    .lgl-page a {
+        color: var(--accent);
+    }
+
+    .lgl-page code {
+        font-family: var(--font-mono);
+        font-size: 13px;
+    }
+
+.lgl-date {
+    font-size: 13px;
+    color: var(--text-dim);
+}
+
+.lgl-short {
+    margin: 16px 0 8px;
+    padding: 12px 16px 4px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+    .lgl-short h3 {
+        margin-top: 0;
+    }
+
+.lgl-inline-btn {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: var(--accent);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.lgl-foot {
+    margin-top: 26px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--text-dim);
+}
+
+/* Site footer (SiteFooter): at the end of every page and shared link. */
+.site-foot {
+    max-width: var(--page-max);
+    margin: 32px auto 0;
+    padding: 14px 16px 18px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    text-align: center;
+}
+
+    .site-foot p {
+        max-width: 640px;
+        margin: 0 auto 8px;
+    }
+
+    .site-foot nav {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 6px 18px;
+    }
+
+    .site-foot a {
+        color: var(--text-dim);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+        .site-foot a:hover {
+            color: var(--accent);
+        }
+
 /* Discord link (header): Discord's own blurple in every theme, so it
    reads as Discord. */
 .dsc-btn {

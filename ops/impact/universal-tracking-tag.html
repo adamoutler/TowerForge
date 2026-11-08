@@ -1,0 +1,28 @@
+<!--
+  ============================================================
+  impact.com Universal Tracking Tag (UTT), kept for later
+  ============================================================
+  This script sat in towerforge.client/index.html from the first
+  commit (2026-10-16) until 2026-11-08. It was taken out while
+  checking the site against privacy laws:
+
+  - It loaded on every page from utt.impactcdn.com, so every visitor's
+    IP address and the page they were on went to impact.com.
+  - impact.com's own help pages say that under GDPR it may not track a
+    visitor until they've agreed, so a European visitor would need a
+    consent banner first (impact.com's "Consent Mode").
+  - On the live site (2026-11-07) it set no cookies and its two queued
+    commands never ran, so it wasn't doing anything for TowerForge.
+
+  The site-verification meta tag stays in index.html. It sends nothing,
+  and impact.com uses it to confirm towerforge.net belongs to the account.
+
+  To put the tag back:
+  1. Paste the script below into index.html's <head>.
+  2. Add a consent banner that loads it only after a visitor agrees (at
+     least for visitors from the EU, UK and Switzerland), or use
+     impact.com's Consent Mode.
+  3. Add it to the Privacy page (components/tabs/PrivacyTab.tsx: "Other
+     services"): what it sends, to whom, and why.
+-->
+<script type="text/javascript">(function(i,m,p,a,c,t){c.ire_o=p;c[p]=c[p]||function(){(c[p].a=c[p].a||[]).push(arguments)};t=a.createElement(m);var z=a.getElementsByTagName(m)[0];t.async=1;t.src=i;z.parentNode.insertBefore(t,z)})('https://utt.impactcdn.com/P-A7508495-32a3-4a55-a9f2-78987904af661.js','script','impactStat',document,window);impactStat('transformLinks');impactStat('trackImpression');</script>
