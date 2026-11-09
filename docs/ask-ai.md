@@ -446,6 +446,35 @@ over the last 10, best 12), and on the mid account (an eHP build in Gold,
 where TowerForge doesn't score tournament waves) it padded the answer with
 levels from the summary and called Legend a "tier".
 
+**2–4. Three reports sent on 2026-11-09** (copied as bench questions by
+the owner). Each went to the wrong data; the fixes are in code
+(`checked`, `wordsOf`) and in the notes, checked on the bench accounts
+without the model (`aiAssistant.test.ts`, `aiTools*.test.ts`):
+
+- *"How do I get a permanent Black Hole in tournaments without perks and
+  the Galaxy Compressor?"* — routed `none`, so the model answered from its
+  own memory. The notes didn't say it either: `ultimate-weapons.md` now has
+  a "Permanent Black Hole" paragraph (38s against 50s; what closes the 12s:
+  the perk, Galaxy Compressor, or Core module BH Duration / Cooldown
+  substats on the main and assist slots; not Multiverse Nexus). A `none`
+  that asks how to do something with a game thing by name (a UW, UW+,
+  unique module, perks, labs, cards…) now goes to the notes, which find
+  the Black Hole section first. Bench `bh-permanent`.
+- *"Could you recommend a total build set to maximize coins per hour?"* —
+  routed `none`. Earning coins said any way ("maximize coins", "coins per
+  hour") is now the coin picks, and coins *an hour* or farming also gets
+  which tier to farm. Bench `coins-build`.
+- *"My coin/wave workshop is maxed out so it gave the wrong information. I
+  am asking specifically on the research lab…"* — a follow-up. Two causes:
+  "coin/wave lab" matched the workshop's Coin/Wave (its name has "coin",
+  the lab's "Coins"), so the first answer was about the workshop; and this
+  question got the coin picks. Words now read one and many the same
+  (`wordsOf`), and a lab named in full, when the question isn't asking what
+  to buy, gets What If on that lab. Bench `coin-wave-lab`. On the bench
+  accounts maxing the Coins/Wave Lab shows +0 coins: its gain scales the
+  share of coins a run measured from Coins/Wave, and the made-up runs have
+  none; a real export has it.
+
 ## Download size
 
 The two WebLLM scripts (the worker and the page's copy) are ~6 MB each.

@@ -458,13 +458,18 @@ const STOP = new Set(['the', 'my', 'a', 'an', 'of', 'to', 'and', 'level', 'level
 const ABBR: Record<string, string> = Object.fromEntries(UWS.map(u => [u.a.toLowerCase(), u.n.toLowerCase()]));
 Object.assign(ABBR, { gc: 'golden combo', dr: 'death ray', ws: 'workshop', cc: 'critical chance', cf: 'chrono field', 'ehp': 'health' });
 
+// One and many read the same, on both sides: "coin/wave lab" is the
+// Coins/Wave Lab (a player report, 2026-11-09: it matched the workshop's
+// Coin/Wave, whose name has "coin"). Not -ss, -us, -is (boss, bonus, this).
+const single = (w: string) => (w.length > 3 && w.endsWith('s') && !/(ss|us|is)$/.test(w) ? w.slice(0, -1) : w);
+
 export function wordsOf(text: string): string[] {
     const out: string[] = [];
     for (const raw of text.toLowerCase().replace(/[’']/g, '').split(/[^a-z0-9+]+/)) {
         const w = raw.replace(/\+$/, '');
         if (!w || STOP.has(w)) continue;
         if (raw.endsWith('+')) out.push('+');
-        out.push(...(ABBR[w] ?? w).split(' '));
+        out.push(...(ABBR[w] ?? w).split(' ').map(single));
     }
     return out;
 }

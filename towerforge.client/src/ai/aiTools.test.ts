@@ -55,6 +55,14 @@ describe('upgrades named in words', () => {
         expect(labels('damage lab')).toEqual(['Damage Lab']);
     });
 
+    // A player report (2026-11-09): "coin/wave lab" read as the workshop's Coin/Wave.
+    it('reads one and many the same ("coin/wave lab" is the Coins/Wave Lab)', () => {
+        expect(labels('coin/wave lab')).toEqual(['Coins/Wave Lab']);
+        expect(labels('coins per wave lab')).toEqual(['Coins/Wave Lab']);
+        expect(labels('coin/wave')).toEqual(['Coin/Wave']);
+        expect(findTargets(targets, 'coin/wave')[0].kind).toBe('workshop');
+    });
+
     it('finds nothing for words that match nothing', () => {
         expect(findTargets(targets, 'banana')).toEqual([]);
     });
@@ -244,6 +252,13 @@ describe('game notes search', () => {
     it('finds a battle condition by name', () => {
         const hits = searchNotes('How does Fast’s Ultimate work?');
         expect(hits[0].heading).toBe('Fast’s Ultimate');
+    });
+
+    // A player report (2026-11-09); the answer is in the Black Hole notes.
+    it('finds Black Hole first for a permanent Black Hole', () => {
+        const hits = searchNotes('How do I get a permanent Black Hole in tournaments without perks and the Galaxy Compressor?');
+        expect(hits[0].heading).toMatch(/Black Hole \(BH\)$/);
+        expect(hits[0].text).toMatch(/Permanent Black Hole/);
     });
 
     it('finds UW notes and stays within the budget', () => {

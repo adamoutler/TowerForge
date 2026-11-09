@@ -188,6 +188,28 @@ Notion renders client-side, so both were read in a browser: on a fandom tab,
   tower damage; protectors don't reduce it). Size 30m → 70m, Duration 15s →
   38s (perk +12s), Cooldown 200s → 50s. Extra Black Hole lab adds a second
   hole opposite.
+- **Permanent Black Hole** (always up): TowerForge counts its uptime as
+  duration ÷ cooldown (`farming.ts`), so it's permanent once the duration
+  reaches the cooldown. The stats alone stop at 38s against 50s, 12s short.
+  What closes the gap (2026-11-09, from a player's question):
+  - the Black Hole perk, +12s (38 + 12 = 50);
+  - Galaxy Compressor, which takes time off every UW cooldown as recovery
+    packages are collected;
+  - Core module substats Black Hole – Duration (+2 / +3 / +4s at Legendary /
+    Mythic / Ancestral) and Black Hole – Cooldown (−2 / −3 / −4s). One
+    Ancestral Core module with both: 42s against 46s, still 4s short. A
+    Core module in the assist slot adds its substats at the slot's Substat
+    Efficiency (up to 100%: 1% + 69 stone levels + 30 Assist Module lab
+    levels), so two Ancestral Core modules with both substats, the assist
+    at 50% or more, make it permanent without the perk or Galaxy Compressor
+    (44s against 44s). Without perks or Galaxy Compressor that's the only
+    way. This is TowerForge's arithmetic from the game's values, not
+    checked in the game;
+  - not Multiverse Nexus: Death Wave, Golden Tower and Black Hole share the
+    average of their cooldowns (Golden Tower's is at least 100s), shifted
+    by −10s at Ancestral, which makes Black Hole's longer;
+  - not the Extra Black Hole lab or Primordial Collapse: more holes at the
+    same time, not longer.
 - **Consume (BH+)**: at the end of each activation, every enemy in it takes
   0.05× → 0.75× the current wave's HP.
 - Spotlight doesn't multiply it (health-based).

@@ -29,7 +29,8 @@ import {
 import type { AiAccount, AiChangeAsk, AiCurrency, AiRunKind, AiTourneySettings, ToolResult } from './aiTools';
 import { budgetIn, wordsOf } from './aiTools';
 import { TAB_PATHS } from '../routes';
-import { UWS } from '../constants/gameData';
+import { LABS, UWS } from '../constants/gameData';
+import { UNIQUE_MODULES } from '../constants/moduleData';
 import { notesText, searchNotes } from './aiKnowledge';
 import { unverifiedNumbers } from './aiCheck';
 import { addToLog } from './aiLog';
@@ -214,7 +215,7 @@ function guessRoute(q: string): Route {
     if (/what if|would .*(max|level)|\bmax(ing)?\b/.test(l)) return { ...base, tool: 'what_if', changes: [{ upgrade: q, level: 'max' }] };
     if (/\bboost/.test(l) && /\blabs?\b/.test(l)) return { ...base, tool: 'lab_boosts', search: q };
     if (/\bshards?\b/.test(l) && !/\bstones?\b|\bcoins?\b/.test(l)) return { ...base, tool: 'shard_plan', search: q };
-    if (/\b(more|earn|make)\b.*\bcoins?\b|\bincome\b/.test(l)) return { ...base, tool: 'upgrades', goal: 'coins' };
+    if (/\b(more|earn|make|maximi[sz]e|increase)\b.*\bcoins?\b|\bincome\b|\bcoins? (per|an) hour\b/.test(l)) return { ...base, tool: 'upgrades', goal: 'coins' };
     if (/surviv|stay alive|keep dying/.test(l)) return { ...base, tool: 'upgrades', goal: 'survival' };
     if (/\bmore\b.*\bcells?\b/.test(l)) return { ...base, tool: 'upgrades', goal: 'cells' };
     if (/what level|\blevel (is|of)\b|\bmy .+ level\b/.test(l)) return { ...base, tool: 'levels', search: q };
@@ -318,12 +319,57 @@ function checked(r: Route, q: string): Route {
     if (out.tool === 'upgrades' && out.currency === 'any' && !named && /\bresearch\b|\blabs?\b/i.test(q) && out.goal === 'default') {
         out.currency = 'research';
     }
+    // Earning coins, said any way ("a build to maximize coins per hour", a
+    // player report 2026-11-09, went to "none"): the coin picks.
+    if (out.tool === 'none' && COIN_WORDS.test(q) && !TOURNEY_WORDS.test(q)) {
+        out.tool = 'upgrades';
+        out.goal = 'coins';
+    }
+    // A lab named in full, not a spending question ("asking specifically on
+    // the coin/wave research lab", a player report 2026-11-09, got the coin
+    // picks): What If on that lab.
+    const lab = out.tool === 'upgrades' && !out.budget && !SPEND_WORDS.test(q) ? namedLab(q) : null;
+    if (lab) {
+        out.tool = 'what_if';
+        out.changes = [{ upgrade: lab, level: 'max' }];
+    }
     // "What is X?" about the game (not their account) goes to the notes.
     if (out.tool === 'none' && /^\s*(what|how|why)\s+(is|are|does|do)\b/i.test(q) && !/\b(i|my|me|am|i'm)\b/i.test(q)) {
         out.tool = 'guide';
         out.search ||= q;
     }
+    // "How do I get a permanent Black Hole without perks and the Galaxy
+    // Compressor?" (a player report, 2026-11-09): how to do something with
+    // a game thing goes to the notes too, not the model's own memory.
+    if (out.tool === 'none' && /^\s*(how|why|can|could|is (it|there)|what(?:'s| is) the (best )?way)\b/i.test(q) && GAME_THINGS.test(q)) {
+        out.tool = 'guide';
+        out.search ||= q;
+    }
     return out;
+}
+
+const COIN_WORDS = /\b(maximi[sz]e|maximum|more|most|earn|make|increase|boost|farm(ing)?)\b[^.?!]*\bcoins?\b|\bcoins? (per|an|a|\/) ?(hour|hr|run)\b|\bincome\b/i;
+const SPEND_WORDS = /\b(what|which|where) should\b|\bspend\b|\bbuy\b|\bnext\b|\bpriorit|\bbest\b|\brecommend/i;
+
+// The game's things by name: UWs (short names too), UW+, unique modules,
+// and the kinds of upgrade.
+const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const GAME_THINGS = new RegExp(`\\b(${[
+    ...UWS.flatMap(u => [u.n, u.a, u.up]),
+    ...Object.values(UNIQUE_MODULES).flat().map(([name]) => name),
+    'perks?', 'modules?', 'labs?', 'cards?', 'relics?', 'bots?', 'guardian', 'enhancements?', 'level skip', 'wave skip',
+].map(n => (/\?/.test(n) ? n : escape(n))).join('|')})\\b`, 'i');
+
+// A lab the question names in full with at least two words of its own
+// ("coin/wave … research lab" → Coins/Wave Lab); the longest name wins.
+const LAB_NAMES = LABS.flatMap(g => g.l.map(([name]) => name))
+    .map(name => ({ name, words: wordsOf(name).filter(w => w !== 'lab') }))
+    .filter(l => l.words.length >= 2);
+function namedLab(q: string): string | null {
+    const words = new Set(wordsOf(q));
+    if (!words.has('lab') && !words.has('research')) return null;
+    const hits = LAB_NAMES.filter(l => l.words.every(w => words.has(w))).sort((a, b) => b.words.length - a.words.length);
+    return hits[0]?.name ?? null;
 }
 
 const routeText = (r: RouteChoice) => [
@@ -351,11 +397,16 @@ const tourneyPicks = (route: Route, ctx: AiContext) => bestUpgrades(ctx.account,
 export function lookUp(route: Route, question: string, ctx: AiContext): ToolResult[] {
     const { account } = ctx;
     switch (route.tool) {
-        case 'upgrades':
+        case 'upgrades': {
             // A currency or an amount to spend asks for its picks alone.
             if (route.runs === 'tournament' && route.currency === 'any' && !route.budget) return [tourneyPicks(route, ctx), tournamentOutlook(account, ctx.tourney)];
-            return [bestUpgrades(account, route.currency, route.goal === 'default' ? ctx.goal : route.goal,
-                { budget: route.budget, runs: route.runs, tourney: ctx.tourney, goalAsked: route.goal !== 'default' })];
+            const picks = bestUpgrades(account, route.currency, route.goal === 'default' ? ctx.goal : route.goal,
+                { budget: route.budget, runs: route.runs, tourney: ctx.tourney, goalAsked: route.goal !== 'default' });
+            // Coins an hour or farming: which tier earns the most, too.
+            const farming = route.goal === 'coins' && route.currency === 'any' && !route.budget && route.runs !== 'tournament'
+                && /\b(hour|hr|farm(ing)?)\b/i.test(question);
+            return farming ? [picks, farmTiersReport(account)] : [picks];
+        }
         case 'what_if': {
             const asks = route.changes.length ? route.changes : [{ upgrade: question, level: 'max' }];
             // Each on its own when there are several (to compare), then together.

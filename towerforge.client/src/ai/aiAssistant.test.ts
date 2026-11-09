@@ -66,6 +66,28 @@ describe('the route, checked against the question', () => {
 
     it('falls back to keywords when the JSON can\'t be read', () => {
         expect(readRoute('not json', 'How do I get more coins?')).toMatchObject({ tool: 'upgrades', goal: 'coins', guessed: true });
+        expect(readRoute('not json', 'a build to maximize coins per hour')).toMatchObject({ tool: 'upgrades', goal: 'coins' });
+    });
+
+    // Player reports, 2026-11-09: the routes the model gave, and what they become.
+    it('sends how-to questions about a game thing to the notes, not the model\'s memory', () => {
+        const q = 'How do I get a permanent Black Hole in tournaments without perks and the Galaxy Compressor?';
+        expect(readRoute(json({ tool: 'none' }), q)).toMatchObject({ tool: 'guide', search: q });
+        expect(readRoute(json({ tool: 'none' }), 'hi').tool).toBe('none');
+        expect(readRoute(json({ tool: 'none' }), 'Write me a poem about towers').tool).toBe('none');
+    });
+
+    it('reads earning coins said any way as the coin picks', () => {
+        expect(readRoute(json({ tool: 'none' }), 'Could you recommend a total build set to maximize coins per hour?'))
+            .toMatchObject({ tool: 'upgrades', goal: 'coins', currency: 'any' });
+    });
+
+    it('sends a lab named in full to What If on that lab, unless it asks what to buy', () => {
+        const q = 'My coin/wave workshop is maxed out so it gave the wrong information. I am asking specifically on the research lab not the workshop now anser';
+        const r = readRoute(json({ tool: 'upgrades', currency: 'coins', goal: 'coins' }), q);
+        expect([r.tool, r.changes]).toEqual(['what_if', [{ upgrade: 'Coins/Wave Lab', level: 'max' }]]);
+        expect(readRoute(json({ tool: 'upgrades', currency: 'research' }), 'Should I research the coins/wave lab or the cash/wave lab next?').tool).toBe('upgrades');
+        expect(readRoute(json({ tool: 'upgrades' }), 'How do I get more damage from labs?').tool).toBe('upgrades');
     });
 });
 

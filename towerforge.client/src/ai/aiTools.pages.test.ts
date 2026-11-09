@@ -133,6 +133,15 @@ describe('a tournament question', () => {
         expect(lookUp(route, q, { account, tourney })[1].text).toMatch(/doesn't know the rewards for each rank \(keys and the rest\)/);
     });
 
+    // A player report (2026-11-09): "a build to maximize coins per hour".
+    it('adds which tier to farm to the coin picks for coins an hour', { timeout: 20_000 }, () => {
+        const account = load('late');
+        const coins: RouteChoice = { ...route, goal: 'coins', runs: 'any' };
+        const titles = (q: string) => lookUp(coins, q, { account, tourney }).map(x => x.title.replace(/ \(.*/, ''));
+        expect(titles('Could you recommend a total build set to maximize coins per hour?')).toEqual(['Optimizer — stones, coins, lab research', 'Which tier to farm']);
+        expect(titles('How do I get more coins?')).toEqual(['Optimizer — stones, coins, lab research']);
+    });
+
     it('sees the tournament build in the account summary', () => {
         const s = load('late');
         const two: AiAccount = { ...s, profile: { ...s.profile, presets: 2 }, cardData: { ...s.cardData, presets: [s.cardData.presets![0], ['Damage']] } };
