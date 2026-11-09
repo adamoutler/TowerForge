@@ -475,6 +475,37 @@ without the model (`aiAssistant.test.ts`, `aiTools*.test.ts`):
   share of coins a run measured from Coins/Wave, and the made-up runs have
   none; a real export has it.
 
+What the reports themselves showed (the owner sent the answers too):
+
+- The Black Hole answer took 87 s to route and 185 s in all on that
+  player's GPU, and said "it's not possible" from Cooldown 16/16 alone.
+- The coins question never ran: `ModelNotLoadedError` in 0.0 s on the 8B.
+  When the graphics card drops the model (sleep, a driver reset) WebLLM
+  unloads it in the worker while the page still reads "ready", so every
+  question failed at once. Now that error loads the model again and asks
+  once more ("The model stopped — loading it again…"); checked by
+  unloading the model under a ready page: it reloaded in 5 s and answered
+  once, with no duplicate message. Its bench line's `none` was only the
+  missing route.
+- The Coins/Wave answer said "the Coin/Wave Lab is already maxed (99/99)":
+  the summary lists the Coins/**Kill** Lab, which was 99/99. With What If
+  on the right lab the 4B still said "maxed" — the question says the
+  workshop's is — until the headline led with where the upgrade is ("Coins/
+  Wave Lab is level 21 of 99 now, not maxed.") and a rule said maxed means
+  both numbers equal. A coins-only What If's headline is now coins, not
+  "+0.00% damage and +0.00% survival".
+
+Rerun on Qwen3 4B (2026-11-09, the three questions plus the What If,
+farm-tier and more-coins questions on mid and late; 26 asks over two runs):
+route 100%, headline 100%. Read by hand: Coins/Wave now "not maxed (21 of
+99)" with its cost; the coins build gives the coin picks and the best
+tier; the Black Hole answer leads with the two Core modules and "avoid
+Multiverse Nexus", but the 4B still adds "use the Black Hole perk" though
+the question rules it out, and one answer invented a page link. The 4B
+picked the tier comparison for the coins build (`farm_tier`), so a
+`farm_tier` route for a question that never says "tier" now gets the coin
+picks with the tiers.
+
 ## Download size
 
 The two WebLLM scripts (the worker and the page's copy) are ~6 MB each.

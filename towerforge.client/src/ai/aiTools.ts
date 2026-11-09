@@ -596,6 +596,7 @@ export function whatIfChanges(s: AiAccount, asks: AiChangeAsk[], tourney?: AiTou
     const { base, models, report } = inTourney ?? campaignSetup(s);
     const targets = upgradeTargets(base);
     const changes: Change[] = [];
+    const picked: UpgradeTarget[] = [];
     const notes: string[] = [];
     if (tourney && !inTourney) notes.push('There are no tournament runs saved yet, so this is for campaign runs.');
     for (const ask of asks.slice(0, 4)) {
@@ -608,6 +609,7 @@ export function whatIfChanges(s: AiAccount, asks: AiChangeAsk[], tourney?: AiTou
             if (lv === null) { notes.push(`Didn't understand level "${ask.level}" for ${t.label}.`); continue; }
             if (lv === t.current) { notes.push(`${t.label} is already level ${t.current}${t.current === t.max ? ' (max)' : ''}.`); continue; }
             changes.push({ kind: t.kind, key: t.key, level: lv });
+            picked.push(t);
             notes.push(`${t.label}: ${t.current} → ${lv} (max ${t.max}), costs ${costsText(changeCost(base, t, lv))}.`);
         }
     }
@@ -618,11 +620,26 @@ export function whatIfChanges(s: AiAccount, asks: AiChangeAsk[], tourney?: AiTou
     // One sentence to quote (small models copy numbers best from a sentence).
     const asked = (a: AiChangeAsk) => (/^\+\s*\d+$/.test(a.level.trim()) ? `${a.upgrade} ${a.level.trim()} levels`
         : /\d/.test(a.level) ? `${a.upgrade} to level ${/\d+/.exec(a.level)![0]}` : `maxing ${a.upgrade}`);
-    const what = asks.map(asked).join(' and ');
+    // One upgrade: where it is now, first, in the sentence the answer quotes
+    // (a player report, 2026-11-09: "the Coins/Wave Lab is maxed" when it
+    // was 21 of 99 — the question said the workshop's was maxed).
+    const one = picked.length === 1 ? picked[0] : null;
+    const where = one ? `${one.label} is level ${one.current} of ${one.max} now${one.current < one.max ? ', not maxed' : ''}. ` : '';
+    const asked0 = asks.map(asked).join(' and ');
+    const what = where ? `${where}${asked0.charAt(0).toUpperCase()}${asked0.slice(1)}` : asked0;
     const cost = costsText(r.costs);
     // Under a tenth of a wave reads "+0.0 waves": lead with what does change.
     const flat = !!r.waves && Math.abs(r.waves.gained) < 0.05;
-    if (r.waves && !flat) {
+    // Coins only (Coins/Wave, Golden Tower's bonus…): the headline is coins,
+    // not "+0.00% damage and +0.00% survival".
+    const coinsOnly = !!r.coinsHour && Math.abs(r.damagePct) < 0.005 && Math.abs(r.survivalPct ?? 0) < 0.005 && (!r.waves || flat);
+    if (coinsOnly) {
+        const c = r.coinsHour!;
+        const gain = c.from > 0 ? (c.to / c.from - 1) * 100 : 0;
+        out.push(gain >= 0.005
+            ? `Headline: ${what} gives ${pct(gain)} coins an hour (${num(c.from)} → ${num(c.to)}); it doesn't change damage or survival. It costs ${cost}.`
+            : `Headline: ${what} adds no coins an hour that TowerForge can measure (${num(c.from)} an hour now), and it doesn't change damage or survival. It costs ${cost}.`);
+    } else if (r.waves && !flat) {
         out.push(`Headline: ${what} gives about ${r.waves.gained >= 0 ? '+' : ''}${r.waves.gained.toFixed(1)} ${inTourney ? 'tournament waves this week' : 'waves'} (runs end around W${r.waves.from.toLocaleString()} now, W${r.waves.to.toLocaleString()} after). It costs ${cost}.`);
     } else if (r.waves) {
         out.push(`Headline: ${what} doesn't change where your runs end (about +0.0 waves; they end around W${r.waves.from.toLocaleString()}): it gives ${pct(r.damagePct)} damage`

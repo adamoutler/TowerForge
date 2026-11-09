@@ -78,8 +78,11 @@ describe('the route, checked against the question', () => {
     });
 
     it('reads earning coins said any way as the coin picks', () => {
-        expect(readRoute(json({ tool: 'none' }), 'Could you recommend a total build set to maximize coins per hour?'))
-            .toMatchObject({ tool: 'upgrades', goal: 'coins', currency: 'any' });
+        const q = 'Could you recommend a total build set to maximize coins per hour?';
+        expect(readRoute(json({ tool: 'none' }), q)).toMatchObject({ tool: 'upgrades', goal: 'coins', currency: 'any' });
+        // The 4B's own pick on the bench: the tiers alone, for a question that never says tier.
+        expect(readRoute(json({ tool: 'farm_tier' }), q)).toMatchObject({ tool: 'upgrades', goal: 'coins' });
+        expect(readRoute(json({ tool: 'farm_tier' }), 'Which tier should I farm for the most coins per hour?').tool).toBe('farm_tier');
     });
 
     it('sends a lab named in full to What If on that lab, unless it asks what to buy', () => {

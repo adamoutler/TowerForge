@@ -83,6 +83,10 @@ const MODEL_KEY = 'tc_ai_model';
 const readModel = () => { try { return localStorage.getItem(MODEL_KEY); } catch { return null; } };
 
 let engine: WebWorkerMLCEngine | null = null;
+// The model gone from the graphics card under a "ready" page (WebLLM's
+// errors), and whether it's being loaded again for a question.
+const MODEL_GONE = /ModelNotLoaded|Model not loaded|device (was |is )?lost|Instance reference no longer exists/i;
+let reloading = false;
 let worker: Worker | null = null;
 
 // ── Graphics card ─────────────────────────────────────────────
@@ -320,8 +324,9 @@ function checked(r: Route, q: string): Route {
         out.currency = 'research';
     }
     // Earning coins, said any way ("a build to maximize coins per hour", a
-    // player report 2026-11-09, went to "none"): the coin picks.
-    if (out.tool === 'none' && COIN_WORDS.test(q) && !TOURNEY_WORDS.test(q)) {
+    // player report 2026-11-09, went to "none", and the 4B then picked the
+    // tier comparison): the coin picks, with the tiers for coins an hour.
+    if ((out.tool === 'none' || (out.tool === 'farm_tier' && !/\btiers?\b|\bt\d/i.test(q))) && COIN_WORDS.test(q) && !TOURNEY_WORDS.test(q)) {
         out.tool = 'upgrades';
         out.goal = 'coins';
     }
@@ -463,7 +468,7 @@ Rules:
 - Be brief and direct: answer first in a sentence or two, then a few short bullet points if they help.
 - If the data says an upgrade couldn't be found, or doesn't have the answer, say so plainly and don't guess.
 - Game notes are TowerForge's own notes: explain them in plain words and leave out code names and file names.
-- In the account, "Damage 13/32" is an upgrade's level (13 of 32), not damage dealt.
+- In the account, "Damage 13/32" is an upgrade's level (13 of 32), not damage dealt. Something is maxed only when its two numbers are equal (32/32); 13/32 isn't. Don't call an upgrade maxed because the question says another one is.
 - Big numbers use the game's letters, smallest to largest: K (thousand), M (million), B (billion), T (trillion), q (quadrillion), Q (quintillion), s, S, O, N, D, then aa, ab… So 61.00K is far less than 4.67Q, and q is less than Q. When the data lists picks "in order of cost, lowest first", use that to compare costs.
 - To point to a page, use these addresses exactly (no others): ${PAGE_LINKS}.`;
 
@@ -654,6 +659,26 @@ export const useAiStore = create<AiStore>((set, get) => {
                 finish(text, unchecked);
             } catch (e) {
                 const error = e instanceof Error ? e.message : String(e);
+                // The graphics card dropped the model (the PC slept, a driver
+                // reset): WebLLM unloads it in the worker while the page still
+                // reads "ready", and every question fails at once (a player
+                // report, 2026-11-03: ModelNotLoadedError in 0.0 s). Load it
+                // again and ask once more.
+                if (!reloading && MODEL_GONE.test(`${(e as Error)?.name ?? ''} ${error}`)) {
+                    reloading = true;
+                    try {
+                        patchLast({ status: 'The model stopped — loading it again…' });
+                        await get().stopModel();
+                        await get().start();
+                        if (engine && get().status === 'ready') {
+                            set(s => ({ messages: s.messages.slice(0, -2) }));
+                            await get().ask(question, ctx);
+                            return;
+                        }
+                    } finally {
+                        reloading = false;
+                    }
+                }
                 const text = `Something went wrong: ${error}`;
                 patchLast({ text, status: undefined, done: true });
                 finish(text, [], error);

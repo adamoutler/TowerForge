@@ -93,7 +93,7 @@ describe('what the assistant reads', () => {
     it('works out What If for named upgrades, with costs and waves', () => {
         const r = whatIfChanges(account(), [{ upgrade: 'CL damage', level: '+5' }]);
         expect(r.text).toContain('Chain Lightning — Damage: 10 → 15 (max 32), costs');
-        expect(r.text).toMatch(/^Headline: CL damage \+5 levels gives about \+[\d.]+ waves \(runs end around W[\d,]+ now, W[\d,]+ after\)\. It costs [\d,]+ stones\./);
+        expect(r.text).toMatch(/^Headline: Chain Lightning — Damage is level 10 of 32 now, not maxed\. CL damage \+5 levels gives about \+[\d.]+ waves \(runs end around W[\d,]+ now, W[\d,]+ after\)\. It costs [\d,]+ stones\./);
         expect(r.text).toContain('Total cost:');
         expect(whatIfChanges(account(), [{ upgrade: 'banana', level: 'max' }]).text).toContain('Couldn\'t find "banana"');
     });
