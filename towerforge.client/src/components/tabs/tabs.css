@@ -3683,6 +3683,21 @@ button.gcard {
     box-shadow: 0 0 0 1px var(--accent-glow);
 }
 
+/* The maker's charity pledge on their card (CHARITY_EVENT, until it ends). */
+.cc-pledge {
+    margin-top: 6px;
+    padding: 6px 9px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--text);
+    background: color-mix(in srgb, var(--accent) 9%, var(--bg3));
+    border-radius: var(--radius-sm);
+}
+
+    .cc-pledge span {
+        color: var(--accent);
+    }
+
 .cc-ours-tag {
     align-self: flex-start;
     margin-bottom: 2px;
@@ -5178,6 +5193,242 @@ button.gcard {
     color: var(--gold);
     font-weight: 600;
     white-space: nowrap;
+}
+
+/* Charity event banner (CharityBanner.tsx): a soft band in the theme's
+   two accents across the top of every page, one clear Donate button,
+   no motion. Folds to one line. */
+.chr-bar {
+    position: relative;
+    color: var(--text);
+    background: linear-gradient(100deg,
+        color-mix(in srgb, var(--accent) 13%, var(--bg2)),
+        color-mix(in srgb, var(--accent-2) 13%, var(--bg2)));
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.chr-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px 28px;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 12px 56px 12px 20px;
+}
+
+.chr-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+    .chr-main p {
+        margin: 0;
+    }
+
+.chr-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-bright);
+}
+
+.chr-heart {
+    margin-right: 8px;
+    color: var(--accent);
+}
+
+.chr-until {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dim);
+}
+
+.chr-text strong {
+    color: var(--text-bright);
+}
+
+.chr-main .chr-pledge {
+    margin-top: 5px;
+    padding-top: 6px;
+    border-top: 1px dashed color-mix(in srgb, var(--accent) 30%, transparent);
+    font-size: 13px;
+    color: var(--text-dim);
+}
+
+    .chr-pledge strong {
+        color: var(--accent);
+        font-weight: 700;
+    }
+
+.chr-code {
+    padding: 0 6px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--text-bright);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    user-select: all;
+}
+
+.chr-copy {
+    padding: 1px 10px;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    background: none;
+    border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+    .chr-copy:hover {
+        background: var(--accent-glow);
+    }
+
+.chr-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.chr-donate,
+.chr-page {
+    padding: 9px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.chr-donate {
+    color: var(--on-accent);
+    background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--accent-2)));
+    box-shadow: var(--glow-sm);
+}
+
+    .chr-donate:hover {
+        filter: brightness(1.08);
+        box-shadow: var(--glow-md);
+    }
+
+.chr-page {
+    color: var(--text-bright);
+    background: color-mix(in srgb, var(--bg) 35%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+    .chr-page:hover {
+        border-color: var(--accent);
+    }
+
+.chr-close {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    width: 36px;
+    height: 36px;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+    .chr-close:hover {
+        color: var(--text-bright);
+        background: color-mix(in srgb, var(--text) 10%, transparent);
+    }
+
+.chr-bar a:focus-visible,
+.chr-bar button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Folded: one quiet sentence with the Donate link, flowing like text. */
+.chr-folded {
+    padding: 6px 16px;
+    font-size: 13px;
+    text-align: center;
+}
+
+    .chr-folded .chr-heart {
+        margin-right: 6px;
+    }
+
+.chr-inline {
+    margin-left: 10px;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.chr-toggle {
+    margin-left: 6px;
+    padding: 2px 4px;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+@media (max-width: 700px) {
+    .chr-bar {
+        line-height: 1.4;
+    }
+
+    .chr-inner {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding: 8px 14px 10px;
+    }
+
+    .chr-title {
+        padding-right: 34px;   /* room for the fold button */
+        font-size: 15px;
+    }
+
+    .chr-until {
+        font-size: 13px;
+    }
+
+    .chr-main .chr-pledge {
+        margin-top: 3px;
+        padding-top: 4px;
+    }
+
+    .chr-actions {
+        flex-direction: row;
+    }
+
+        .chr-actions a {
+            flex: 1;
+            padding: 8px 10px;
+            white-space: normal;
+        }
+
+    .chr-close {
+        top: 4px;
+        right: 4px;
+        width: 40px;
+        height: 40px;
+    }
 }
 
 /* Privacy and Terms (PrivacyTab, TermsTab): one readable column of

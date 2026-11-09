@@ -7,13 +7,14 @@
 //  (owner, 2026-11-05). A creator streaming The Tower right now gets a
 //  LIVE badge and their stream, and moves up under it (owner,
 //  2026-11-09; only Tower streams — the server checks, see
-//  common/liveCreators.ts).
+//  common/liveCreators.ts). During the charity event the maker's card
+//  carries their pledge (constants/community.ts, CHARITY_EVENT).
 // ============================================================
 
 import { useMemo, useState } from 'react';
 import { CREATORS, CREATOR_SITES, WEBSTORE_URL, creatorSlug } from '../../constants/creatorCodes';
 import type { CreatorLink, CreatorSite } from '../../constants/creatorCodes';
-import { SITE_CREATOR_CODE } from '../../constants/community';
+import { CHARITY_EVENT, SITE_CREATOR_CODE, charityEventOn } from '../../constants/community';
 import { trackEvent } from '../../analytics';
 import { copyText } from '../common/copyText';
 import { liveFor, useLiveCreators } from '../common/liveCreators';
@@ -50,6 +51,8 @@ export default function CreatorCodesTab() {
     const [copied, setCopied] = useState<string | null>(null);
     const [onlyLive, setOnlyLive] = useState(false);
     const live = useLiveCreators();
+    // The maker's pledge on their card while the charity event runs.
+    const [charity] = useState(() => charityEventOn(Date.now()));
 
     const streamsOf = useMemo(() => {
         const by = new Map<string, LiveStream[]>();
@@ -161,6 +164,12 @@ export default function CreatorCodesTab() {
                                 </div>
                             )}
                             {c.about && <div className="cc-about">{c.about}</div>}
+                            {ours && charity && (
+                                <div className="cc-pledge">
+                                    <span aria-hidden="true">♥ </span>Everything this code earns through {CHARITY_EVENT.until} goes to{' '}
+                                    {CHARITY_EVENT.pledgeCause}.
+                                </div>
+                            )}
                             {streams.map(s => {
                                 const on = liveFor(s.startedAt);
                                 return (

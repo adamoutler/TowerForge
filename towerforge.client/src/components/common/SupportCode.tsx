@@ -4,17 +4,19 @@
 //  maker's creator code and a copy button (owner, 2026-11-05: easy to
 //  see, not in the way). How codes work is on the Creator Codes tab.
 //  It says outright that the maker earns from the code (the FTC's
-//  endorsement rules ask for a clear disclosure, 2026-11-08).
+//  endorsement rules ask for a clear disclosure, 2026-11-08). While
+//  the charity event runs it adds the maker's pledge (CHARITY_EVENT).
 // ============================================================
 
 import { useRef, useState } from 'react';
-import { SITE_CREATOR_CODE } from '../../constants/community';
+import { CHARITY_EVENT, SITE_CREATOR_CODE, charityEventOn } from '../../constants/community';
 import { WEBSTORE_URL } from '../../constants/creatorCodes';
 import { trackEvent } from '../../analytics';
 import { copyText } from './copyText';
 
 export default function SupportCode() {
     const [copied, setCopied] = useState(false);
+    const [charity] = useState(() => charityEventOn(Date.now()));
     const codeRef = useRef<HTMLElement>(null);
 
     // If the browser won't copy, select the code so the player can.
@@ -37,6 +39,7 @@ export default function SupportCode() {
                 {' '}in the game&apos;s Settings or on the{' '}
                 <a href={WEBSTORE_URL} target="_blank" rel="noopener noreferrer">webstore</a>:
                 the maker gets a share of what you spend, at no extra cost to you.
+                {charity && <> Through {CHARITY_EVENT.until}, all of it goes to {CHARITY_EVENT.pledgeCause}.</>}
             </span>
             <button className={`cc-copy ${copied ? 'done' : ''}`} onClick={() => void copy()}
                 aria-label={`Copy creator code ${SITE_CREATOR_CODE}`}>

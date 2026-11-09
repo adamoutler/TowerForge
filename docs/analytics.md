@@ -21,7 +21,9 @@ server. Set up 2026-10-16 with Umami v3.4.0.
   export imports; `Emulator link …` when Get from emulator or phone fails; `Link download` (the setup dialog's download; `Link download (Android)` for the Android app there, and `Link download (guide)` / `Link download (Android, guide)` from the Import Guide, 2026-10-23) and `Link phone: adb / pair / connect / forget` (`… failed` when it didn't work, 2026-10-23);
   `Auto import on` / `off`; `Theme` with the theme picked (header picker,
   since 2026-10-22); `Open Discord` (the header's Discord link, since
-  v1.26.1); `Copy creator code` and `Open creator link` on Creator Codes.
+  v1.26.1); `Copy creator code` and `Open creator link` on Creator Codes (`live: 1` for a live stream);
+  `Open charity link` (`donate` / `fundraiser`) and `Copy creator code` (`from: charity`) on the
+  charity event banner (2026-11-09 to 11-15).
 - `ai-answer` (Ask AI, 2026-10-29): one per answer, with no question, answer
   or account in it — `tool` (the data it used), `picked` (wording, model or
   keywords), `flagged` (a number that isn't TowerForge's: yes/no), `time`

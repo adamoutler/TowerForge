@@ -45,6 +45,7 @@ import { useAccountStore } from './store/useAccountStore';
 import SharedView from './components/share/SharedView';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import { useLiveCreators } from './components/common/liveCreators';
+import CharityBanner from './components/common/CharityBanner';
 
 import './styles/app.css';
 
@@ -454,6 +455,7 @@ export default function App() {
             <div className="app-top-full" inert={compact}>
                 <div className="app-top-inner">
                     <OfficialSiteNote />
+                    <CharityBanner />
                     <header className="app-header">
                         <div className="app-logo">
                             Tower<span className="logo-forge">Forge</span>
