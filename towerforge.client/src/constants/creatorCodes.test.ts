@@ -2,8 +2,10 @@
 // link shows up before it reaches the site.
 
 import { describe, expect, it } from 'vitest';
-import { CREATORS, CREATOR_SITES, creatorLink, creatorSlug } from './creatorCodes';
+import { CREATORS, CREATOR_SITES, creatorChannels, creatorLink, creatorSlug } from './creatorCodes';
 import type { CreatorSite } from './creatorCodes';
+// The server's copy, read as text so the type-check needs nothing from Node.
+import channelsJson from '../../../TowerForge.Server/creator-channels.json?raw';
 
 // The address each link should point at, per site.
 const HOSTS: Record<CreatorSite, RegExp> = {
@@ -56,5 +58,18 @@ describe('creator codes', () => {
             .map(path => path.split('/').pop()!.replace(/\.\w+$/, '')).sort();
         const youtube = CREATORS.filter(c => creatorLink(c, 'youtube')).map(c => creatorSlug(c.code)).sort();
         expect(pictures).toEqual(youtube);
+    });
+
+    it('gives the server every YouTube and Twitch channel to check for live streams', () => {
+        // Out of step? Run "npm run creator-channels".
+        const file = JSON.parse(channelsJson);
+        expect(file.creators).toEqual(creatorChannels(CREATORS));
+        // Each link must be a channel the server can look up.
+        for (const c of CREATORS) {
+            const yt = creatorLink(c, 'youtube');
+            if (yt) expect(yt, c.code).toMatch(/^https:\/\/www\.youtube\.com\/@[\w.-]+$/);
+            const tw = creatorLink(c, 'twitch');
+            if (tw) expect(tw, c.code).toMatch(/^https:\/\/www\.twitch\.tv\/[a-z0-9_]+$/);
+        }
     });
 });

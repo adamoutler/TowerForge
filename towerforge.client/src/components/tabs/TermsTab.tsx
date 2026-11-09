@@ -10,7 +10,7 @@
 import { DISCORD_URL, SITE_CREATOR_CODE } from '../../constants/community';
 import { TAB_PATHS } from '../../routes';
 
-export const TERMS_UPDATED = 'November 8, 2026';
+export const TERMS_UPDATED = 'November 9, 2026';
 
 export default function TermsTab() {
     return (
@@ -69,6 +69,11 @@ export default function TermsTab() {
                 When you use creator code <strong>{SITE_CREATOR_CODE}</strong> in the game or on its webstore, the person
                 who runs TowerForge gets a share of what you spend, at no extra cost to you. The other codes on{' '}
                 <a href={TAB_PATHS.creators}>Creator Codes</a> earn for those creators.
+            </p>
+            <p>
+                Creator Codes shows which creators are live using YouTube API Services and Twitch&apos;s API. By using
+                TowerForge you agree to be bound by the{' '}
+                <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer">YouTube Terms of Service</a>.
             </p>
 
             <h3>No warranty</h3>

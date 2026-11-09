@@ -71,6 +71,14 @@ if ($LASTEXITCODE -ne 0) {
 }
 Pop-Location
 
+# The server's own tests (the Tower-only check for live streams).
+dotnet test TowerForge.Server.Tests --nologo
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Server tests failed - nothing was deployed." -ForegroundColor Red
+    Undo-Version
+    exit 1
+}
+
 # ── Step 2: Build backend ───────────────────────────────────
 Write-Host "`n[2/6] Building backend..." -ForegroundColor Yellow
 dotnet publish TowerForge.Server -c Release -r linux-x64 --self-contained true -o publish

@@ -3857,6 +3857,139 @@ button.gcard {
 
     .cc-link[data-site="youtube"] { --site: var(--yt); }
     .cc-link[data-site="twitch"] { --site: #9146ff; }
+
+/* Live now: a red tag with a breathing dot, and the stream itself as one
+   link in the platform's color ("Live on YouTube" names the source, as
+   YouTube's API rules ask). */
+.cc-page {
+    --live: #ff3b3b;
+}
+
+.cc-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+
+    .cc-tags .cc-ours-tag {
+        margin-bottom: 0;
+    }
+
+.cc-live-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 1px 9px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: #fff;
+    background: var(--live);
+    border-radius: 999px;
+}
+
+.cc-live-dot {
+    flex-shrink: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: cc-breathe 1.6s ease-in-out infinite;
+}
+
+@keyframes cc-breathe {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .3; }
+}
+
+.cc-card.cc-is-live:not(.cc-ours) {
+    border-color: color-mix(in srgb, var(--live) 55%, var(--border));
+}
+
+.cc-stream {
+    --site: var(--live);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 8px;
+    padding: 9px 10px;
+    color: var(--text);
+    background: color-mix(in srgb, var(--site) 9%, var(--bg3));
+    border: 1px solid color-mix(in srgb, var(--site) 40%, var(--border));
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: border-color var(--transition-fast);
+}
+
+    .cc-stream[data-site="youtube"] { --site: var(--yt); }
+    .cc-stream[data-site="twitch"] { --site: #9146ff; }
+
+    .cc-stream:hover,
+    .cc-stream:focus-visible {
+        border-color: var(--site);
+    }
+
+    .cc-stream:focus-visible {
+        outline: 2px solid var(--site);
+        outline-offset: 2px;
+    }
+
+.cc-stream-where {
+    font-size: 13px;
+    font-weight: 700;
+    color: color-mix(in srgb, var(--site) 55%, var(--text-bright));
+}
+
+.cc-stream-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--text-bright);
+    overflow-wrap: anywhere;
+}
+
+.cc-stream-watch {
+    align-self: flex-start;
+    margin-top: 2px;
+    padding: 5px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--site);
+    border-radius: 999px;
+}
+
+.cc-live-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--live);
+    background: color-mix(in srgb, var(--live) 8%, var(--bg3));
+    border: 1px solid color-mix(in srgb, var(--live) 50%, var(--border));
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+    .cc-live-filter[aria-pressed="true"] {
+        color: #fff;
+        background: var(--live);
+        border-color: var(--live);
+    }
+
+@media (prefers-reduced-motion: reduce) {
+    .cc-live-dot {
+        animation: none;
+    }
+}
     .cc-link[data-site="kick"] { --site: #53fc18; }
     .cc-link[data-site="tiktok"] { --site: #25f4ee; }
     .cc-link[data-site="discord"] { --site: #5865f2; }

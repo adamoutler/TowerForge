@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "preview": "vite preview",
     "creator-avatars": "node scripts/fetch-creator-avatars.mjs",
+    "creator-channels": "node scripts/creator-channels.mjs",
     "upgrade-costs": "node scripts/upgrade-costs.mjs",
     "relic-catalog": "node scripts/relic-catalog.mjs"
   },

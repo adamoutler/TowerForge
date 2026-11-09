@@ -44,6 +44,7 @@ import AccountTab from './components/tabs/AccountTab';
 import { useAccountStore } from './store/useAccountStore';
 import SharedView from './components/share/SharedView';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import { useLiveCreators } from './components/common/liveCreators';
 
 import './styles/app.css';
 
@@ -170,6 +171,8 @@ export default function App() {
     // A new page opens at its top.
     const mainRef = useRef<HTMLElement>(null);
     const [compact, setCompact] = useState(false);
+    // Creators streaming The Tower now: a dot on the Creators tab.
+    const liveCreators = new Set(useLiveCreators().map(s => s.code)).size;
     const onMainScroll = useCallback(() => {
         const el = mainRef.current;
         if (!el) return;
@@ -529,17 +532,22 @@ export default function App() {
             <nav className="tab-bar" aria-label="Sections">
                 {TAB_GROUPS.filter(canSee).map(group => {
                     const tab = lastInGroup[group.id] ?? group.tabs[0].id;
+                    const live = group.id === 'creators' && liveCreators > 0;
+                    const label = live ? `${group.label}: ${liveCreators} live now` : group.label;
                     return (
                         <a
                             key={group.id}
                             href={TAB_PATHS[tab]}
                             className={`tab-btn tab-group ${activeGroup.id === group.id ? 'active' : ''}`}
                             aria-current={activeGroup.id === group.id ? 'true' : undefined}
-                            aria-label={group.label}
-                            title={group.label}
+                            aria-label={label}
+                            title={label}
                             onClick={e => { if (plainClick(e)) { e.preventDefault(); openTab(tab); } }}
                         >
-                            <span className="tab-icon" aria-hidden="true">{group.icon}</span>
+                            <span className="tab-icon" aria-hidden="true">
+                                {group.icon}
+                                {live && <span className="tab-live-dot" />}
+                            </span>
                             {group.short
                                 ? <><span className="tab-long">{group.label}</span><span className="tab-short">{group.short}</span></>
                                 : <span>{group.label}</span>}

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using TowerForge.Server.Data;
+using TowerForge.Server.LiveStreams;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +51,23 @@ builder.Services.AddSingleton<AiReportStore>();
 // Parts of the site only some accounts see while they're tried out.
 builder.Services.AddSingleton(sp => new PreviewFeatures(
     Path.Combine(dataDir, "features.json"), sp.GetRequiredService<ILogger<PreviewFeatures>>()));
+
+// ── Creators live on Twitch / YouTube (Creator Codes) ──────────
+// The API keys are in the data directory, never in the repo
+// (LiveStreams/LiveStreamService.cs has the file's shape).
+builder.Configuration.AddJsonFile(Path.Combine(Path.GetFullPath(dataDir), "stream-keys.json"), optional: true, reloadOnChange: true);
+builder.Services.AddHttpClient(LiveStreamService.HttpClientName, c =>
+{
+    c.Timeout = TimeSpan.FromSeconds(20);
+    c.DefaultRequestHeaders.UserAgent.ParseAdd("TowerForge/1.0 (+https://towerforge.net)");
+});
+builder.Services.AddSingleton(sp => new LiveStreamService(
+    sp.GetRequiredService<IHttpClientFactory>(),
+    sp.GetRequiredService<IConfiguration>(),
+    sp.GetRequiredService<ILogger<LiveStreamService>>(),
+    Path.Combine(builder.Environment.ContentRootPath, "creator-channels.json"),
+    Path.Combine(dataDir, "youtube-channels.json")));
+builder.Services.AddHostedService(sp => sp.GetRequiredService<LiveStreamService>());
 
 // Persist keys so sign-in cookies survive restarts and deploys.
 builder.Services.AddDataProtection()

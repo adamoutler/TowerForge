@@ -4,15 +4,20 @@
 //  what they're known for, copy a code with one tap, and open their
 //  channels. The YouTube button is the creator's profile picture.
 //  The site maker's code is pinned first, marked "Made TowerForge"
-//  (owner, 2026-11-05).
+//  (owner, 2026-11-05). A creator streaming The Tower right now gets a
+//  LIVE badge and their stream, and moves up under it (owner,
+//  2026-11-09; only Tower streams — the server checks, see
+//  common/liveCreators.ts).
 // ============================================================
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { CREATORS, CREATOR_SITES, WEBSTORE_URL, creatorSlug } from '../../constants/creatorCodes';
 import type { CreatorLink, CreatorSite } from '../../constants/creatorCodes';
 import { SITE_CREATOR_CODE } from '../../constants/community';
 import { trackEvent } from '../../analytics';
 import { copyText } from '../common/copyText';
+import { liveFor, useLiveCreators } from '../common/liveCreators';
+import type { LiveStream } from '../common/liveCreators';
 
 const SITES = Object.keys(CREATOR_SITES) as CreatorSite[];
 
@@ -38,12 +43,31 @@ const AVATARS: Record<string, string> = Object.fromEntries(
         .map(([path, url]) => [path.split('/').pop()!.replace(/\.\w+$/, ''), url]),
 );
 
+const LIVE_ON: Record<LiveStream['platform'], string> = { twitch: 'Twitch', youtube: 'YouTube' };
+
 export default function CreatorCodesTab() {
     const [search, setSearch] = useState('');
     const [copied, setCopied] = useState<string | null>(null);
+    const [onlyLive, setOnlyLive] = useState(false);
+    const live = useLiveCreators();
+
+    const streamsOf = useMemo(() => {
+        const by = new Map<string, LiveStream[]>();
+        for (const s of live) by.set(s.code, [...(by.get(s.code) ?? []), s]);
+        return by;
+    }, [live]);
+    const liveCount = streamsOf.size;
+    const liveOnly = onlyLive && liveCount > 0;
+
+    // The site maker's code stays first; creators live now come next.
+    const ordered = useMemo(() => [
+        ...ORDERED.filter(c => c.code === SITE_CREATOR_CODE),
+        ...ORDERED.filter(c => c.code !== SITE_CREATOR_CODE && streamsOf.has(c.code)),
+        ...ORDERED.filter(c => c.code !== SITE_CREATOR_CODE && !streamsOf.has(c.code)),
+    ], [streamsOf]);
 
     const q = fold(search.trim());
-    const shown = q ? ORDERED.filter(c => SEARCH_TEXT.get(c)!.includes(q)) : ORDERED;
+    const shown = ordered.filter(c => (!q || SEARCH_TEXT.get(c)!.includes(q)) && (!liveOnly || streamsOf.has(c.code)));
 
     // Copies a code; if the browser won't, selects it on screen so the
     // player can copy it themselves.
@@ -58,7 +82,7 @@ export default function CreatorCodesTab() {
     }
 
     return (
-        <div>
+        <div className="cc-page">
             <section className="relics-note cc-note" aria-label="How creator codes work">
                 <p>
                     <strong>Support a creator:</strong> enter their code in the game&apos;s Settings or on
@@ -82,7 +106,19 @@ export default function CreatorCodesTab() {
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                 />
-                <span className="cc-count">{q ? `${shown.length} of ${CREATORS.length}` : CREATORS.length} creators</span>
+                {liveCount > 0 && (
+                    <button
+                        type="button"
+                        className="cc-live-filter"
+                        aria-pressed={liveOnly}
+                        title="Creators streaming The Tower right now"
+                        onClick={() => setOnlyLive(v => !v)}
+                    >
+                        <span className="cc-live-dot" aria-hidden="true" />
+                        {liveCount} live now
+                    </button>
+                )}
+                <span className="cc-count">{q || liveOnly ? `${shown.length} of ${CREATORS.length}` : CREATORS.length} creators</span>
             </div>
 
             {shown.length === 0 && <div className="cc-empty">No creator matches “{search.trim()}”.</div>}
@@ -94,9 +130,19 @@ export default function CreatorCodesTab() {
                     // The code-list name, when it isn't just the name above it.
                     const showPlayer = !plain(c.name).includes(plain(c.player));
                     const ours = c.code === SITE_CREATOR_CODE;
+                    const streams = streamsOf.get(c.code) ?? [];
                     return (
-                        <div key={c.code} className={`cc-card ${ours ? 'cc-ours' : ''}`}>
-                            {ours && <span className="cc-ours-tag">Made TowerForge</span>}
+                        <div key={c.code} className={`cc-card ${ours ? 'cc-ours' : ''} ${streams.length ? 'cc-is-live' : ''}`}>
+                            {(ours || streams.length > 0) && (
+                                <div className="cc-tags">
+                                    {ours && <span className="cc-ours-tag">Made TowerForge</span>}
+                                    {streams.length > 0 && (
+                                        <span className="cc-live-tag" title="Streaming The Tower right now">
+                                            <span className="cc-live-dot" aria-hidden="true" />Live
+                                        </span>
+                                    )}
+                                </div>
+                            )}
                             <div className="cc-top">
                                 <span className="cc-code">{c.code}</span>
                                 <button
@@ -115,6 +161,28 @@ export default function CreatorCodesTab() {
                                 </div>
                             )}
                             {c.about && <div className="cc-about">{c.about}</div>}
+                            {streams.map(s => {
+                                const on = liveFor(s.startedAt);
+                                return (
+                                    <a
+                                        key={s.url}
+                                        className="cc-stream"
+                                        data-site={s.platform}
+                                        href={s.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={() => trackEvent('Open creator link', { code: c.code, site: s.platform, live: 1 })}
+                                    >
+                                        <span className="cc-stream-where">
+                                            Live on {LIVE_ON[s.platform]}
+                                            {on && <> · {on}</>}
+                                            {s.viewers !== null && <> · {s.viewers.toLocaleString()} watching</>}
+                                        </span>
+                                        {s.title && <span className="cc-stream-title">{s.title}</span>}
+                                        <span className="cc-stream-watch">Watch on {LIVE_ON[s.platform]}</span>
+                                    </a>
+                                );
+                            })}
                             {links.length > 0 && (
                                 <div className="cc-links">
                                     {links.map(l => (

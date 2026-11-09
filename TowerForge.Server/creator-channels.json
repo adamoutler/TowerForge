@@ -1,0 +1,111 @@
+{
+  "about": "Written by \"npm run creator-channels\" from towerforge.client/src/constants/creatorCodes.ts; don't edit by hand.",
+  "creators": [
+    {
+      "code": "300",
+      "youtube": "SpartanTheTower",
+      "twitch": "atspartangaming"
+    },
+    {
+      "code": "AV8er",
+      "youtube": "iAV8er",
+      "twitch": "av8er"
+    },
+    {
+      "code": "Bonzo",
+      "youtube": "BonzosTower"
+    },
+    {
+      "code": "cloud",
+      "youtube": "AllClouded"
+    },
+    {
+      "code": "crowrocks",
+      "youtube": "crowbarzero"
+    },
+    {
+      "code": "ebats",
+      "youtube": "ebatstower"
+    },
+    {
+      "code": "EthanDX",
+      "youtube": "EthanDX"
+    },
+    {
+      "code": "flipstar",
+      "youtube": "MrFlipstar",
+      "twitch": "mrflipstarstower"
+    },
+    {
+      "code": "Greeny",
+      "youtube": "GreenyTower"
+    },
+    {
+      "code": "H3ll",
+      "twitch": "h3llxspawnerx"
+    },
+    {
+      "code": "Inthebooks",
+      "youtube": "StudyMage1440p"
+    },
+    {
+      "code": "jamn",
+      "youtube": "jamn4evr"
+    },
+    {
+      "code": "JGU",
+      "youtube": "taggzJGU"
+    },
+    {
+      "code": "JP978",
+      "youtube": "Jp978gaming"
+    },
+    {
+      "code": "jplays",
+      "youtube": "JPlays1",
+      "twitch": "jplaysone"
+    },
+    {
+      "code": "Kohyal",
+      "youtube": "KohyalStudios",
+      "twitch": "kohyal_studios"
+    },
+    {
+      "code": "NERD",
+      "youtube": "KryntosGames",
+      "twitch": "kryntos"
+    },
+    {
+      "code": "Panda",
+      "youtube": "tequilaman7"
+    },
+    {
+      "code": "Rend",
+      "youtube": "dizzy-project-rend"
+    },
+    {
+      "code": "Shado",
+      "youtube": "ShadoSabre"
+    },
+    {
+      "code": "Sleek",
+      "youtube": "Sleekish"
+    },
+    {
+      "code": "Strom",
+      "youtube": "StromTower"
+    },
+    {
+      "code": "TheFlock",
+      "youtube": "xephergamez"
+    },
+    {
+      "code": "Wisco212",
+      "youtube": "Wisco212"
+    },
+    {
+      "code": "Zaerdin",
+      "youtube": "ZaerdinGaming"
+    }
+  ]
+}

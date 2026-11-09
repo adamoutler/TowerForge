@@ -12,7 +12,7 @@ import { DISCORD_URL } from '../../constants/community';
 import { TAB_PATHS } from '../../routes';
 import { downloadBackup } from '../common/downloadBackup';
 
-export const PRIVACY_UPDATED = 'November 8, 2026';
+export const PRIVACY_UPDATED = 'November 9, 2026';
 
 export default function PrivacyTab() {
     return (
@@ -88,7 +88,7 @@ export default function PrivacyTab() {
                 visit it records the page, the page you came from, your browser, system, device type, screen size and
                 language, and your country, region and city, worked out from your IP address. The IP address itself
                 isn&apos;t kept. It also counts a few actions, without anything you typed: importing, TowerForge Link
-                steps, the theme you pick, copying a creator code, and the kind of each Ask AI question. These counts
+                steps, the theme you pick, copying a creator code or opening a creator&apos;s channel or stream, and the kind of each Ask AI question. These counts
                 show which pages people use and what breaks; they&apos;re kept as statistics and can&apos;t be tied to
                 you.
             </p>
@@ -108,6 +108,15 @@ export default function PrivacyTab() {
                 <li><strong>TowerForge Link:</strong> the Windows app downloads Google&apos;s adb from Google when you press <em>Get Google&apos;s adb</em>.</li>
                 <li><strong>Links</strong> to Discord, YouTube, Twitch, the game&apos;s webstore and other community sites: their own privacy policies apply once you open them.</li>
             </ul>
+            <p>
+                <strong>Who&apos;s live on Creator Codes:</strong> every few minutes TowerForge&apos;s server asks Twitch
+                and YouTube which creators on the list are streaming The Tower. It sends them only the creators&apos;
+                channel names and TowerForge&apos;s own keys, never anything about you; your browser asks towerforge.net,
+                not them, and only contacts Twitch or YouTube when you open a stream. For YouTube this uses YouTube API
+                Services, so Google&apos;s{' '}
+                <a href="https://www.google.com/policies/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>{' '}
+                covers YouTube&apos;s side.
+            </p>
             <p>
                 TowerForge reads only the export file the game writes for tools. It never signs in to your game
                 account or reads your game save.
