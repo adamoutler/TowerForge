@@ -140,7 +140,7 @@ export default function ImportGuideTab() {
                 lead="If tool_export.json (or a PDF of it) is already on the device you’re using, this takes ten seconds.">
                 <Steps>
                     <li>Open towerforge.net on that device.</li>
-                    <li>Click or tap <strong>⬆ Import Game Data</strong> at the top of the page.</li>
+                    <li>Click <strong>⬆ Import Game Data</strong> at the top of the page (on a phone it’s the gold <strong>⬆ Import</strong>).</li>
                     <li>Pick <code>tool_export.json</code> (on a phone it’s usually in <em>Downloads</em>).</li>
                     <li>
                         A message lists everything that came in: <Says>✓ Imported from your game data:</Says> followed by
@@ -459,7 +459,7 @@ export default function ImportGuideTab() {
                     <li>Export in the game (<Go to="export">step 0</Go>).</li>
                     <li>In your file manager, open <code>Android → data → com.TechTreeGames.TheTower → files</code>.</li>
                     <li>Copy <code>tool_export.json</code> to <strong>Downloads</strong>.</li>
-                    <li>On towerforge.net tap <strong>⬆ Import Game Data</strong> and pick it from Downloads.</li>
+                    <li>On towerforge.net tap <strong>⬆ Import</strong> at the top and pick it from Downloads.</li>
                 </Steps>
                 <Box kind="warn">
                     Android 11 and newer block most file managers from that folder. If yours can’t open it, use

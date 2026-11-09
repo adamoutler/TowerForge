@@ -2,10 +2,11 @@
 //  TowerForge Companion — Creator Codes
 //  The Tower's content creators: the code players enter to support
 //  them, the name they go by, what they're known for, and where to
-//  find their content. A creator gets 5% of in-app purchases and 8%
+//  find their content. A creator gets 3% of in-app purchases and 5%
 //  of webstore purchases made with their code, at no extra cost to
-//  the player; a code stays active for 30 days (wiki: Content
-//  Creator Page).
+//  the player (owner, 2026-11-09; the 5% / 8% shown before was
+//  wrong); a code stays active for 30 days (wiki: Content Creator
+//  Page).
 //
 //  Sources (all sent by the site owner, 2026-10-17):
 //    - Codes, player names and IDs: the creator code list. Codes keep
@@ -146,5 +147,5 @@ export const CREATORS: Creator[] = [
     c('Zeus', 'Zeus-Hail Coin Gun-Little fishy', 'insomnia115', '2F89EA7FCEC47530', 'Mod Mentor'),
 ];
 
-// The official webstore, where a code also counts (8% there).
+// The official webstore, where a code also counts (5% there).
 export const WEBSTORE_URL = 'https://store.techtreegames.com/thetower/';

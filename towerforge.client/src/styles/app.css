@@ -112,20 +112,36 @@
         white-space: nowrap;
     }
 
-/* Phones: a smaller logo without "Companion", and the buttons in one
-   row at 375px; narrower screens move Import to a second row instead of
-   squeezing labels. */
+.hdr-short {
+    display: none;
+}
+
+/* Phones (owner, 2026-11-09: the site looked jumbled on a phone): one
+   row — a smaller logo, Discord and Theme as icons, a short "Import" —
+   and no version (it's in the footer) or summary bar (the Profile home
+   shows tier, league, build and progress). Buttons stay a thumb's
+   height. With TowerForge Link for Android its buttons wrap to a second
+   row. */
 @media (max-width: 600px) {
     .app-header {
-        padding: 10px 14px;
+        padding: 8px 12px 8px 14px;
+        gap: 8px;
     }
 
     .app-logo {
         font-size: 20px;
     }
 
-    .logo-sub {
+    .logo-sub,
+    .app-version,
+    .hdr-long,
+    .hdr-label,
+    .app-header .dsc-short {
         display: none;
+    }
+
+    .hdr-short {
+        display: inline;
     }
 
     .header-actions {
@@ -135,8 +151,18 @@
 
         .header-actions .btn {
             font-size: 12px;
-            padding: 4px 8px;
+            line-height: 16px;
+            padding: 8px 10px;
         }
+
+        .header-actions .dsc-btn,
+        .header-actions .thm-btn {
+            padding: 8px 9px;
+        }
+
+    .thm-btn {
+        font-size: 15px;
+    }
 }
 
 /* ── Summary Bar ─────────────────────────────────────────────── */
@@ -175,13 +201,10 @@
         color: var(--gold);
     }
 
+/* Phones: hidden (see the header's phone rules above). */
 @media (max-width: 600px) {
     .summary-bar {
-        gap: 16px;
-    }
-
-    .sum-val {
-        font-size: 14px;
+        display: none;
     }
 }
 
@@ -238,22 +261,32 @@
         outline: none;
     }
 
-/* Phones: one row that scrolls sideways instead of four rows. */
+/* Phones: all eight in two even rows of four, each its icon and amount
+   (the name is the box's label for screen readers), instead of a row
+   cut off at the screen's edge. A box shows its frame when tapped. */
 @media (max-width: 600px) {
     .currency-bar {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        padding: 7px 14px;
-        gap: 14px;
-        scrollbar-width: none;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 4px 6px;
+        padding: 6px 10px;
     }
 
-        .currency-bar::-webkit-scrollbar {
-            display: none;
-        }
+    .cur-item {
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .cur-label {
+        display: none;
+    }
 
     .cur-input {
-        width: 72px;
+        flex: 1;
+        width: 0;
+        min-width: 0;
+        padding: 4px 4px;
+        background: transparent;
     }
 }
 
@@ -376,8 +409,10 @@
     display: none;
 }
 
-/* Phones: the sections in two rows of four, each an icon over a short
-   name; the open section's tabs in one row that scrolls sideways. */
+/* Phones: the sections in two rows of four, each its icon beside a
+   short name in plain case (shorter rows than an icon over the name);
+   the open section's tabs in one row that scrolls sideways, fading out
+   at the right edge so a cut-off tab reads as "more this way". */
 @media (max-width: 600px) {
     .tab-long {
         display: none;
@@ -395,23 +430,26 @@
     .tab-group {
         flex: 1 1 25%;
         min-width: 0;
-        flex-direction: column;
-        gap: 3px;
-        padding: 8px 2px 7px;
-        font-size: 11px;
-        letter-spacing: .2px;
+        justify-content: center;
+        gap: 5px;
+        padding: 10px 2px 9px;
+        font-size: 13px;
+        letter-spacing: 0;
+        text-transform: none;
         text-align: center;
     }
 
     .tab-icon {
-        font-size: 17px;
+        font-size: 15px;
     }
 
     .tab-subbar {
         flex-wrap: nowrap;
         overflow-x: auto;
-        padding: 8px 14px;
+        padding: 8px 28px 8px 12px;
         scrollbar-width: none;
+        -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+        mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
     }
 
         .tab-subbar::-webkit-scrollbar {
@@ -420,7 +458,21 @@
 
     .tab-sub {
         flex-shrink: 0;
-        padding: 5px 13px;
+        padding: 6px 13px;
+    }
+
+    /* The narrowest phones (320px): the icon over its name again. */
+    @media (max-width: 340px) {
+        .app-logo {
+            font-size: 18px;
+        }
+
+        .tab-group {
+            flex-direction: column;
+            gap: 2px;
+            padding: 7px 0 6px;
+            font-size: 12px;
+        }
     }
 
     /* Folded: the sections in one row of icons (each keeps its name as

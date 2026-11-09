@@ -59,23 +59,30 @@ export default function CreatorCodesTab() {
 
     return (
         <div>
-            <div className="relics-note cc-note">
-                <strong>Support a creator:</strong> enter their code in the game&apos;s Settings, or on
-                the <a href={WEBSTORE_URL} target="_blank" rel="noopener noreferrer">webstore</a>.
-                They get 5% of what you spend in the game and 8% on the webstore, at no extra cost
-                to you. A code stays active for 30 days.
-            </div>
+            <section className="relics-note cc-note" aria-label="How creator codes work">
+                <p>
+                    <strong>Support a creator:</strong> enter their code in the game&apos;s Settings or on
+                    the <a href={WEBSTORE_URL} target="_blank" rel="noopener noreferrer">webstore</a>. They
+                    get a share of what you spend, at no extra cost to you.
+                </p>
+                <div className="cc-terms">
+                    <div className="stat-pill"><span className="stat-pill-label">In the game</span><span className="stat-pill-val">3%</span></div>
+                    <div className="stat-pill"><span className="stat-pill-label">Webstore</span><span className="stat-pill-val">5%</span></div>
+                    <div className="stat-pill"><span className="stat-pill-label">Code lasts</span><span className="stat-pill-val">30 days</span></div>
+                </div>
+            </section>
 
             <div className="modg-filters">
                 <input
                     type="text"
                     className="search-bar"
                     style={{ margin: 0, flex: 1, minWidth: '160px' }}
-                    placeholder="🔍  Search code, name or what they do..."
+                    placeholder="🔍  Search creators…"
+                    aria-label="Search by code, name or what they do"
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                 />
-                <span className="cc-count">{shown.length} of {CREATORS.length} creators</span>
+                <span className="cc-count">{q ? `${shown.length} of ${CREATORS.length}` : CREATORS.length} creators</span>
             </div>
 
             {shown.length === 0 && <div className="cc-empty">No creator matches “{search.trim()}”.</div>}

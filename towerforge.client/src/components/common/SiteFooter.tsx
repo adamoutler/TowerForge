@@ -5,7 +5,8 @@
 //  their written permission — owner, 2026-11-08), and
 //  links to Privacy, Terms, the open-source licenses
 //  (third-party-licenses.txt, written at build by licensesPlugin.ts)
-//  and the Discord. Added 2026-11-08 with the legal pages.
+//  and the Discord. Added 2026-11-08 with the legal pages. Also the
+//  site's version, which phones don't show in the header.
 // ============================================================
 
 import type { MouseEvent } from 'react';
@@ -34,6 +35,7 @@ export default function SiteFooter({ onOpen }: { onOpen?: (tab: TabName) => void
                 {page('terms', 'Terms')}
                 <a href="/third-party-licenses.txt" target="_blank" rel="noopener">Open-source licenses</a>
                 <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">Discord</a>
+                <span className="site-foot-ver">v{__APP_VERSION__}</span>
             </nav>
         </footer>
     );

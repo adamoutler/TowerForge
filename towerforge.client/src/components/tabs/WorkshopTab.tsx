@@ -142,8 +142,7 @@ export default function WorkshopTab() {
                                                     onChange={v => setWSStat(activePreset, cat, idx, v)}
                                                 />
                                                 <button
-                                                    className="btn btn-dim"
-                                                    style={{ fontSize: '12px', padding: '2px 7px' }}
+                                                    className="btn btn-dim btn-max"
                                                     title={`Max ${statName}`}
                                                     onClick={() => setWSStat(activePreset, cat, idx, maxLv)}
                                                 >

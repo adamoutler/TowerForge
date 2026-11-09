@@ -149,6 +149,19 @@ input[type='checkbox'] {
     justify-content: center;
 }
 
+/* Phones: a narrower box (four digits still fit) with wider − and +,
+   so rows leave room for their names. */
+@media (max-width: 600px) {
+    .num-input {
+        width: 96px;
+    }
+
+    .num-btn {
+        width: 28px;
+        padding: 0;
+    }
+}
+
 .num-btn:hover:not(:disabled) {
     background: var(--accent-glow);
     color: var(--accent);

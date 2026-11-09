@@ -19,6 +19,7 @@ export default function DiscordLink() {
             target="_blank"
             rel="noopener noreferrer"
             title="Join the TowerForge Discord: questions, ideas and bug reports"
+            aria-label="Join the TowerForge Discord"
             onClick={() => trackEvent('Open Discord')}
         >
             <svg className="dsc-logo" viewBox="0 0 24 24" aria-hidden="true"><path d={LOGO} /></svg>

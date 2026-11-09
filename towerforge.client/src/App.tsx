@@ -468,7 +468,7 @@ export default function App() {
                                     disabled={linkBusy}
                                     title="Copy the game's data export straight from an emulator on this PC, or an Android phone on the same Wi-Fi (TowerForge Link)"
                                 >
-                                    🖥 Get from emulator or phone
+                                    🖥 <span className="hdr-long">Get from emulator or phone</span><span className="hdr-short">Get from phone</span>
                                 </button>
                                 <button
                                     className="btn btn-dim lnk-btn lnk-gear"
@@ -484,7 +484,7 @@ export default function App() {
                                 onNeedsLink={() => setLinkModal({ problem: null })}
                             />
                             <label className="btn btn-gold" style={{ cursor: 'pointer' }} title="Import the data export from The Tower (tool_export.json)">
-                                ⬆ Import Game Data
+                                ⬆ <span className="hdr-long">Import Game Data</span><span className="hdr-short">Import</span>
                                 <input
                                     type="file"
                                     accept=".json,application/json,.pdf,application/pdf"

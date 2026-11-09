@@ -697,6 +697,12 @@
     gap: 10px;
 }
 
+/* A level row's Max button (Workshop, Labs). */
+.btn-max {
+    font-size: 12px;
+    padding: 2px 7px;
+}
+
 .pbar-wrap {
     flex: 1;
     max-width: 160px;
@@ -708,6 +714,35 @@
     color: var(--text-dim);
     text-align: right;
     margin-top: 2px;
+}
+
+/* Phones (2026-11-09): the name gets the room. A level row keeps its
+   box, Max and the lab's "3/99"; the bar goes, and Workshop's "40%"
+   too (its max is under the name). Max is a thumb's height. */
+@media (max-width: 600px) {
+    .field-row,
+    .ws-stat-input {
+        gap: 8px;
+    }
+
+    .btn-max {
+        padding: 7px 6px;
+        letter-spacing: 0;
+    }
+
+    .pbar-wrap {
+        flex: 0 0 auto;
+    }
+
+        .pbar-wrap .pbar,
+        .ws-stat-input .pbar-wrap {
+            display: none;
+        }
+
+    .pbar-pct {
+        margin-top: 0;
+        word-spacing: -3px;
+    }
 }
 
 .enh-row {
@@ -3557,8 +3592,21 @@ button.gcard {
 }
 
 /* ── Creator Codes Tab ───────────────────────────────────────── */
+.cc-note p {
+    margin: 0;
+}
+
 .cc-note a {
     color: var(--accent);
+}
+
+/* What a code earns, as three tiles: in the game, webstore, how long. */
+.cc-terms {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    max-width: 420px;
+    margin-top: 10px;
 }
 
 .cc-count {
@@ -5112,6 +5160,21 @@ button.gcard {
             color: var(--accent);
         }
 
+.site-foot-ver {
+    font-family: var(--font-mono);
+}
+
+/* Phones: links a thumb can hit. */
+@media (max-width: 600px) {
+    .site-foot nav {
+        gap: 0 4px;
+    }
+
+    .site-foot nav > * {
+        padding: 8px 6px;
+    }
+}
+
 /* Discord link (header): Discord's own blurple in every theme, so it
    reads as Discord. */
 .dsc-btn {
@@ -5144,6 +5207,7 @@ button.gcard {
     display: none;
 }
 
+/* Phones: "Discord" (the header shows the logo alone: styles/app.css). */
 @media (max-width: 600px) {
     .dsc-long {
         display: none;

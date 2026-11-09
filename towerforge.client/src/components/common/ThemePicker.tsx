@@ -65,8 +65,8 @@ export default function ThemePicker() {
 
     return (
         <>
-            <button className="btn btn-dim thm-btn" onClick={() => setOpen(true)} title="Pick the site's colors">
-                🎨 Theme
+            <button className="btn btn-dim thm-btn" onClick={() => setOpen(true)} title="Pick the site's colors" aria-label="Theme">
+                🎨<span className="hdr-label"> Theme</span>
             </button>
             {open && (
                 <div className="modal-overlay" onClick={() => setOpen(false)}>

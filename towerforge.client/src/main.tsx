@@ -10,6 +10,14 @@ import { tabFromPath } from './routes'
 const tab = tabFromPath(window.location.pathname)
 if (tab) useGameStore.getState().setActiveTab(tab)
 
+// iPhones and iPads zoom the page in whenever a box with text under 16px
+// is tapped (the site's are 13–15px) and leave it zoomed. maximum-scale
+// stops that, and iOS still lets players pinch-zoom; other phones get
+// no limit, since there it would block pinch-zoom (2026-11-09).
+const iOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+const viewport = document.querySelector('meta[name="viewport"]')
+if (iOS && viewport) viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1')
+
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
         <App />

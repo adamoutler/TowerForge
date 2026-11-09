@@ -54,7 +54,7 @@ links out (Discord, YouTube, Twitch, the webstore, community sites).
 | ePrivacy (cookie consent) | cookies and device storage | only the sign-in cookie and storage the player asks for (both exempt); no tracking scripts, so no banner needed |
 | CalOPPA and other US state privacy laws | the site earns from a creator code | a posted privacy policy; no selling or sharing; CCPA's own thresholds aren't met |
 | COPPA | the game is played by kids | not aimed at children; no accounts under 13 (16 in some EU countries); a parent can have one deleted |
-| FTC endorsement rules | the maker earns from creator code H3ll | the Profile line and Terms say so outright; Creator Codes gives the 5% / 8% |
+| FTC endorsement rules | the maker earns from creator code H3ll | the Profile line and Terms say so outright; Creator Codes gives the 3% (in the game) / 5% (webstore) |
 | Trademark and copyright (Tech Tree Games) | game names and art | Tech Tree Games has given TowerForge a written OK to use the art (owner, 2026-11-08); "not affiliated, used with permission" line in the footer and Terms, and the licenses file |
 | Open-source licenses (MIT, Apache-2.0, OFL) | bundled code, fonts and TheTowerSDK data | `third-party-licenses.txt`, written at build by `towerforge.client/licensesPlugin.ts` |
 | EU AI Act art. 50 (from 2 Aug 2026) | Ask AI is a chatbot | the page says it's an AI and how it works |
