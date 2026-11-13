@@ -4699,6 +4699,152 @@ button.gcard {
     margin-top: 12px;
 }
 
+/* Links in the setup steps read in the accent (the Import Guide, how-tos). */
+.lnk-steps a:not(.btn) {
+    color: var(--accent);
+}
+
+/* Link isn't running: the file itself, one step away. */
+.lnk-alt {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border: 1px dashed color-mix(in srgb, var(--accent) 45%, var(--border));
+    border-radius: var(--radius-md);
+}
+
+.lnk-file {
+    cursor: pointer;
+}
+
+/* ── Import help (ImportSheet, ImportWays, the welcome guide) ─────
+   This device's ways in as a short stack of cards: the best one tinted
+   in the accent, the account option dashed. */
+.imp-modal {
+    max-width: 560px;
+}
+
+.imp-ways {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.imp-way {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+    .imp-way p {
+        margin: 0;
+    }
+
+    .imp-way strong {
+        color: var(--text-bright);
+    }
+
+    .imp-way a,
+    .imp-foot a {
+        color: var(--accent);
+    }
+
+.imp-best {
+    background: color-mix(in srgb, var(--accent) 7%, var(--bg3));
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.imp-account {
+    background: transparent;
+    border-style: dashed;
+}
+
+.imp-btn {
+    padding: 9px 16px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.imp-list {
+    margin: 0;
+    padding-left: 18px;
+}
+
+    .imp-list li + li {
+        margin-top: 4px;
+    }
+
+.imp-cmd {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 6px;
+    padding: 6px 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+    .imp-cmd code {
+        flex: 1;
+        min-width: 0;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: var(--text-bright);
+        overflow-wrap: anywhere;
+        user-select: all;
+    }
+
+.imp-copy {
+    flex-shrink: 0;
+    padding: 2px 10px;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    background: none;
+    border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+    .imp-copy:hover {
+        background: var(--accent-glow);
+    }
+
+.imp-foot {
+    margin: 2px 0 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-dim);
+}
+
+/* Phones: full-width buttons, easy to hit. */
+@media (max-width: 600px) {
+    .imp-way {
+        align-items: stretch;
+    }
+
+    .imp-btn {
+        justify-content: center;
+        text-align: center;
+    }
+}
+
 /* Import from…: each emulator, phone or backup Link found, picked like a radio. */
 .lnk-src-list {
     display: flex;

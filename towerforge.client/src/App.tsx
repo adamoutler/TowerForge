@@ -18,6 +18,9 @@ import CurrencyBar from './components/common/CurrencyBar';
 // ── Tab Components (stubs for now — filled in one by one) ────
 import ProfileTab from './components/tabs/ProfileTab';
 import LinkModal from './components/LinkModal';
+import ImportSheet from './components/ImportSheet';
+import { fileImportWorkedHere, rememberFileImport, thisImportDevice } from './components/common/importDevice';
+import { openGuide } from './guideNav';
 import LinkSourcePicker from './components/LinkSourcePicker';
 import AutoImport from './components/common/AutoImport';
 import ThemePicker from './components/common/ThemePicker';
@@ -156,6 +159,11 @@ export default function App() {
     // "Get from emulator or phone": TowerForge Link's setup dialog (with its message, if it answered).
     const [linkBusy, setLinkBusy] = useState(false);
     const [linkModal, setLinkModal] = useState<{ problem: string | null } | null>(null);
+    // ⬆ Import: the import help (ways in for this device) until a file
+    // import has worked here, then straight to the file picker.
+    const [importHelp, setImportHelp] = useState(false);
+    const [importDevice] = useState(thisImportDevice);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [linkChoices, setLinkChoices] = useState<LinkSource[] | null>(null);
     // The tab last opened in each section, so going back to a section returns to it.
     const [lastInGroup, setLastInGroup] = useState<Record<string, TabName>>(() => {
@@ -337,12 +345,31 @@ export default function App() {
         }
     }
 
+    // ⬆ Import: the import help the first times, the file picker once a
+    // file import has worked on this device.
+    function openImport() {
+        if (fileImportWorkedHere()) {
+            fileInputRef.current?.click();
+            return;
+        }
+        trackEvent('Import help', { step: 'open', device: importDevice });
+        setImportHelp(true);
+    }
+
+    // TowerForge Link from the import help: read it now on a PC (the setup
+    // dialog opens if Link isn't running); on a phone, the Android app's setup.
+    function importLink() {
+        if (importDevice === 'windows') void getFromEmulator();
+        else setLinkModal({ problem: null });
+    }
+
     // Imports parsed data: the game's export, else a TowerForge backup.
     function importJson(json: unknown, text: string, source: 'json' | 'pdf' | 'link', note?: string) {
         if (isGameExport(json)) {
             const imp = parseGameExport(json);
             applyGameImport(imp);
             trackEvent(source === 'pdf' ? 'Import game data (PDF)' : source === 'link' ? 'Import game data (emulator)' : 'Import game data');
+            if (source !== 'link') rememberFileImport();
             const lines = [
                 '✓ Imported from your game data:',
                 '• Currencies',
@@ -408,7 +435,13 @@ export default function App() {
         switch (activeTab) {
             case 'profile': return (
                 <>
-                    <WelcomeGuide onImportFile={handleImport} onEmulator={() => void getFromEmulator()} emulatorBusy={linkBusy} />
+                    <WelcomeGuide
+                        device={importDevice}
+                        signedIn={accountStatus === 'signedIn'}
+                        onImportFile={handleImport}
+                        onLink={importLink}
+                        onSignIn={() => openTab('account')}
+                    />
                     <ProfileTab />
                 </>
             );
@@ -488,15 +521,17 @@ export default function App() {
                                 onImport={raw => applyGameImport(parseGameExport(raw))}
                                 onNeedsLink={() => setLinkModal({ problem: null })}
                             />
-                            <label className="btn btn-gold" style={{ cursor: 'pointer' }} title="Import the data export from The Tower (tool_export.json)">
+                            <button type="button" className="btn btn-gold" onClick={openImport}
+                                title="Import the data export from The Tower (tool_export.json)">
                                 ⬆ <span className="hdr-long">Import Game Data</span><span className="hdr-short">Import</span>
-                                <input
-                                    type="file"
-                                    accept=".json,application/json,.pdf,application/pdf"
-                                    style={{ display: 'none' }}
-                                    onChange={handleImport}
-                                />
-                            </label>
+                            </button>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".json,application/json,.pdf,application/pdf"
+                                style={{ display: 'none' }}
+                                onChange={handleImport}
+                            />
                         </div>
 
                         <div className="summary-bar">
@@ -598,7 +633,20 @@ export default function App() {
                     problem={linkModal.problem}
                     busy={linkBusy}
                     onRetry={() => void getFromEmulator()}
+                    onImportFile={e => { setLinkModal(null); handleImport(e); }}
                     onClose={() => setLinkModal(null)}
+                />
+            )}
+
+            {importHelp && (
+                <ImportSheet
+                    device={importDevice}
+                    signedIn={accountStatus === 'signedIn'}
+                    onImportFile={handleImport}
+                    onLink={importLink}
+                    onGuide={openGuide}
+                    onSignIn={() => openTab('account')}
+                    onClose={() => setImportHelp(false)}
                 />
             )}
 

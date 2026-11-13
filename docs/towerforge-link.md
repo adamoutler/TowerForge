@@ -105,6 +105,17 @@ remembered per browser) keeps the site in step while it's open:
 - If Link isn't running when it's turned on, the setup dialog opens; later
   the button turns gold and its tooltip says why.
 
+The setup dialog itself (`components/LinkModal.tsx`, 2026-11-13: half the PC
+players who met "Link isn't running" left without importing, Umami, 30 days):
+it asks Link for its status every 4 s, and when Link goes from not running to
+running it reads the export by itself (event `Emulator link: started`), so
+starting Link is the only step. While Link isn't running it also offers the
+file itself ("Skip Link: Choose the file"). On a Mac or Linux it shows the
+ways that work there (the Mac Terminal line, the Import Guide) instead of the
+Windows download, and on an iPhone or iPad the computer-backup ways instead of
+the Android app. Checked in the preview with Link's answers blocked, then let
+through: the dialog asked for `/sources` and `/export` by itself.
+
 Checked 2026-10-21 against a stand-in Link with a made-up export: first
 import on turning it on, a mid-run save skipped, a finished run imported at
 the next ask, and the gold state when Link stopped. Link 0.2 itself checked

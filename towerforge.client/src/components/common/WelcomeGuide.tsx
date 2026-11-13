@@ -7,11 +7,15 @@
 //  so its saved stats don't flash the guide.
 //  The game's export (29.1.3+): Settings → External Tools Export, saved
 //  as tool_export.json in the game's app folder (docs/towerforge-link.md).
-//  Each way in links to its part of the Import Guide.
+//  Step 2 shows the ways in that work on this device first
+//  (ImportWays, as in the Import help), each linking to its part of
+//  the Import Guide.
 // ============================================================
 
 import { useState } from 'react';
 import type { ChangeEvent, MouseEvent } from 'react';
+import ImportWays from './ImportWays';
+import type { ImportDevice } from './importDevice';
 import { useGameStore } from '../../store/useGameStore';
 import { useAccountStore } from '../../store/useAccountStore';
 import { TAB_PATHS } from '../../routes';
@@ -33,12 +37,14 @@ const TOOLS: { tab: TabName; name: string; what: string }[] = [
 ];
 
 interface Props {
+    device: ImportDevice;
+    signedIn: boolean;
     onImportFile: (e: ChangeEvent<HTMLInputElement>) => void;
-    onEmulator: () => void;
-    emulatorBusy: boolean;
+    onLink: () => void;
+    onSignIn: () => void;
 }
 
-export default function WelcomeGuide({ onImportFile, onEmulator, emulatorBusy }: Props) {
+export default function WelcomeGuide({ device, signedIn, onImportFile, onLink, onSignIn }: Props) {
     const [hidden, setHidden] = useState(wasHidden);
     const hasData = useGameStore(s => s.importedBattles.length > 0 || !!s.profile.highestTier);
     const accountLoading = useAccountStore(s => s.status === 'loading');
@@ -92,37 +98,21 @@ export default function WelcomeGuide({ onImportFile, onEmulator, emulatorBusy }:
                     External Tools Export. The game saves your data as <code>tool_export.json</code>.
                 </li>
                 <li>
-                    <strong>Bring the file here.</strong>
+                    <strong>Bring it here.</strong> Workshop, labs, cards, UWs, modules, bots, relics, Guardian, your
+                    recent runs and tournaments all fill in at once.
+                    <ImportWays
+                        device={device}
+                        signedIn={signedIn}
+                        onImportFile={onImportFile}
+                        onLink={onLink}
+                        onGuide={openGuide}
+                        onSignIn={onSignIn}
+                        foot={false}
+                    />
                     <span className="wlc-way">
-                        <em>On a PC with an emulator, or an Android phone on the same Wi-Fi:</em> Get from emulator or
-                        phone reads it for you (TowerForge Link, a one-time setup), and Auto import keeps the site up to
-                        date while you play. {guideLink('emulator', 'How to set it up')}
-                    </span>
-                    <button className="btn btn-dim lnk-btn wlc-btn" onClick={onEmulator} disabled={emulatorBusy}>
-                        🖥 Get from emulator or phone
-                    </button>
-                    <span className="wlc-way">
-                        <em>On an Android phone, no PC:</em> the game keeps the file in its own app folder, which other
-                        apps can&apos;t open. TowerForge Link for Android (with the free Shizuku app) brings it into the
-                        site on the phone — a one-time setup. {guideLink('android-phone', 'Step-by-step guide')}
-                    </span>
-                    <span className="wlc-way">
-                        <em>iPhone:</em> iOS keeps the file to itself, but a backup of the iPhone to a Windows PC includes
-                        it — TowerForge Link reads it from there. On the iPhone alone it can&apos;t be imported
-                        yet. {guideLink('iphone', 'How it works')}
-                    </span>
-                    <span className="wlc-way">
-                        Stuck, or not sure which is you? The {guideLink('igd-top', 'Import Guide')} walks through every way,
+                        On another device, or stuck? The {guideLink('igd-top', 'Import Guide')} walks through every way,
                         screen by screen.
                     </span>
-                </li>
-                <li>
-                    <strong>Import it.</strong> Workshop, labs, cards, UWs, modules, bots, relics, Guardian, your
-                    recent runs and tournaments all fill in.
-                    <label className="btn btn-gold wlc-btn">
-                        ⬆ Import Game Data
-                        <input type="file" accept=".json,application/json,.pdf,application/pdf" hidden onChange={onImportFile} />
-                    </label>
                 </li>
             </ol>
 

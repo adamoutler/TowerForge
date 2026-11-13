@@ -140,7 +140,11 @@ export default function ImportGuideTab() {
                 lead="If tool_export.json (or a PDF of it) is already on the device you’re using, this takes ten seconds.">
                 <Steps>
                     <li>Open towerforge.net on that device.</li>
-                    <li>Click <strong>⬆ Import Game Data</strong> at the top of the page (on a phone it’s the gold <strong>⬆ Import</strong>).</li>
+                    <li>
+                        Click <strong>⬆ Import Game Data</strong> at the top of the page (on a phone it’s the gold <strong>⬆ Import</strong>).
+                        It shows the ways in for your device; tap <strong>📄 Choose the file</strong>. (Once a file import has worked
+                        on that device, the button opens the file picker straight away.)
+                    </li>
                     <li>Pick <code>tool_export.json</code> (on a phone it’s usually in <em>Downloads</em>).</li>
                     <li>
                         A message lists everything that came in: <Says>✓ Imported from your game data:</Says> followed by
@@ -459,7 +463,7 @@ export default function ImportGuideTab() {
                     <li>Export in the game (<Go to="export">step 0</Go>).</li>
                     <li>In your file manager, open <code>Android → data → com.TechTreeGames.TheTower → files</code>.</li>
                     <li>Copy <code>tool_export.json</code> to <strong>Downloads</strong>.</li>
-                    <li>On towerforge.net tap <strong>⬆ Import</strong> at the top and pick it from Downloads.</li>
+                    <li>On towerforge.net tap <strong>⬆ Import</strong> at the top → <strong>📄 Choose the file</strong>, and pick it from Downloads.</li>
                 </Steps>
                 <Box kind="warn">
                     Android 11 and newer block most file managers from that folder. If yours can’t open it, use
@@ -535,7 +539,7 @@ export default function ImportGuideTab() {
                             Paste this line and press Return — it copies the export to your Desktop:
                             <pre className="igd-code">cp &quot;$(find ~/Library/Containers -name tool_export.json 2&gt;/dev/null | head -1)&quot; ~/Desktop/</pre>
                         </li>
-                        <li>On towerforge.net click <strong>⬆ Import Game Data</strong> and pick <code>tool_export.json</code> on your Desktop.</li>
+                        <li>On towerforge.net click <strong>⬆ Import Game Data</strong> → <strong>📄 Choose the file</strong>, and pick <code>tool_export.json</code> on your Desktop. (The ⬆ Import help on a Mac shows this Terminal line with a Copy button.)</li>
                     </Steps>
                 </Part>
                 <Part title="An iPhone with a Mac">
@@ -558,7 +562,7 @@ export default function ImportGuideTab() {
                     <table className="igd-table">
                         <thead><tr><th>The site or Link says…</th><th>What to do</th></tr></thead>
                         <tbody>
-                            <tr><td><Says>TowerForge Link isn’t running on this PC</Says></td><td>Open <code>TowerForgeLink.exe</code> and leave its window open. Only one copy can run at a time.</td></tr>
+                            <tr><td><Says>TowerForge Link isn’t running on this PC</Says></td><td>Open <code>TowerForgeLink.exe</code> and leave its window open (only one copy can run at a time): with the dialog still open, the site sees Link start and reads your export by itself. Have the file already? <strong>Skip Link: 📄 Choose the file</strong> in the same dialog.</td></tr>
                             <tr><td>The page can’t reach Link although it’s running</td><td>The browser was told not to let the site talk to apps on this device. Click the icon left of the address (🔒 or ⓘ) → <strong>Site settings</strong> → allow <strong>Local network access</strong> (or “apps on device”), then reload.</td></tr>
                             <tr><td><Says>No Android emulator found on this PC</Says></td><td>Install or start your emulator — or, for a phone, see <Go to="android-pc">Android + PC</Go> or <Go to="iphone">iPhone</Go>. Installed in another folder or drive? Get TowerForge Link 0.4.2 or newer: it finds emulators wherever they're installed, and its window lists each one it found with its folder.</td></tr>
                             <tr><td><Says>Your emulator isn’t running</Says> / <Says>… is running but didn’t answer</Says></td><td>Start the emulator and wait until its home screen shows, then try again.</td></tr>

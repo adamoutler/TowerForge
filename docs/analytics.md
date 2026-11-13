@@ -23,7 +23,10 @@ server. Set up 2026-10-16 with Umami v3.4.0.
   since 2026-10-22); `Open Discord` (the header's Discord link, since
   v1.26.1); `Copy creator code` and `Open creator link` on Creator Codes (`live: 1` for a live stream);
   `Open charity link` (`donate` / `fundraiser`) and `Copy creator code` (`from: charity`) on the
-  charity event banner (2026-11-09 to 11-15).
+  charity event banner (2026-11-09 to 11-15). Import help (2026-11-13): `Import help` with
+  `step` (`open`, `file`, `link`, `account`, `guide`) and `device` (`windows`, `mac`, `android`,
+  `ios`, `other`; `from: link` when the file came from the Link dialog), and `Emulator link:
+  started` when Link starts while its dialog is open and the site reads the export by itself.
 - `ai-answer` (Ask AI, 2026-10-29): one per answer, with no question, answer
   or account in it — `tool` (the data it used), `picked` (wording, model or
   keywords), `flagged` (a number that isn't TowerForge's: yes/no), `time`
