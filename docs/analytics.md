@@ -39,7 +39,9 @@ server. Set up 2026-10-16 with Umami v3.4.0.
   (`on`, `off`, `denied`); `Moment` with `step` `found` (one per moment an import found) or
   `share` (Share picture pressed) and its `kind` (`promoted`, `rank`, `tier`, `tourneyWave`,
   `wave`, `uwPlus`, `uw`); `Whats new` with `step` `shown` (once a visit) or `closed` and the
-  `version`. Share links' previews are fetched from `/s/CODE` by Discord, Reddit and the like —
+  `version`. `My week`, `Year picture` (`year`), `Trophy shelf` (`trophies`: how many) with
+  `step: share` when their picture is made; `Compare` on a share link: `shown` (the viewer has an
+  account here), `no account`, `share`. Share links' previews are fetched from `/s/CODE` by Discord, Reddit and the like —
   those don't run the counter (the nginx log has them).
 - `ai-answer` (Ask AI, 2026-10-29): one per answer, with no question, answer
   or account in it — `tool` (the data it used), `picked` (wording, model or

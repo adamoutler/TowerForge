@@ -33,6 +33,11 @@ export interface Moment {
     tab: TabName;        // the page it opens
 }
 
+// Each kind's mark on Profile and the trophy shelf.
+export const MOMENT_ICON: Record<MomentKind, string> = {
+    promoted: '🏅', rank: '🏆', tier: '⭐', tourneyWave: '🌊', wave: '🌊', uwPlus: '⚡', uw: '⚡',
+};
+
 // The parts of the account a moment can come from.
 export interface MomentAccount {
     imported: boolean;           // an import had been done before this one

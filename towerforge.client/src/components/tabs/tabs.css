@@ -506,6 +506,109 @@
         color: var(--text-bright);
     }
 
+/* Trophy shelf (common/TrophyShelf.tsx): trophies in a wrapping grid,
+   then the moments the imports found. */
+.trophy {
+    margin: 16px 0;
+}
+
+.trophy-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.trophy-grid {
+    list-style: none;
+    margin: 10px 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+    gap: 8px;
+}
+
+.trophy-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: linear-gradient(180deg, var(--bg3), var(--bg2));
+}
+
+.trophy-icon {
+    font-size: 22px;
+}
+
+.trophy-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.trophy-value {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-bright);
+    font-variant-numeric: tabular-nums;
+}
+
+.trophy-title {
+    font-size: 13px;
+    color: var(--text);
+}
+
+.trophy-note {
+    font-size: 13px;
+    color: var(--text-dim);
+}
+
+.trophy-sub {
+    margin: 14px 0 6px;
+    font-size: 14px;
+    color: var(--text-bright);
+}
+
+.trophy-moments {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+    .trophy-moments li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--text);
+    }
+
+.trophy-moment-text {
+    flex: 1;
+    min-width: 0;
+}
+
+    .trophy-moment-text strong {
+        color: var(--text-bright);
+    }
+
+.trophy-all {
+    margin-top: 6px;
+    padding: 4px 0;
+    font: inherit;
+    font-size: 13px;
+    color: var(--accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
 /* "Add TowerForge to your home screen" (InstallHint): one quiet line. */
 .home-install {
     position: relative;
@@ -6884,6 +6987,91 @@ button.grdg-chip {
     gap: 28px;
 }
 
+/* Compare with my tower (SharedView CompareSection): who's ahead. */
+.cmp {
+    padding: 14px 16px;
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--accent) 5%, var(--bg2));
+}
+
+.cmp-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+}
+
+.cmp-title {
+    margin: 0;
+    font-size: 17px;
+    color: var(--text-bright);
+}
+
+.cmp-note {
+    margin: 8px 0 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--text-dim);
+}
+
+    .cmp-note strong {
+        color: var(--text-bright);
+    }
+
+    .cmp-note a {
+        color: var(--accent);
+    }
+
+.cmp-table {
+    width: 100%;
+    max-width: 560px;
+    margin-top: 10px;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+    .cmp-table th,
+    .cmp-table td {
+        padding: 7px 8px;
+        border-top: 1px solid var(--border);
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .cmp-table thead th {
+        border-top: none;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-dim);
+    }
+
+    .cmp-table tbody th {
+        text-align: left;
+        font-weight: 500;
+        color: var(--text);
+    }
+
+    .cmp-table td {
+        color: var(--text);
+    }
+
+        .cmp-table td.ahead {
+            font-weight: 800;
+            color: var(--gold);
+        }
+
+/* For screen readers only. */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
 .shr-loading {
     color: var(--text-dim);
 }
@@ -9188,6 +9376,11 @@ p.ehpl-note {
         font-style: normal;
         color: var(--text-dim);
     }
+
+/* Year in Review's "Share my 2025" (RecapPictures YearPicture). */
+.car-share {
+    margin-bottom: 12px;
+}
 
 .car-years {
     display: flex;

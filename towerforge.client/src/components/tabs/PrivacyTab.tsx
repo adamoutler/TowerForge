@@ -76,6 +76,11 @@ export default function PrivacyTab() {
                 TowerForge: a picture and a line with the shared tier, best wave, league and build (only when you shared
                 your Profile) and which parts you shared. Search engines are asked not to list share links.
             </p>
+            <p>
+                <strong>Compare with my tower</strong> on a share link puts your own stats next to the shared ones in your
+                browser; nothing of yours is sent. The pictures you make (a moment, your week, your year, your trophy
+                shelf, Me vs a friend) are drawn in your browser and only go where you save or share them.
+            </p>
 
             <h3>Ask AI answers you send</h3>
             <p>
@@ -101,7 +106,8 @@ export default function PrivacyTab() {
             <h3>Kept in your browser only</h3>
             <p>
                 Besides your stats, your browser keeps a few things for TowerForge that never leave it: the moments your
-                imports found (a new best wave and the like, for two weeks or until you close them), which version&apos;s
+                imports found (a new best wave and the like: on Profile for two weeks or until you close them, on the trophy
+                shelf for a year), a share link you opened before importing (to offer it back), which version&apos;s
                 What&apos;s new you&apos;ve seen, whether reminders are on, and your theme.
             </p>
 
@@ -112,7 +118,7 @@ export default function PrivacyTab() {
                 visit it records the page, the page you came from, your browser, system, device type, screen size and
                 language, and your country, region and city, worked out from your IP address. The IP address itself
                 isn&apos;t kept. It also counts a few actions, without anything you typed: importing, TowerForge Link
-                steps, which way in the import help you pick, trying the example account, adding the site to your home screen, turning reminders on or off, the kind of moment an import found and sharing its picture, seeing or closing What&apos;s new, the theme you pick, copying a creator code, opening a creator&apos;s channel or stream or the charity event&apos;s links, and the kind of each Ask AI question. These counts
+                steps, which way in the import help you pick, trying the example account, adding the site to your home screen, turning reminders on or off, the kind of moment an import found, making a share picture (a moment, your week, your year, the trophy shelf, a comparison) and comparing on a share link, seeing or closing What&apos;s new, the theme you pick, copying a creator code, opening a creator&apos;s channel or stream or the charity event&apos;s links, and the kind of each Ask AI question. These counts
                 show which pages people use and what breaks; they&apos;re kept as statistics and can&apos;t be tied to
                 you.
             </p>

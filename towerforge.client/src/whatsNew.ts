@@ -22,10 +22,11 @@ export const WHATS_NEW: WhatsNewEntry[] = [
         version: '2.12.0',
         date: '2026-11-14',
         items: [
-            { text: 'Moments: a new tier, best wave, promotion or best tournament finish shows up after an import, with a picture to share.' },
+            { text: 'Pictures to share: a new best wave, tier or tournament finish after an import, your week (Profile), your year (Career) and your trophy shelf.' },
+            { text: 'Compare with a friend: open their share link to see who’s ahead.' },
             { text: 'Remind me: a notification when a lab finishes or a tournament starts.' },
-            { text: 'Add TowerForge to your home screen to open it like an app.' },
             { text: 'Share links show your tier, best wave and league in Discord and Reddit.', tab: 'share', link: 'Share' },
+            { text: 'Add TowerForge to your home screen to open it like an app.' },
             { text: 'Easier importing, an example account to look around, and Link imports by itself.', tab: 'importguide', link: 'Import Guide' },
         ],
     },

@@ -26,6 +26,25 @@ describe('this week', () => {
         expect(w.coins).toBe(3e15 + 2e15 + 1e14);
     });
 
+    it('adds up the week for its picture: waves, time, enemies, labs and the tournament', () => {
+        const now = Date.parse('2026-11-14T20:00:00Z');
+        const r = (time: number, wave: number, realTimeSec: number, totalEnemies: number) =>
+            ({ time, tier: 18, wave, realTimeSec, totalEnemies, coinsEarned: 1 }) as unknown as BattleReport;
+        const labs: [number, number, number][] = [
+            [Date.parse('2026-11-01T00:00:00Z') / 1000, 3, 10],   // too old
+            [Date.parse('2026-11-10T00:00:00Z') / 1000, 3, 11],
+            [Date.parse('2026-11-13T00:00:00Z') / 1000, 7, 40],
+        ];
+        const tourneys = [
+            { number: 309, date: Date.parse('2026-11-11T00:00:00Z'), league: 'Champion', wave: 700, rank: 2 },
+            { number: 310, date: Date.parse('2026-11-14T00:00:00Z'), league: 'Champion', wave: 750, rank: 0 },   // still running
+            { number: 308, date: Date.parse('2026-11-04T00:00:00Z'), league: 'Champion', wave: 900, rank: 1 },   // last week
+        ] as TourneyRecord[];
+        const w = thisWeek([r(now - 3600_000, 9000, 30_000, 120_000), r(now - 86_400_000, 8800, 28_000, 110_000)], tourneys, now, labs);
+        expect([w.waves, w.playSec, w.enemies, w.labsDone]).toEqual([17800, 58_000, 230_000, 2]);
+        expect(w.tourney?.number).toBe(309);
+    });
+
     it('finds the next tournament day from the player\'s own tournament dates', () => {
         expect(tournamentWeekdays(RECORDS, Date.parse('2026-11-13T20:00:00Z'))).toEqual([3, 6]);   // Wednesday, Saturday
         const fri = Date.parse('2026-11-13T20:00:00Z');

@@ -15,6 +15,7 @@
 // ============================================================
 
 import type { BattleReport } from './battleReport';
+import type { Career } from './career';
 import type { TourneyRecord } from '../types/gameTypes';
 
 const DAY = 86_400_000;
@@ -25,6 +26,12 @@ export interface WeekSummary {
     best: { tier: number; wave: number } | null;    // highest tier, then wave, among them
     coins: number;                                  // coins those runs earned
     nextTourney: number | null;                     // 00:00 UTC of the next tournament day (today counts)
+    // For the week's share picture:
+    waves: number;                                  // waves those runs reached, added up
+    playSec: number;                                // their real time
+    enemies: number;                                // enemies they destroyed
+    labsDone: number;                               // lab levels finished (the game's lab history)
+    tourney: TourneyRecord | null;                  // the week's tournament: the best placed, else the best wave
 }
 
 // The weekdays (0 = Sunday, UTC) tournaments keep falling on.
@@ -60,12 +67,21 @@ export function upcomingTourneyDays(records: TourneyRecord[], now: number, count
     return out;
 }
 
-export function thisWeek(battles: BattleReport[], records: TourneyRecord[], now: number): WeekSummary {
+export function thisWeek(battles: BattleReport[], records: TourneyRecord[], now: number, labs: Career['labs'] = []): WeekSummary {
     const week = battles.filter(b => b.time !== undefined && now - b.time >= 0 && now - b.time < WEEK);
     const best = week.reduce<WeekSummary['best']>((top, b) => (!top || b.tier > top.tier || (b.tier === top.tier && b.wave > top.wave)
         ? { tier: b.tier, wave: b.wave } : top), null);
     const nextTourney = upcomingTourneyDays(records, now, 1, 7)[0] ?? null;
-    return { runs: week.length, best, coins: week.reduce((s, b) => s + (b.coinsEarned || 0), 0), nextTourney };
+    const sum = (f: (b: BattleReport) => number) => week.reduce((s, b) => s + (f(b) || 0), 0);
+    // A tournament day is 00:00 UTC, so "this week" for it is the last 7 days of days.
+    const recent = records.filter(r => r.date <= now && now - r.date < WEEK);
+    const tourney = [...recent].sort((a, b) => (a.rank > 0 ? a.rank : 99) - (b.rank > 0 ? b.rank : 99) || b.wave - a.wave)[0] ?? null;
+    return {
+        runs: week.length, best, coins: sum(b => b.coinsEarned), nextTourney,
+        waves: sum(b => b.wave), playSec: sum(b => b.realTimeSec), enemies: sum(b => b.totalEnemies),
+        labsDone: labs.filter(([sec]) => now - sec * 1000 >= 0 && now - sec * 1000 < WEEK).length,
+        tourney,
+    };
 }
 
 // "today", "tomorrow", "Saturday" (this week), in the player's own words.

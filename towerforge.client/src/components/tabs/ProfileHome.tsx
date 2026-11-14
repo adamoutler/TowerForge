@@ -26,6 +26,11 @@ import { remindersSupported, turnOffReminders, turnOnReminders, useRemindersOn }
 import type { ReminderKind } from '../common/reminders';
 import { useExampleOn } from '../../store/exampleAccount';
 import Moments from '../common/Moments';
+import TrophyShelf from '../common/TrophyShelf';
+import { WeekPicture } from '../share/RecapPictures';
+import { useSharePicture } from '../share/useSharePicture';
+import { trackEvent } from '../../analytics';
+import { COMPARE_KEY, compareCodeWaiting } from '../../store/sharePayload';
 import { WhatsNewCard } from '../common/WhatsNew';
 
 // Enemies walking in to the range ring and dying on it, in the game's
@@ -137,6 +142,7 @@ export default function ProfileHome() {
     const incomeLog = useGameStore(s => s.incomeLog);
     const liveRun = useGameStore(s => s.liveRun);
     const importedBattles = useGameStore(s => s.importedBattles);
+    const careerLabs = useGameStore(s => s.career?.labs);
     const hasRuns = importedBattles.length > 0;
     const setActiveTab = useGameStore(s => s.setActiveTab);
     // Set on opening the page, like Run in Progress.
@@ -149,7 +155,8 @@ export default function ProfileHome() {
     const far = farthestPoint(tierWaves);
     const labs = labsTicking(labsRunning, now);
     const example = useExampleOn();
-    const week = useMemo(() => thisWeek(importedBattles, tourneyRecords, now), [importedBattles, tourneyRecords, now]);
+    const week = useMemo(() => thisWeek(importedBattles, tourneyRecords, now, careerLabs ?? []), [importedBattles, tourneyRecords, now, careerLabs]);
+    const { share, offscreen } = useSharePicture();
     const importedAt = Math.max(incomeLog.at(-1)?.t ?? 0, liveRun?.at ?? 0, ...labsRunning.map(l => l.exportedAt ?? 0));
     const lastTourney = [...tourneyRecords].sort((a, b) => b.date - a.date)[0];
 
@@ -163,7 +170,7 @@ export default function ProfileHome() {
     };
 
     const facts = [profile.league && `${profile.league} league`, profile.build && `${profile.build} build`].filter(Boolean).join(', ');
-    const rows: { icon: string; text: ReactNode; tab?: TabName; link?: string; again?: boolean; remind?: boolean }[] = [];
+    const rows: { icon: string; text: ReactNode; tab?: TabName; link?: string; href?: string; again?: boolean; remind?: boolean }[] = [];
     // "Import again" rows are about the player's own data, not the made-up example.
     if (labs.finished.length && !example) {
         const names = labs.finished.map(l => l.lab ?? `Lab #${l.labIndex}`).join(', ');
@@ -181,11 +188,17 @@ export default function ProfileHome() {
         });
     }
     if (lastTourney && lastTourney.wave > 0) {
-        const date = new Date(lastTourney.date).toLocaleDateString([], { month: 'short', day: 'numeric' });
+        // A tournament's date is its day at 00:00 UTC: shown as that day everywhere.
+        const date = new Date(lastTourney.date).toLocaleDateString([], { month: 'short', day: 'numeric', timeZone: 'UTC' });
         rows.push({
             icon: '🏆', tab: 'tourneyhistory', link: 'History',
             text: <>Last tournament, {date}: <strong>wave {lastTourney.wave.toLocaleString()}</strong> in {lastTourney.league}{lastTourney.rank > 0 ? `, rank ${lastTourney.rank}` : ', not placed yet'}.</>,
         });
+    }
+    // A friend's share link opened before this browser had an account.
+    const compareCode = example ? null : compareCodeWaiting();
+    if (compareCode) {
+        rows.push({ icon: '🆚', href: `/s/${compareCode}`, link: 'Compare', text: <>See how your tower compares with the shared build you opened.</> });
     }
     if (importedAt > 0 && now - importedAt > DAY && !example) {
         const days = Math.floor((now - importedAt) / DAY);
@@ -250,9 +263,18 @@ export default function ProfileHome() {
                             </a>
                         )}
                     </div>
-                    {week.nextTourney !== null && !example && (
-                        <div className="home-week-remind"><RemindButton kind="tourney" /></div>
+                    {(week.runs > 0 || (week.nextTourney !== null && !example)) && (
+                        <div className="home-week-remind">
+                            {week.runs > 0 && (
+                                <button type="button" className="home-now-link home-now-btn" onClick={() => {
+                                    share(<WeekPicture week={week} now={now} />, 'towerforge-my-week', 'My week');
+                                    trackEvent('My week', { step: 'share', runs: week.runs });
+                                }}>📸 Share my week</button>
+                            )}
+                            {week.nextTourney !== null && !example && <RemindButton kind="tourney" />}
+                        </div>
                     )}
+                    {offscreen}
                 </section>
             )}
 
@@ -263,12 +285,15 @@ export default function ProfileHome() {
                             <span className="home-now-icon" aria-hidden="true">{r.icon}</span>
                             <span className="home-now-text">{r.text}</span>
                             {r.tab && <a className="home-now-link" href={TAB_PATHS[r.tab]} onClick={open(r.tab)}>{r.link}</a>}
+                            {r.href && <a className="home-now-link" href={r.href} onClick={() => { try { localStorage.removeItem(COMPARE_KEY); } catch { /* shown again */ } }}>{r.link}</a>}
                             {r.again && <button type="button" className="home-now-link home-now-btn" onClick={askImport}>⬆ Import again</button>}
                             {r.remind && <RemindButton kind="labs" />}
                         </li>
                     ))}
                 </ul>
             )}
+
+            <TrophyShelf example={example} />
 
             {!example && <InstallHint />}
         </>
