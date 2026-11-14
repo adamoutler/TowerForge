@@ -1,6 +1,7 @@
 // ============================================================
 //  TowerForge Companion — Shared Stats Viewer
-//  Full-page, read-only view opened from a ?share= link.
+//  Full-page, read-only view opened from a share link (/s/CODE, or
+//  an older ?share=CODE).
 //  Replaces the app shell, so it never touches the viewer's data.
 //  Each section is drawn to fit the screen (phones included); Export
 //  Image saves it as the fixed-width poster kept off-screen next to

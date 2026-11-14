@@ -90,6 +90,7 @@ public sealed class AppDb
             CREATE TABLE IF NOT EXISTS push_reminders (
                 id         INTEGER PRIMARY KEY AUTOINCREMENT,
                 endpoint   TEXT    NOT NULL,
+                kind       TEXT    NOT NULL DEFAULT 'labs',
                 p256dh     TEXT    NOT NULL,
                 auth       TEXT    NOT NULL,
                 title      TEXT    NOT NULL,
@@ -103,6 +104,16 @@ public sealed class AppDb
             CREATE INDEX IF NOT EXISTS ix_push_reminders_endpoint ON push_reminders(endpoint);
             """;
         cmd.ExecuteNonQuery();
+
+        // push_reminders before tournament reminders (2026-11-14) had no kind.
+        using var cols = conn.CreateCommand();
+        cols.CommandText = "SELECT COUNT(*) FROM pragma_table_info('push_reminders') WHERE name = 'kind'";
+        if (Convert.ToInt64(cols.ExecuteScalar()) == 0)
+        {
+            using var add = conn.CreateCommand();
+            add.CommandText = "ALTER TABLE push_reminders ADD COLUMN kind TEXT NOT NULL DEFAULT 'labs'";
+            add.ExecuteNonQuery();
+        }
     }
 
     // Shares used to be one JSON file each ({ createdAt, data }). Pull any

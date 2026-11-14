@@ -35,7 +35,12 @@ server. Set up 2026-10-16 with Umami v3.4.0.
   when it was turned on from the one-time offer after a first Link import. `Install app` (`step`
   `shown` once a visit, `how`, `not now`, `accepted` / `dismissed` from Chrome's prompt,
   `installed`) and `Lab reminders` (`on`, `off`, `denied`), 2026-11-13. An installed app opens
-  at `/?source=app`, so app visits show in the address.
+  at `/?source=app`, so app visits show in the address. 2026-11-14: `Tournament reminders`
+  (`on`, `off`, `denied`); `Moment` with `step` `found` (one per moment an import found) or
+  `share` (Share picture pressed) and its `kind` (`promoted`, `rank`, `tier`, `tourneyWave`,
+  `wave`, `uwPlus`, `uw`); `Whats new` with `step` `shown` (once a visit) or `closed` and the
+  `version`. Share links' previews are fetched from `/s/CODE` by Discord, Reddit and the like —
+  those don't run the counter (the nginx log has them).
 - `ai-answer` (Ask AI, 2026-10-29): one per answer, with no question, answer
   or account in it — `tool` (the data it used), `picked` (wording, model or
   keywords), `flagged` (a number that isn't TowerForge's: yes/no), `time`

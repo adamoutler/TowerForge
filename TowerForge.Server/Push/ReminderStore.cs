@@ -4,30 +4,33 @@ using TowerForge.Server.Data;
 namespace TowerForge.Server.Push;
 
 // ============================================================
-//  Lab reminders waiting to be sent (table push_reminders).
-//  One row per lab: the browser's push address and its two keys
-//  (what Web Push needs to reach and encrypt for that browser), the
-//  notification's words and where it opens, and when to send it.
-//  No account, no IP. A browser's rows are replaced whenever its labs
-//  change, deleted when it turns reminders off, each one once it's
-//  sent, and anything left after 45 days (docs/privacy.md).
+//  Reminders waiting to be sent (table push_reminders): lab finished
+//  ("labs") and tournament day ("tourney"). One row per reminder: the
+//  browser's push address and its two keys (what Web Push needs to
+//  reach and encrypt for that browser), the notification's words and
+//  where it opens, and when to send it. No account, no IP. A browser's
+//  rows of a kind are replaced whenever it sends that kind again,
+//  deleted when it turns that kind off, each one once it's sent, and
+//  anything left after 45 days (docs/privacy.md).
 // ============================================================
 public sealed class ReminderStore(AppDb db)
 {
     public static readonly TimeSpan Lifetime = TimeSpan.FromDays(45);
+    public static readonly string[] Kinds = ["labs", "tourney"];
 
     public sealed record Reminder(long Id, string Endpoint, string P256dh, string Auth, string Title, string Body, string Url);
     public sealed record NewReminder(string Title, string Body, string Url, DateTimeOffset At);
 
-    // This browser's reminders, in place of the ones it had.
-    public async Task ReplaceAsync(string endpoint, string p256dh, string auth, IReadOnlyList<NewReminder> reminders)
+    // This browser's reminders of one kind, in place of the ones it had.
+    public async Task ReplaceAsync(string endpoint, string kind, string p256dh, string auth, IReadOnlyList<NewReminder> reminders)
     {
         await using var conn = await db.OpenAsync();
         await using var tx = await conn.BeginTransactionAsync();
         await using (var del = conn.CreateCommand())
         {
-            del.CommandText = "DELETE FROM push_reminders WHERE endpoint = $e";
+            del.CommandText = "DELETE FROM push_reminders WHERE endpoint = $e AND kind = $kind";
             del.Parameters.AddWithValue("$e", endpoint);
+            del.Parameters.AddWithValue("$kind", kind);
             await del.ExecuteNonQueryAsync();
         }
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -35,10 +38,11 @@ public sealed class ReminderStore(AppDb db)
         {
             await using var ins = conn.CreateCommand();
             ins.CommandText = """
-                INSERT INTO push_reminders (endpoint, p256dh, auth, title, body, url, due_at, created_at)
-                VALUES ($e, $k, $a, $t, $b, $u, $d, $c)
+                INSERT INTO push_reminders (endpoint, kind, p256dh, auth, title, body, url, due_at, created_at)
+                VALUES ($e, $kind, $k, $a, $t, $b, $u, $d, $c)
                 """;
             ins.Parameters.AddWithValue("$e", endpoint);
+            ins.Parameters.AddWithValue("$kind", kind);
             ins.Parameters.AddWithValue("$k", p256dh);
             ins.Parameters.AddWithValue("$a", auth);
             ins.Parameters.AddWithValue("$t", r.Title);
@@ -51,12 +55,16 @@ public sealed class ReminderStore(AppDb db)
         await tx.CommitAsync();
     }
 
-    public async Task DeleteEndpointAsync(string endpoint)
+    // One kind of this browser's reminders, or all of them (kind null).
+    public async Task DeleteEndpointAsync(string endpoint, string? kind = null)
     {
         await using var conn = await db.OpenAsync();
         await using var cmd = conn.CreateCommand();
-        cmd.CommandText = "DELETE FROM push_reminders WHERE endpoint = $e";
+        cmd.CommandText = kind is null
+            ? "DELETE FROM push_reminders WHERE endpoint = $e"
+            : "DELETE FROM push_reminders WHERE endpoint = $e AND kind = $kind";
         cmd.Parameters.AddWithValue("$e", endpoint);
+        if (kind is not null) cmd.Parameters.AddWithValue("$kind", kind);
         await cmd.ExecuteNonQueryAsync();
     }
 

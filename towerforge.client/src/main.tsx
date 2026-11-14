@@ -6,7 +6,8 @@ import App from './App'
 import { useGameStore } from './store/useGameStore'
 import { tabFromPath } from './routes'
 import { listenForInstall } from './components/common/installApp'
-import { keepRemindersInStep } from './components/common/labReminders'
+import { keepRemindersInStep } from './components/common/reminders'
+import { noteFirstVisit } from './whatsNew'
 
 // Open the tab the address names (towerforge.net/creators → Creator Codes).
 const tab = tabFromPath(window.location.pathname)
@@ -23,6 +24,8 @@ if (iOS && viewport) viewport.setAttribute('content', 'width=device-width, initi
 // Catch Chrome's install prompt for the home-screen hint, and keep lab reminders in step with imports.
 listenForInstall()
 keepRemindersInStep()
+// A first visit starts with What's new seen.
+noteFirstVisit()
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>

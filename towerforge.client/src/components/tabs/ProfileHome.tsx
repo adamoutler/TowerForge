@@ -22,8 +22,11 @@ import { askImport } from '../../importNav';
 import { thisWeek, tourneyDayText } from '../../engine/thisWeek';
 import { formatGameNumber } from '../../engine/gameNumbers';
 import InstallHint from '../common/InstallHint';
-import { remindersSupported, turnOffReminders, turnOnReminders, useRemindersOn } from '../common/labReminders';
+import { remindersSupported, turnOffReminders, turnOnReminders, useRemindersOn } from '../common/reminders';
+import type { ReminderKind } from '../common/reminders';
 import { useExampleOn } from '../../store/exampleAccount';
+import Moments from '../common/Moments';
+import { WhatsNewCard } from '../common/WhatsNew';
 
 // Enemies walking in to the range ring and dying on it, in the game's
 // shapes (squares and triangles): angle on the ring (degrees, 0 = right),
@@ -194,6 +197,8 @@ export default function ProfileHome() {
 
     return (
         <>
+            {!example && <WhatsNewCard onOpen={setActiveTab} />}
+
             <section className="home-hero">
                 <TowerScene />
                 <div className="home-id">
@@ -208,6 +213,8 @@ export default function ProfileHome() {
                     </a>
                 </div>
             </section>
+
+            {!example && <Moments />}
 
             {meters.length > 0 && (
                 <nav className="home-meters" aria-label="How far your account has got">
@@ -237,12 +244,15 @@ export default function ProfileHome() {
                         )}
                         {week.nextTourney !== null && (
                             <a className="stat-pill home-week-link" href={TAB_PATHS.tournament} onClick={open('tournament')}
-                                title="From the days your past tournaments fell on">
+                                title="Wednesday and Saturday, from 00:00 UTC (or the days your past tournaments fell on)">
                                 <span className="stat-pill-label">Next tournament</span>
                                 <span className="stat-pill-val">{tourneyDayText(week.nextTourney, now)}</span>
                             </a>
                         )}
                     </div>
+                    {week.nextTourney !== null && !example && (
+                        <div className="home-week-remind"><RemindButton kind="tourney" /></div>
+                    )}
                 </section>
             )}
 
@@ -254,7 +264,7 @@ export default function ProfileHome() {
                             <span className="home-now-text">{r.text}</span>
                             {r.tab && <a className="home-now-link" href={TAB_PATHS[r.tab]} onClick={open(r.tab)}>{r.link}</a>}
                             {r.again && <button type="button" className="home-now-link home-now-btn" onClick={askImport}>⬆ Import again</button>}
-                            {r.remind && <RemindButton />}
+                            {r.remind && <RemindButton kind="labs" />}
                         </li>
                     ))}
                 </ul>
@@ -265,18 +275,24 @@ export default function ProfileHome() {
     );
 }
 
-// "Remind me": a notification when each lab finishes (labReminders.ts).
-function RemindButton() {
-    const on = useRemindersOn();
+// "Remind me": a notification when each lab finishes, or on tournament days (reminders.ts).
+const REMIND_WORDS: Record<ReminderKind, { off: string; on: string; title: string }> = {
+    labs: { off: '🔔 Remind me', on: '🔔 Reminders on', title: 'a notification when each lab finishes' },
+    tourney: { off: '🔔 Remind me on tournament days', on: '🔔 Tournament reminders on', title: 'a notification when each tournament starts' },
+};
+
+function RemindButton({ kind }: { kind: ReminderKind }) {
+    const on = useRemindersOn(kind);
+    const words = REMIND_WORDS[kind];
     const [busy, setBusy] = useState(false);
     const [note, setNote] = useState<string | null>(null);
     if (!remindersSupported()) return null;
     const click = async () => {
         setBusy(true);
         setNote(null);
-        if (on) await turnOffReminders();
+        if (on) await turnOffReminders(kind);
         else {
-            const r = await turnOnReminders();
+            const r = await turnOnReminders(kind);
             if (r === 'denied') setNote('Notifications are blocked for TowerForge in this browser’s settings.');
             else if (r === 'failed') setNote('Reminders couldn’t be turned on here.');
         }
@@ -285,8 +301,8 @@ function RemindButton() {
     return (
         <>
             <button type="button" className={`home-now-link home-now-btn ${on ? 'on' : ''}`} onClick={() => void click()} disabled={busy}
-                title={on ? 'You’ll get a notification when each lab finishes. Click to stop.' : 'Get a notification when each lab finishes'}>
-                {on ? '🔔 Reminders on' : '🔔 Remind me'}
+                title={on ? `You’ll get ${words.title}. Click to stop.` : `Get ${words.title}`}>
+                {on ? words.on : words.off}
             </button>
             {note && <span className="home-now-note" role="status">{note}</span>}
         </>

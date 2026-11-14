@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using TowerForge.Server.Data;
 using TowerForge.Server.LiveStreams;
 using TowerForge.Server.Push;
+using TowerForge.Server.ShareCards;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +48,8 @@ if (args.Length >= 1 && args[0] == "--recovery-code")
 
 builder.Services.AddSingleton(new AppDb(dataDir));
 builder.Services.AddSingleton<ShareStore>();
+// Share links' preview cards (/s/CODE/card.png), drawn from pictures built into the server.
+builder.Services.AddSingleton(_ => ShareCardRenderer.FromAssembly());
 builder.Services.AddSingleton<UserStore>();
 builder.Services.AddSingleton<AiReportStore>();
 // Parts of the site only some accounts see while they're tried out.
@@ -122,6 +125,7 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy("save", ctx => PerIp(ctx, permitsPerMinute: 60));
     options.AddPolicy("ai-report", ctx => PerIp(ctx, permitsPerMinute: 10));
     options.AddPolicy("reminders", ctx => PerIp(ctx, permitsPerMinute: 30));
+    options.AddPolicy("share-page", ctx => PerIp(ctx, permitsPerMinute: 120));
 });
 
 builder.Services.AddControllers();

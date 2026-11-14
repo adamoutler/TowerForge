@@ -6,14 +6,17 @@ using TowerForge.Server.Push;
 namespace TowerForge.Server.Controllers;
 
 // ============================================================
-//  Lab reminders (Profile → "Remind me"): a browser that allowed
-//  notifications sends its push address and the times its labs
-//  finish; the server sends a notification at each (ReminderService).
+//  Reminders (Profile → "Remind me"): a browser that allowed
+//  notifications sends its push address and the times its labs finish
+//  ("labs") or the coming tournament days ("tourney"); the server sends
+//  a notification at each (ReminderService).
 //    GET  /api/reminders/key   TowerForge's public push key
-//    PUT  /api/reminders       { subscription: { endpoint, keys: { p256dh, auth } },
+//    PUT  /api/reminders       { kind, subscription: { endpoint, keys: { p256dh, auth } },
 //                                reminders: [{ title, body, url, at (ms) }] }
-//                              replaces that browser's reminders ([] = none)
-//    POST /api/reminders/off   { endpoint } — forget this browser
+//                              replaces that browser's reminders of that kind
+//                              ([] = none; no kind = "labs")
+//    POST /api/reminders/off   { endpoint, kind? } — forget that kind, or
+//                              (no kind) this browser
 //  No account needed; nothing about the player beyond the lab names and
 //  times. Rate limited per IP.
 // ============================================================
@@ -26,8 +29,8 @@ public partial class RemindersController(ReminderStore store, PushKeys keys) : C
     public sealed record SubscriptionKeys(string P256dh, string Auth);
     public sealed record Subscription(string Endpoint, SubscriptionKeys Keys);
     public sealed record ReminderIn(string Title, string Body, string Url, long At);
-    public sealed record PutRequest(Subscription Subscription, List<ReminderIn> Reminders);
-    public sealed record OffRequest(string Endpoint);
+    public sealed record PutRequest(Subscription Subscription, List<ReminderIn> Reminders, string? Kind);
+    public sealed record OffRequest(string Endpoint, string? Kind);
 
     [HttpGet("key")]
     public IActionResult Key() => Ok(new { publicKey = keys.Keys.PublicKey });
@@ -42,6 +45,8 @@ public partial class RemindersController(ReminderStore store, PushKeys keys) : C
             return BadRequest(new { error = "That isn't a browser's push address." });
         if (!KeyOk(sub.Keys?.P256dh, 65) || !KeyOk(sub.Keys?.Auth, 16))
             return BadRequest(new { error = "The browser's push keys are missing or wrong." });
+        var kind = req.Kind ?? "labs";
+        if (!ReminderStore.Kinds.Contains(kind)) return BadRequest(new { error = "Unknown kind of reminder." });
         var list = req.Reminders ?? [];
         if (list.Count > MaxReminders) return BadRequest(new { error = $"At most {MaxReminders} reminders." });
 
@@ -55,7 +60,7 @@ public partial class RemindersController(ReminderStore store, PushKeys keys) : C
                 return BadRequest(new { error = "A reminder isn't right (words, page or time)." });
             clean.Add(new ReminderStore.NewReminder(r.Title.Trim(), r.Body?.Trim() ?? "", r.Url!, at));
         }
-        await store.ReplaceAsync(sub.Endpoint, sub.Keys!.P256dh, sub.Keys.Auth, clean);
+        await store.ReplaceAsync(sub.Endpoint, kind, sub.Keys!.P256dh, sub.Keys.Auth, clean);
         return Ok(new { count = clean.Count });
     }
 
@@ -64,7 +69,8 @@ public partial class RemindersController(ReminderStore store, PushKeys keys) : C
     public async Task<IActionResult> Off([FromBody] OffRequest req)
     {
         if (!WebPush.IsPushService(req.Endpoint ?? "")) return BadRequest(new { error = "That isn't a browser's push address." });
-        await store.DeleteEndpointAsync(req.Endpoint!);
+        if (req.Kind is not null && !ReminderStore.Kinds.Contains(req.Kind)) return BadRequest(new { error = "Unknown kind of reminder." });
+        await store.DeleteEndpointAsync(req.Endpoint!, req.Kind);
         return Ok();
     }
 

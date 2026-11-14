@@ -12,7 +12,7 @@ import { DISCORD_URL } from '../../constants/community';
 import { TAB_PATHS } from '../../routes';
 import { downloadBackup } from '../common/downloadBackup';
 
-export const PRIVACY_UPDATED = 'November 13, 2026';
+export const PRIVACY_UPDATED = 'November 14, 2026';
 
 export default function PrivacyTab() {
     return (
@@ -27,7 +27,7 @@ export default function PrivacyTab() {
             <div className="lgl-short">
                 <h3>The short version</h3>
                 <ul>
-                    <li>What you enter or import stays in your browser, unless you make an account, make a share link, send an Ask AI answer or turn on lab reminders.</li>
+                    <li>What you enter or import stays in your browser, unless you make an account, make a share link, send an Ask AI answer or turn on reminders.</li>
                     <li>No ads. TowerForge never sells or shares your data, and sets no tracking cookies.</li>
                     <li>A normal visit loads nothing from other companies: the site, its fonts and its visitor counter all come from towerforge.net.</li>
                     <li>Visits are counted without cookies, and IP addresses aren&apos;t kept with the counts.</li>
@@ -71,6 +71,11 @@ export default function PrivacyTab() {
                 Share links are deleted after 90 days. To delete one sooner: Player → Account → My Share Codes. A link
                 made without an account joins your account if you make one on the same device; or ask on Discord.
             </p>
+            <p>
+                When a share link is posted on Discord, Reddit, X or elsewhere, that site fetches its preview from
+                TowerForge: a picture and a line with the shared tier, best wave, league and build (only when you shared
+                your Profile) and which parts you shared. Search engines are asked not to list share links.
+            </p>
 
             <h3>Ask AI answers you send</h3>
             <p>
@@ -81,15 +86,23 @@ export default function PrivacyTab() {
                 Discord.
             </p>
 
-            <h3>Lab reminders (only if you turn them on)</h3>
+            <h3>Reminders (only if you turn them on)</h3>
             <p>
-                When you tap <strong>🔔 Remind me</strong> and your browser asks to allow notifications, your browser gives
+                When you tap a <strong>🔔 Remind me</strong> button and your browser asks to allow notifications, your browser gives
                 TowerForge a push address at its own push service (Google, Apple, Mozilla or Microsoft, depending on the
-                browser). TowerForge&apos;s server keeps that address, with the names and finish times of the labs you were
-                researching at your last import, and sends a notification when each one finishes. The notification is
+                browser). TowerForge&apos;s server keeps that address with what to remind you of: for labs, the names and
+                finish times of the labs you were researching at your last import; for tournaments, the coming tournament
+                days (six weeks ahead, sent again when you visit). It sends a notification at each. The notification is
                 encrypted, so the push service only carries it and can&apos;t read it. Each reminder is deleted once it&apos;s
-                sent; turning reminders off (the same button) deletes the rest, and anything left is deleted after 45 days.
+                sent; turning a kind off (the same button) deletes the rest of that kind, and anything left is deleted after 45 days.
                 No account and nothing else about you.
+            </p>
+
+            <h3>Kept in your browser only</h3>
+            <p>
+                Besides your stats, your browser keeps a few things for TowerForge that never leave it: the moments your
+                imports found (a new best wave and the like, for two weeks or until you close them), which version&apos;s
+                What&apos;s new you&apos;ve seen, whether reminders are on, and your theme.
             </p>
 
             <h3>Visit counts</h3>
@@ -99,7 +112,7 @@ export default function PrivacyTab() {
                 visit it records the page, the page you came from, your browser, system, device type, screen size and
                 language, and your country, region and city, worked out from your IP address. The IP address itself
                 isn&apos;t kept. It also counts a few actions, without anything you typed: importing, TowerForge Link
-                steps, which way in the import help you pick, trying the example account, adding the site to your home screen, turning lab reminders on or off, the theme you pick, copying a creator code, opening a creator&apos;s channel or stream or the charity event&apos;s links, and the kind of each Ask AI question. These counts
+                steps, which way in the import help you pick, trying the example account, adding the site to your home screen, turning reminders on or off, the kind of moment an import found and sharing its picture, seeing or closing What&apos;s new, the theme you pick, copying a creator code, opening a creator&apos;s channel or stream or the charity event&apos;s links, and the kind of each Ask AI question. These counts
                 show which pages people use and what breaks; they&apos;re kept as statistics and can&apos;t be tied to
                 you.
             </p>

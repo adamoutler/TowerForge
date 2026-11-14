@@ -8,8 +8,10 @@
 //  Tournament days come from the player's own TournamentRecords (each
 //  record's Date is 00:00 UTC of its tournament day,
 //  game-export-format.md): the weekdays they keep falling on (twice or
-//  more in the last 12 weeks; #309 and #310 in the owner's export were a
-//  Saturday and a Wednesday). No records, no guess.
+//  more in the last 12 weeks), so a change in the game's schedule shows
+//  up by itself. Without enough records: Wednesday and Saturday, 00:00
+//  UTC (the wiki's Tournaments page, 2026-11-14; #309 and #310 in the
+//  owner's export were a Saturday and a Wednesday).
 // ============================================================
 
 import type { BattleReport } from './battleReport';
@@ -36,17 +38,33 @@ export function tournamentWeekdays(records: TourneyRecord[], now: number): numbe
     return [...counts].filter(([, n]) => n >= 2).map(([d]) => d).sort((a, b) => a - b);
 }
 
+// The game's schedule (wiki): Wednesday and Saturday.
+export const TOURNEY_WEEKDAYS: readonly number[] = [3, 6];
+
+// The player's own tournament weekdays, else the game's schedule.
+export const tourneyWeekdays = (records: TourneyRecord[], now: number): readonly number[] => {
+    const own = tournamentWeekdays(records, now);
+    return own.length ? own : TOURNEY_WEEKDAYS;
+};
+
+// 00:00 UTC of the next `count` tournament days, today first if it is one,
+// within `days` days.
+export function upcomingTourneyDays(records: TourneyRecord[], now: number, count: number, days = 42): number[] {
+    const weekdays = tourneyWeekdays(records, now);
+    const today = Math.floor(now / DAY) * DAY;
+    const out: number[] = [];
+    for (let i = 0; i < days && out.length < count; i++) {
+        const d = today + i * DAY;
+        if (weekdays.includes(new Date(d).getUTCDay())) out.push(d);
+    }
+    return out;
+}
+
 export function thisWeek(battles: BattleReport[], records: TourneyRecord[], now: number): WeekSummary {
     const week = battles.filter(b => b.time !== undefined && now - b.time >= 0 && now - b.time < WEEK);
     const best = week.reduce<WeekSummary['best']>((top, b) => (!top || b.tier > top.tier || (b.tier === top.tier && b.wave > top.wave)
         ? { tier: b.tier, wave: b.wave } : top), null);
-    const days = tournamentWeekdays(records, now);
-    const today = Math.floor(now / DAY) * DAY;
-    let nextTourney: number | null = null;
-    for (let i = 0; i < 7 && days.length; i++) {
-        const d = today + i * DAY;
-        if (days.includes(new Date(d).getUTCDay())) { nextTourney = d; break; }
-    }
+    const nextTourney = upcomingTourneyDays(records, now, 1, 7)[0] ?? null;
     return { runs: week.length, best, coins: week.reduce((s, b) => s + (b.coinsEarned || 0), 0), nextTourney };
 }
 

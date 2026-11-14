@@ -2,7 +2,7 @@
 // from the player's own tournament dates (made-up records).
 
 import { describe, expect, it } from 'vitest';
-import { thisWeek, tournamentWeekdays, tourneyDayText } from './thisWeek';
+import { thisWeek, tournamentWeekdays, tourneyDayText, upcomingTourneyDays } from './thisWeek';
 import type { BattleReport } from './battleReport';
 import type { TourneyRecord } from '../types/gameTypes';
 
@@ -34,7 +34,17 @@ describe('this week', () => {
         expect(tourneyDayText(next, fri)).toBe('Tomorrow');
         const sat = Date.parse('2026-11-14T09:00:00Z');
         expect(tourneyDayText(thisWeek([], RECORDS, sat).nextTourney!, sat)).toBe('Today');
-        // No records (or only one on a day): no guess.
-        expect(thisWeek([], [rec('2026-11-11')], fri).nextTourney).toBeNull();
+        // No records (or only one on a day): the game's Wednesday and Saturday.
+        expect(new Date(thisWeek([], [rec('2026-11-11')], fri).nextTourney!).toISOString()).toBe('2026-11-14T00:00:00.000Z');
+        // A schedule the records show wins (made-up: Mondays and Thursdays).
+        const moved = ['2026-10-26', '2026-10-29', '2026-11-02', '2026-11-05'].map(rec);
+        expect(new Date(thisWeek([], moved, fri).nextTourney!).toISOString()).toBe('2026-11-16T00:00:00.000Z');
+    });
+
+    it('lists the coming tournament days for reminders', () => {
+        const sat = Date.parse('2026-11-14T09:00:00Z');
+        expect(upcomingTourneyDays(RECORDS, sat, 4).map(d => new Date(d).toISOString().slice(0, 10)))
+            .toEqual(['2026-11-14', '2026-11-18', '2026-11-21', '2026-11-25']);
+        expect(upcomingTourneyDays([], sat, 20)).toHaveLength(12);   // six weeks at most
     });
 });

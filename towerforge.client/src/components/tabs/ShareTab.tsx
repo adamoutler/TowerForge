@@ -100,6 +100,17 @@ export default function ShareTab() {
         }
     }
 
+    // Phones: the share menu (Discord, Reddit, Messages…) with the link.
+    const canShareLink = typeof navigator.share === 'function';
+    async function handleShareLink() {
+        if (!code) return;
+        try {
+            await navigator.share({ title: 'My The Tower build on TowerForge', url: shareUrl(code) });
+        } catch {
+            // Closed, or not allowed here: Copy Link still works.
+        }
+    }
+
     async function handleCopy() {
         if (!code) return;
         try {
@@ -113,7 +124,7 @@ export default function ShareTab() {
     function handleOpen() {
         const trimmed = openCode.trim();
         if (!trimmed) return;
-        window.location.href = `/?share=${encodeURIComponent(trimmed.toUpperCase())}`;
+        window.location.href = `/s/${encodeURIComponent(trimmed.toUpperCase())}`;
     }
 
     return (
@@ -177,7 +188,13 @@ export default function ShareTab() {
                                 <button className="btn btn-dim" onClick={handleCopy}>
                                     {copied ? '✓ Copied' : 'Copy Link'}
                                 </button>
+                                {canShareLink && <button className="btn btn-accent" onClick={() => void handleShareLink()}>📤 Share</button>}
                             </div>
+                            {selected.profile && (
+                                <p style={{ fontSize: '13px', color: 'var(--text-dim)', marginTop: '8px', lineHeight: 1.6 }}>
+                                    Posted in Discord or Reddit, the link shows your tier, best wave and league.
+                                </p>
+                            )}
                         </div>
                     )}
                 </div>

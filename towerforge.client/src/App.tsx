@@ -32,6 +32,8 @@ import SiteFooter from './components/common/SiteFooter';
 import WelcomeGuide from './components/common/WelcomeGuide';
 import { exportAge, linkExport, linkSources, openedByLink, phoneLinkRemembered, rememberSource } from './engine/linkClient';
 import { endExampleForImport, tryExample, useExampleOn } from './store/exampleAccount';
+import { importWithMoments } from './store/moments';
+import { shareCodeFrom } from './engine/shareApi';
 import ExampleBar from './components/common/ExampleBar';
 import type { LinkSource } from './engine/linkClient';
 import PerksTab from './components/tabs/PerksTab';
@@ -174,8 +176,8 @@ export default function App() {
     const [lastInGroup, setLastInGroup] = useState<Record<string, TabName>>(() => {
         return remember({}, useGameStore.getState().activeTab);
     });
-    // ?share=CODE opens the read-only viewer instead of the app shell.
-    const [shareCode] = useState(() => new URLSearchParams(window.location.search).get('share'));
+    // /s/CODE (or an older ?share=CODE) opens the read-only viewer instead of the app shell.
+    const [shareCode] = useState(() => shareCodeFrom(window.location.pathname, window.location.search));
     const activeTab = useGameStore(s => s.activeTab);
 
     // The header and currency bar fold away once a page is scrolled, and
@@ -200,7 +202,6 @@ export default function App() {
     const profile = useGameStore(s => s.profile);
     const uwData = useGameStore(s => s.uwData);
     const labData = useGameStore(s => s.labData);
-    const applyGameImport = useGameStore(s => s.applyGameImport);
     const importData = useGameStore(s => s.importData);
 
     const accountUsername = useAccountStore(s => s.username);
@@ -403,8 +404,7 @@ export default function App() {
     function importJson(json: unknown, text: string, source: 'json' | 'pdf' | 'link', note?: string) {
         if (isGameExport(json)) {
             const imp = parseGameExport(json);
-            endExampleForImport();
-            applyGameImport(imp);
+            importWithMoments(imp);
             trackEvent(source === 'pdf' ? 'Import game data (PDF)' : source === 'link' ? 'Import game data (emulator)' : 'Import game data');
             if (source !== 'link') rememberFileImport();
             else rememberLinkImport();
@@ -560,7 +560,7 @@ export default function App() {
                                 </button>
                             </span>
                             <AutoImport
-                                onImport={raw => { endExampleForImport(); applyGameImport(parseGameExport(raw)); }}
+                                onImport={raw => importWithMoments(parseGameExport(raw))}
                                 onNeedsLink={() => setLinkModal({ problem: null })}
                             />
                             <button type="button" className="btn btn-gold" onClick={openImport}
