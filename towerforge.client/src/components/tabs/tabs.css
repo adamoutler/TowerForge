@@ -381,6 +381,21 @@
         text-decoration: underline;
     }
 
+/* "Import again": a small pill, since it does the import rather than open a page. */
+.home-now-btn {
+    padding: 4px 11px;
+    font-family: var(--font-ui);
+    background: var(--accent-glow);
+    border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+    .home-now-btn:hover {
+        text-decoration: none;
+        background: color-mix(in srgb, var(--accent) 22%, transparent);
+    }
+
 @media (prefers-reduced-motion: reduce) {
     .home-enemy,
     .home-orbs,
@@ -4704,6 +4719,43 @@ button.gcard {
     color: var(--accent);
 }
 
+/* After the first import through Link: Auto import offers itself once,
+   as a card at the foot of the screen (the header may be folded away). */
+.lnk-offer {
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    z-index: 900;
+    width: min(440px, calc(100% - 32px));
+    transform: translateX(-50%);
+    padding: 14px 16px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text);
+    background: var(--bg2);
+    border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+}
+
+    .lnk-offer p {
+        margin: 0 0 10px;
+    }
+
+    .lnk-offer strong {
+        color: var(--text-bright);
+    }
+
+.lnk-offer-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+    .lnk-offer-actions .btn {
+        cursor: pointer;
+    }
+
 /* Link isn't running: the file itself, one step away. */
 .lnk-alt {
     display: flex;
@@ -4832,6 +4884,49 @@ button.gcard {
     line-height: 1.5;
     color: var(--text-dim);
 }
+
+    .imp-foot p {
+        margin: 0;
+    }
+
+/* Where the game's export is (ExportHowTo): the Settings screen with the
+   player ID ringed; folded under "Show me where", or open in the guide. */
+.exp-how {
+    margin-top: 6px;
+    font-size: 13px;
+}
+
+    .exp-how summary {
+        width: fit-content;
+        font-weight: 700;
+        color: var(--accent);
+        cursor: pointer;
+    }
+
+.exp-fig {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    margin: 10px 0 4px;
+}
+
+    .exp-fig img {
+        display: block;
+        width: 196px;
+        max-width: 100%;
+        height: auto;
+        border-radius: var(--radius-md);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    }
+
+    .exp-fig figcaption {
+        flex: 1;
+        min-width: 160px;
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--text-dim);
+    }
 
 /* "Just looking?": the example account, as a quiet line under the ways in. */
 .imp-try {

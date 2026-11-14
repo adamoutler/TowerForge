@@ -47,3 +47,23 @@ export function rememberFileImport(): void {
         // Private browsing: the help just opens again next time.
     }
 }
+
+// Once an import came through TowerForge Link here, "Import again"
+// (Profile) reads it with Link straight away.
+const LINK_OK_KEY = 'tf-import-link-ok';
+
+export function linkImportWorkedHere(): boolean {
+    try {
+        return localStorage.getItem(LINK_OK_KEY) === '1';
+    } catch {
+        return false;
+    }
+}
+
+export function rememberLinkImport(): void {
+    try {
+        localStorage.setItem(LINK_OK_KEY, '1');
+    } catch {
+        // Not remembered: Import again opens ⬆ Import instead.
+    }
+}

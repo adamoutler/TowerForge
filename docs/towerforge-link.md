@@ -87,7 +87,8 @@ phone asking to allow USB debugging.
 ## Auto import (2026-10-21, Link 0.2)
 
 The game (29.1.3+) can export by itself every time it saves (Settings →
-External Tools Export → Auto). The header's **⟳ Auto import** toggle
+tap the player ID 5 times → External Tools Export → Auto; the option stays
+hidden until those taps). The header's **⟳ Auto import** toggle
 (`components/common/AutoImport.tsx`, off until the player turns it on,
 remembered per browser) keeps the site in step while it's open:
 

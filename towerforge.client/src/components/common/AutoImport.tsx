@@ -11,6 +11,7 @@
 // ============================================================
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useGameStore } from '../../store/useGameStore';
 import { useAccountStore } from '../../store/useAccountStore';
 import { isGameExport } from '../../engine/gameExport';
@@ -20,8 +21,11 @@ import {
 } from '../../engine/autoImport';
 import type { AutoImportState } from '../../engine/autoImport';
 import { trackEvent } from '../../analytics';
+import { AUTO_OFFER_EVENT } from '../../importNav';
 
 const KEY = 'tc_link_auto';
+// Auto imports are counted once a visit (one every 10 minutes would swamp the counts).
+let countedThisVisit = false;
 
 function load(): AutoImportState {
     try {
@@ -46,6 +50,8 @@ export default function AutoImport({ onImport, onNeedsLink }: Props) {
     const [on, setOn] = useState(() => load().on);
     const [status, setStatus] = useState('');
     const [note, setNote] = useState<string | null>(null);
+    // After the first import through Link (importNav.offerAutoImport), once.
+    const [offer, setOffer] = useState(false);
     const accountReady = useAccountStore(s => s.status !== 'loading');
     // Latest callbacks without restarting the loop.
     const props = useRef({ onImport, onNeedsLink });
@@ -86,6 +92,10 @@ export default function AutoImport({ onImport, onNeedsLink }: Props) {
                         const next: AutoImportState = { ...s, seen: file };
                         if (shouldImport(s, newestRunInExport(raw), siteRun, now)) {
                             props.current.onImport(raw);
+                            if (!countedThisVisit) {
+                                countedThisVisit = true;
+                                trackEvent('Import game data (auto)');
+                            }
                             next.imported = file;
                             next.importedAt = now;
                             setNote(`✓ Auto import: your game data from ${r.source}, exported ${exportAge(file, now)}`);
@@ -110,6 +120,12 @@ export default function AutoImport({ onImport, onNeedsLink }: Props) {
         return () => { stopped = true; clearTimeout(timer); document.removeEventListener('visibilitychange', onShow); };
     }, [on, accountReady]);
 
+    useEffect(() => {
+        const onOffer = () => setOffer(true);
+        window.addEventListener(AUTO_OFFER_EVENT, onOffer);
+        return () => window.removeEventListener(AUTO_OFFER_EVENT, onOffer);
+    }, []);
+
     // The note fades after a few seconds.
     useEffect(() => {
         if (!note) return;
@@ -117,31 +133,46 @@ export default function AutoImport({ onImport, onNeedsLink }: Props) {
         return () => clearTimeout(t);
     }, [note]);
 
-    const toggle = () => {
+    const toggle = (from?: string) => {
         const next = !on;
         save({ ...load(), on: next });
         setOn(next);
         setStatus('');
-        trackEvent(next ? 'Auto import on' : 'Auto import off');
+        setOffer(false);
+        trackEvent(next ? 'Auto import on' : 'Auto import off', from ? { from } : undefined);
     };
 
     // On, but something's in the way (Link not running, no export…).
     const warn = on && !!status && !status.startsWith('Up to date');
     const title = on
         ? `Auto import is on: the site reads your newest game data from the emulator while it's open. ${status}`
-        : 'Read your game data by itself whenever the game exports it, from an emulator on this PC or an Android phone on the same Wi-Fi. In the game: Settings → External Tools Export → Auto. Needs TowerForge Link running.';
+        : 'Read your game data by itself whenever the game exports it, from an emulator on this PC or an Android phone on the same Wi-Fi. In the game: Settings → tap your player ID 5 times → External Tools Export → Auto. Needs TowerForge Link running.';
 
     return (
         <>
             <button
                 className={`btn btn-dim lnk-btn lnk-auto ${on ? 'on' : ''} ${warn ? 'warn' : ''}`}
                 aria-pressed={on}
-                onClick={toggle}
+                onClick={() => toggle()}
                 title={title}
             >
                 ⟳ Auto import {on ? 'on' : 'off'}
             </button>
             {note && <div className="opt-apply-toast" role="status">{note}</div>}
+            {/* On the page itself: the header it sits in folds away (and goes inert) when a page is scrolled. */}
+            {offer && !on && createPortal(
+                <div className="lnk-offer" role="dialog" aria-label="Turn on Auto import?">
+                    <p>
+                        <strong>Keep it up to date by itself?</strong> With Auto import on, the site picks up each new export
+                        while it&apos;s open. Set the game&apos;s External Tools Export to <strong>Auto</strong> too.
+                    </p>
+                    <span className="lnk-offer-actions">
+                        <button type="button" className="btn btn-primary" onClick={() => toggle('offer')}>⟳ Turn on Auto import</button>
+                        <button type="button" className="btn btn-dim" onClick={() => setOffer(false)}>Not now</button>
+                    </span>
+                </div>,
+                document.body,
+            )}
         </>
     );
 }

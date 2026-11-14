@@ -5,7 +5,8 @@
 //  runs imported) or hides it; hidden is remembered per browser
 //  (localStorage tc_welcome). Waits for a signed-in account to load,
 //  so its saved stats don't flash the guide.
-//  The game's export (29.1.3+): Settings → External Tools Export, saved
+//  The game's export (29.1.3+): Settings → tap the player ID 5 times →
+//  External Tools Export (ExportHowTo shows where), saved
 //  as tool_export.json in the game's app folder (docs/towerforge-link.md).
 //  "Try it with an example account" (store/exampleAccount.ts) lets a
 //  visitor look around with a made-up player before importing.
@@ -17,6 +18,7 @@
 import { useState } from 'react';
 import type { ChangeEvent, MouseEvent } from 'react';
 import ImportWays from './ImportWays';
+import ExportHowTo from './ExportHowTo';
 import type { ImportDevice } from './importDevice';
 import { useGameStore } from '../../store/useGameStore';
 import { useAccountStore } from '../../store/useAccountStore';
@@ -108,8 +110,10 @@ export default function WelcomeGuide({ device, signedIn, onImportFile, onLink, o
             <h3 className="wlc-sub">Get your game data in</h3>
             <ol className="wlc-steps">
                 <li>
-                    <strong>Export it from the game.</strong> In The Tower (update 29.1.3 or later): Settings →
-                    External Tools Export. The game saves your data as <code>tool_export.json</code>.
+                    <strong>Export it from the game.</strong> In The Tower (update 29.1.3 or later), open Settings and
+                    tap your player ID (bottom left) 5 times to bring up <strong>External Tools Export</strong>, then
+                    export — or turn on Auto. The game saves your data as <code>tool_export.json</code>.
+                    <ExportHowTo />
                 </li>
                 <li>
                     <strong>Bring it here.</strong> Workshop, labs, cards, UWs, modules, bots, relics, Guardian, your

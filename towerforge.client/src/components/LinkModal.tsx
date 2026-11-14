@@ -204,7 +204,7 @@ export default function LinkModal({ problem, busy, onRetry, onImportFile, onClos
                             : app ? <>
                                 TowerForge Link for Android {status.version} is running · {SHIZUKU_SAYS[app.shizuku]}
                                 {app.export === 'found' && app.exportModified ? ` Your export is from ${when(app.exportModified)}.` : ''}
-                                {app.export === 'none' ? ' The game hasn’t exported yet: Settings → External Tools Export.' : ''}
+                                {app.export === 'none' ? ' The game hasn’t exported yet: Settings → tap your player ID 5 times → External Tools Export.' : ''}
                                 {app.export === 'no_game' ? ' The Tower isn’t on this phone, or hasn’t been opened yet.' : ''}
                             </>
                             : <>
@@ -227,8 +227,8 @@ export default function LinkModal({ problem, busy, onRetry, onImportFile, onClos
                             {device === 'mac' ? (
                                 <ol className="lnk-steps">
                                     <li>
-                                        <strong>The Tower on this Mac:</strong> export in the game (Settings → External Tools
-                                        Export), then paste this into Terminal (⌘ Space, “Terminal”) to copy the export to your Desktop:
+                                        <strong>The Tower on this Mac:</strong> export in the game (Settings → tap your player ID 5 times → External Tools Export),
+                                        then paste this into Terminal (⌘ Space, “Terminal”) to copy the export to your Desktop:
                                         <span className="imp-cmd">
                                             <code>{MAC_EXPORT_COMMAND}</code>
                                             <button type="button" className="imp-copy" onClick={() => void copyCommand()}>{copied ? '✓ Copied' : 'Copy'}</button>
@@ -369,7 +369,7 @@ export default function LinkModal({ problem, busy, onRetry, onImportFile, onClos
                                     Install Apple&apos;s <strong>Apple Devices</strong> app (Microsoft Store, Windows 10 or 11), or iTunes.
                                 </li>
                                 <li>Connect the iPhone with a cable, unlock it and tap <em>Trust</em>.</li>
-                                <li>In The Tower: Settings → External Tools Export, and export (or choose <em>Auto</em>).</li>
+                                <li>In The Tower: Settings → tap your player ID 5 times → External Tools Export, and export (or choose <em>Auto</em>).</li>
                                 <li>
                                     In Apple Devices: <em>Back up all of the data on your iPhone to this computer</em> → <em>Back Up Now</em>.
                                     <span className="lnk-sub">
@@ -415,7 +415,7 @@ export default function LinkModal({ problem, busy, onRetry, onImportFile, onClos
                                         connection” or “ADB debugging”), then restart them once.
                                     </span>
                                 </li>
-                                <li>In The Tower: Settings → External Tools Export, and export (or choose <em>Auto</em>).</li>
+                                <li>In The Tower: Settings → tap your player ID 5 times → External Tools Export, and export (or choose <em>Auto</em>).</li>
                                 <li>Click <em>Try again</em> below. With <em>⟳ Auto import</em> on, the site then keeps up by itself.</li>
                             </ol>
                         </section>
@@ -473,7 +473,7 @@ export default function LinkModal({ problem, busy, onRetry, onImportFile, onClos
                                     </form>
                                 </li>
                                 <li>
-                                    <strong>Export:</strong> in The Tower, Settings → External Tools Export → <em>Auto</em>, and turn on
+                                    <strong>Export:</strong> in The Tower, Settings → tap your player ID 5 times → External Tools Export → <em>Auto</em>, and turn on
                                     <em> ⟳ Auto import</em> here — the site reads your phone every 30 seconds while you play.
                                     <span className="lnk-sub">
                                         Wireless debugging switches itself off when the phone restarts or changes Wi-Fi: switch it

@@ -61,7 +61,10 @@ fields are below. Dates are now always UTC with exactly 3 decimals
 (`2026-10-19T14:02:11.123Z`; before, 0–3); `Date.parse` reads both.
 29.1.3 also adds Settings → External Tools Export (export by hand, or
 automatically every time the game saves — the site's Auto import reads
-those through TowerForge Link, see towerforge-link.md).
+those through TowerForge Link, see towerforge-link.md). The option is
+hidden: tap the player ID at the bottom left of Settings 5 times to bring
+it up (owner, 2026-11-13, game 29.1.4; the site's steps and the picture in
+`components/common/ExportHowTo.tsx` say so).
 
 **A real 29.1.3 export (2026-10-21):** the owner's account, build 1253,
 `DataVersion` 31, read through TowerForge Link. Imports without errors.

@@ -16,6 +16,7 @@ import { LINK_DOWNLOAD, LINK_DOWNLOAD_ANDROID } from '../../engine/linkClient';
 import { GUIDE_EVENT, takeGuideSection } from '../../guideNav';
 import { trackEvent } from '../../analytics';
 import { TAB_PATHS } from '../../routes';
+import { ExportPicture } from '../common/ExportHowTo';
 
 const SHIZUKU_PLAY = 'https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api';
 const SHIZUKU_GUIDE = 'https://shizuku.rikka.app/guide/setup/';
@@ -122,7 +123,11 @@ export default function ImportGuideTab() {
                 lead="TowerForge reads a file the game writes for tools like this one. Whatever device you use, start here.">
                 <Steps>
                     <li>Make sure The Tower is up to date (the export came with update <strong>29.1.3</strong>).</li>
-                    <li>In The Tower, open <strong>Settings</strong> and find <strong>External Tools Export</strong>.</li>
+                    <li>
+                        In The Tower, open <strong>Settings</strong> and tap your <strong>player ID</strong> at the bottom left
+                        <strong> 5 times</strong>. That brings up <strong>External Tools Export</strong> — it stays hidden until you do.
+                        <ExportPicture />
+                    </li>
                     <li>
                         <strong>Export your data now</strong>, or — better — turn on <strong>Auto</strong>: the game then writes
                         the file again every time it saves, so TowerForge always gets your newest numbers.
@@ -257,7 +262,7 @@ export default function ImportGuideTab() {
 
                 <Part title="Part 4 — Let it keep up by itself (optional)">
                     <Steps>
-                        <li>In the game, set External Tools Export to <strong>Auto</strong>.</li>
+                        <li>In the game, set External Tools Export to <strong>Auto</strong> (Settings → tap your player ID 5 times).</li>
                         <li>On the site, click <strong>⟳ Auto import off</strong> so it says <strong>⟳ Auto import on</strong>.</li>
                     </Steps>
                     <p>
@@ -356,8 +361,7 @@ export default function ImportGuideTab() {
                         <li><strong>Start Shizuku</strong> — already done in Part 2.</li>
                         <li><strong>Allow TowerForge Link in Shizuku</strong> — tap <strong>Allow</strong>. Shizuku asks <Says>Allow TowerForge Link to access Shizuku?</Says> — tap <strong>Allow all the time</strong>.</li>
                         <li>
-                            <strong>Export your data in The Tower</strong> — tap <strong>Open The Tower</strong>, then Settings →
-                            External Tools Export → <strong>Auto</strong>. Back in TowerForge Link it says
+                            <strong>Export your data in The Tower</strong> — tap <strong>Open The Tower</strong>, then Settings → tap your player ID 5 times → External Tools Export → <strong>Auto</strong>. Back in TowerForge Link it says
                             <Says>Found your export from …</Says>
                         </li>
                         <li>
@@ -576,7 +580,7 @@ export default function ImportGuideTab() {
                             <tr><td><Says>MuMu Player is running but isn’t letting TowerForge Link connect</Says></td><td>Get TowerForge Link 0.4.1 or newer (it reads MuMu without ADB). Still there? MuMu → Settings → Developer options → <strong>ADB debug</strong> → Enable local connection, then close MuMu fully and reopen it. Just started? Wait a minute and try again.</td></tr>
                             <tr><td>It reads the wrong emulator (BlueStacks instead of MuMu…)</td><td>Get TowerForge Link 0.4 or newer: with more than one, it asks <Says>Import from…</Says>. An emulator listed but greyed out says why it can’t be read.</td></tr>
                             <tr><td><Says>The emulator or phone you picked isn’t answering</Says></td><td>Start it (or reconnect the phone), then try again — or click <strong>Get from emulator or phone</strong> and pick another.</td></tr>
-                            <tr><td><Says>… has no data export yet</Says> / <Says>The Tower hasn’t exported your data yet</Says></td><td>In the game: Settings → External Tools Export → export, or turn on Auto (<Go to="export">step 0</Go>).</td></tr>
+                            <tr><td><Says>… has no data export yet</Says> / <Says>The Tower hasn’t exported your data yet</Says></td><td>In the game: Settings → tap your player ID 5 times → External Tools Export → export, or turn on Auto (<Go to="export">step 0</Go>). Can’t find it? It only shows after those 5 taps on your ID.</td></tr>
                             <tr><td><Says>The Tower isn’t installed on …, or hasn’t been opened yet</Says></td><td>Open The Tower once on that device, then export.</td></tr>
                             <tr><td><Says>Your phone isn’t connected</Says></td><td>On the phone, turn Wireless debugging back on (it turns off after a restart or a Wi-Fi change), same Wi-Fi as the PC. Still nothing? Use <strong>Connect</strong> in the ⚙ setup (<Go to="android-pc">tip</Go>).</td></tr>
                             <tr><td><Says>The phone said the code was wrong</Says></td><td>Codes are single-use: tap <strong>Pair device with pairing code</strong> again and type the new code.</td></tr>

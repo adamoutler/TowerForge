@@ -256,7 +256,7 @@ final class LinkServer {
                 }
                 if (state == 2) {
                     write(out, 409, error("no_export", "The Tower hasn't exported your data yet. In the game: Settings → "
-                            + "External Tools Export, and export — Auto keeps it up to date."), cors);
+                            + "tap your player ID 5 times → External Tools Export, and export — Auto keeps it up to date."), cors);
                     return;
                 }
                 long modified = reader.modified();

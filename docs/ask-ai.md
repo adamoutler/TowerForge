@@ -506,6 +506,21 @@ picked the tier comparison for the coins build (`farm_tier`), so a
 `farm_tier` route for a question that never says "tier" now gets the coin
 picks with the tiers.
 
+**5. "How many coins will it cost to max out both of my Enemy level skips in
+my workshop?"** (2026-11-13, v2.11.0, the 8B; 40 s.) Routed to the notes
+(`guide · "Enemy level skip"`), so the model had no prices and made one up
+(3.72B each, 7.44B together); the note: "The cost is totally wrong". What If
+already prices this right from the cost tables (on the late bench account:
+Enemy Atk Level Skip 88.20Q, Enemy HP Level Skip 88.10Q, 176.31Q in all).
+A question asking a price ("cost", "how much … to max / level / buy") that
+names workshop upgrades now goes to What If (`checked`, `namedWorkshop`):
+names in full, or with "both / all my …" every name sharing all but its own
+word, so "both of my Enemy level skips" is both; "to level 600" keeps that
+level. Not for labs, research or enhancements (their own names). Bench
+`skip-cost`; route test in `aiAssistant.test.ts`. The same week showed Ask
+AI was working: no answers had been counted Nov 7–13 because few asked
+(the owner's question on Nov 14 was counted).
+
 ## Download size
 
 The two WebLLM scripts (the worker and the page's copy) are ~6 MB each.

@@ -100,7 +100,7 @@ internal static class Program
             Console.WriteLine($"Found {e.Name}{(e.Running ? " (running)" : "")}{adb} — {folder}");
         }
         Console.WriteLine();
-        Console.WriteLine("Ready. Export your data in the game (Settings > External Tools Export, or Auto),");
+        Console.WriteLine("Ready. Export your data in the game (Settings > tap your player ID 5 times > External Tools Export),");
         Console.WriteLine("and towerforge.net brings it in: \"Get from emulator or phone\", or Auto import on the site.");
         Console.WriteLine("Leave this window open while you use it (you can minimize it). Close it to stop.");
         Console.WriteLine();

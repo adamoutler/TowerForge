@@ -19,7 +19,8 @@ import CurrencyBar from './components/common/CurrencyBar';
 import ProfileTab from './components/tabs/ProfileTab';
 import LinkModal from './components/LinkModal';
 import ImportSheet from './components/ImportSheet';
-import { fileImportWorkedHere, rememberFileImport, thisImportDevice } from './components/common/importDevice';
+import { fileImportWorkedHere, linkImportWorkedHere, rememberFileImport, rememberLinkImport, thisImportDevice } from './components/common/importDevice';
+import { IMPORT_EVENT, offerAutoImport } from './importNav';
 import { openGuide } from './guideNav';
 import LinkSourcePicker from './components/LinkSourcePicker';
 import AutoImport from './components/common/AutoImport';
@@ -368,6 +369,17 @@ export default function App() {
         void fromLinkRef.current();
     }, [accountStatus]);
 
+    // "Import again" from a page (Profile): the quickest way on this device.
+    const quickImportRef = useRef<() => void>(() => {});
+    useEffect(() => {
+        quickImportRef.current = () => { if (linkImportWorkedHere()) void getFromEmulator(); else openImport(); };
+    });
+    useEffect(() => {
+        const onAsk = () => quickImportRef.current();
+        window.addEventListener(IMPORT_EVENT, onAsk);
+        return () => window.removeEventListener(IMPORT_EVENT, onAsk);
+    }, []);
+
     // ⬆ Import: the import help the first times, the file picker once a
     // file import has worked on this device.
     function openImport() {
@@ -394,6 +406,7 @@ export default function App() {
             applyGameImport(imp);
             trackEvent(source === 'pdf' ? 'Import game data (PDF)' : source === 'link' ? 'Import game data (emulator)' : 'Import game data');
             if (source !== 'link') rememberFileImport();
+            else rememberLinkImport();
             const lines = [
                 '✓ Imported from your game data:',
                 '• Currencies',
@@ -440,6 +453,8 @@ export default function App() {
                 ...(note ? ['', note] : []),
             ];
             alert(lines.join('\n'));
+            // Worked through Link: keeping up by itself is one tap away (once).
+            if (source === 'link') offerAutoImport();
             return;
         }
 

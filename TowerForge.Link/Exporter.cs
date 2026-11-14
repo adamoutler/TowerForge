@@ -128,7 +128,7 @@ internal static class Exporter
             + "Devices app (or iTunes), untick \"Encrypt local backup\" and back up again — or use Import Game Data.")
         : new ExportProblem("iphone_no_export",
             "Your newest iPhone backup doesn't have the game's data export. In The Tower, export your data "
-            + "(Settings → External Tools Export), then back up your iPhone again and try again.");
+            + "(Settings → tap your player ID 5 times → External Tools Export), then back up your iPhone again and try again.");
 
     private static ExportFile ReadBackup(IPhoneBackup backup, long? newerThan)
     {
@@ -319,7 +319,7 @@ internal static class Exporter
         switch (d.Status)
         {
             case "no_export":
-                return $"The Tower on {d.Name} has no data export yet. In the game, export your data, then try again.";
+                return $"The Tower on {d.Name} has no data export yet. In the game: Settings → tap your player ID 5 times → External Tools Export, export, then try again.";
             case "no_game":
                 return $"The Tower isn't installed on {d.Name}, or hasn't been opened yet.";
             case "unauthorized":

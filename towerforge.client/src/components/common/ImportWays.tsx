@@ -20,6 +20,7 @@ import { TAB_PATHS } from '../../routes';
 import { trackEvent } from '../../analytics';
 import { copyText } from './copyText';
 import { MAC_EXPORT_COMMAND } from './importDevice';
+import ExportHowTo from './ExportHowTo';
 import type { ImportDevice } from './importDevice';
 
 interface Props {
@@ -156,10 +157,14 @@ export default function ImportWays({ device, signedIn, onImportFile, onLink, onG
             )}
 
             {foot && (
-                <p className="imp-foot">
-                    First time? In the game, export your data first: Settings → <strong>External Tools Export</strong>.
-                    Stuck, or on another device? The {guide('igd-top', 'Import Guide')} shows every way, screen by screen.
-                </p>
+                <div className="imp-foot">
+                    <p>
+                        First time? In the game, export your data first: open Settings and tap your player ID (bottom left)
+                        5 times to bring up <strong>External Tools Export</strong>. Stuck, or on another device? The{' '}
+                        {guide('igd-top', 'Import Guide')} shows every way, screen by screen.
+                    </p>
+                    <ExportHowTo />
+                </div>
             )}
         </div>
     );

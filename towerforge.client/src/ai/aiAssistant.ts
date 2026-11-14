@@ -29,7 +29,7 @@ import {
 import type { AiAccount, AiChangeAsk, AiCurrency, AiRunKind, AiTourneySettings, ToolResult } from './aiTools';
 import { budgetIn, wordsOf } from './aiTools';
 import { TAB_PATHS } from '../routes';
-import { LABS, UWS } from '../constants/gameData';
+import { LABS, UWS, WS_STATS } from '../constants/gameData';
 import { UNIQUE_MODULES } from '../constants/moduleData';
 import { notesText, searchNotes } from './aiKnowledge';
 import { unverifiedNumbers } from './aiCheck';
@@ -338,6 +338,16 @@ function checked(r: Route, q: string): Route {
         out.tool = 'what_if';
         out.changes = [{ upgrade: lab, level: 'max' }];
     }
+    // What named workshop upgrades cost ("How many coins will it cost to max
+    // out both of my Enemy level skips in my workshop?", a player report
+    // 2026-11-13: went to the notes, and the 8B made up 3.72B each): What If,
+    // which prices each one from the cost tables.
+    const costed = out.tool !== 'what_if' && COST_WORDS.test(q) && !SPEND_WORDS.test(q) ? namedWorkshop(q) : [];
+    if (costed.length) {
+        const to = /\bto (?:level |lv\.? ?)?(\d{1,4})\b/i.exec(q)?.[1];
+        out.tool = 'what_if';
+        out.changes = costed.map(upgrade => ({ upgrade, level: to ?? 'max' }));
+    }
     // "What is X?" about the game (not their account) goes to the notes.
     if (out.tool === 'none' && /^\s*(what|how|why)\s+(is|are|does|do)\b/i.test(q) && !/\b(i|my|me|am|i'm)\b/i.test(q)) {
         out.tool = 'guide';
@@ -353,6 +363,8 @@ function checked(r: Route, q: string): Route {
     return out;
 }
 
+// Asking a price: "cost", or "how much / how many … to max / level / buy".
+const COST_WORDS = /\b(cost|costs|costing|price)\b|\bhow (much|many)\b[^.?!]*\b(to|for)\b[^.?!]*\b(max|level|upgrade|buy)/i;
 const COIN_WORDS = /\b(maximi[sz]e|maximum|more|most|earn|make|increase|boost|farm(ing)?)\b[^.?!]*\bcoins?\b|\bcoins? (per|an|a|\/) ?(hour|hr|run)\b|\bincome\b/i;
 const SPEND_WORDS = /\b(what|which|where) should\b|\bspend\b|\bbuy\b|\bnext\b|\bpriorit|\bbest\b|\brecommend/i;
 
@@ -375,6 +387,30 @@ function namedLab(q: string): string | null {
     if (!words.has('lab') && !words.has('research')) return null;
     const hits = LAB_NAMES.filter(l => l.words.every(w => words.has(w))).sort((a, b) => b.words.length - a.words.length);
     return hits[0]?.name ?? null;
+}
+
+// Workshop upgrades the question names in full ("Enemy HP Level Skip"), or
+// with "both / all my …" every one sharing all but its own word ("both of
+// my Enemy level skips" → Enemy Atk and Enemy HP Level Skip). Not when it
+// says lab, research or enhancement: those have names of their own.
+const WS_NAMES = Object.values(WS_STATS).flat().map(([name]) => ({ name, words: wordsOf(name) }));
+function namedWorkshop(q: string): string[] {
+    const words = new Set(wordsOf(q));
+    if (['lab', 'research', 'enhancement'].some(w => words.has(w))) return [];
+    const full = WS_NAMES.filter(n => n.words.length >= 2 && n.words.every(w => words.has(w)));
+    if (full.length) {
+        // The longest names only ("Enemy HP Level Skip", not a shorter name inside it).
+        return full.filter(n => !full.some(m => m !== n && m.words.length > n.words.length && n.words.every(w => m.words.includes(w))))
+            .map(n => n.name);
+    }
+    if (/\b(both|all|every|each)\b/i.test(q)) {
+        const family = WS_NAMES.filter(n => {
+            const shared = n.words.filter(w => words.has(w)).length;
+            return shared >= 2 && shared === n.words.length - 1;
+        });
+        if (family.length >= 2) return family.map(n => n.name);
+    }
+    return [];
 }
 
 const routeText = (r: RouteChoice) => [

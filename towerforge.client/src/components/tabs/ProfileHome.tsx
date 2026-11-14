@@ -18,6 +18,8 @@ import { TowerShape } from '../common/TowerArt';
 import { accountMeters, farthestPoint, labsTicking } from '../../engine/accountProgress';
 import type { Meter } from '../../engine/accountProgress';
 import type { TabName } from '../../types/gameTypes';
+import { askImport } from '../../importNav';
+import { useExampleOn } from '../../store/exampleAccount';
 
 // Enemies walking in to the range ring and dying on it, in the game's
 // shapes (squares and triangles): angle on the ring (degrees, 0 = right),
@@ -138,6 +140,7 @@ export default function ProfileHome() {
     }).filter(m => m.total > 0), [labData, wsData, activePreset, cardData, uwData, botData, tierWaves, profile.completedTier]);
     const far = farthestPoint(tierWaves);
     const labs = labsTicking(labsRunning, now);
+    const example = useExampleOn();
     const importedAt = Math.max(incomeLog.at(-1)?.t ?? 0, liveRun?.at ?? 0, ...labsRunning.map(l => l.exportedAt ?? 0));
     const lastTourney = [...tourneyRecords].sort((a, b) => b.date - a.date)[0];
 
@@ -151,11 +154,12 @@ export default function ProfileHome() {
     };
 
     const facts = [profile.league && `${profile.league} league`, profile.build && `${profile.build} build`].filter(Boolean).join(', ');
-    const rows: { icon: string; text: ReactNode; tab?: TabName; link?: string }[] = [];
-    if (labs.finished.length) {
+    const rows: { icon: string; text: ReactNode; tab?: TabName; link?: string; again?: boolean }[] = [];
+    // "Import again" rows are about the player's own data, not the made-up example.
+    if (labs.finished.length && !example) {
         const names = labs.finished.map(l => l.lab ?? `Lab #${l.labIndex}`).join(', ');
         rows.push({
-            icon: '🔬', tab: 'labs', link: 'Labs',
+            icon: '🔬', again: true,
             text: <>{labs.finished.length === 1 ? 'A lab has' : `${labs.finished.length} labs have`} finished since your import ({names}). Collect {labs.finished.length === 1 ? 'it' : 'them'} in the game and import again.</>,
         });
     }
@@ -174,10 +178,10 @@ export default function ProfileHome() {
             text: <>Last tournament, {date}: <strong>wave {lastTourney.wave.toLocaleString()}</strong> in {lastTourney.league}{lastTourney.rank > 0 ? `, rank ${lastTourney.rank}` : ', not placed yet'}.</>,
         });
     }
-    if (importedAt > 0 && now - importedAt > DAY) {
+    if (importedAt > 0 && now - importedAt > DAY && !example) {
         const days = Math.floor((now - importedAt) / DAY);
         rows.push({
-            icon: '📥', tab: 'importguide', link: 'How to import',
+            icon: '📥', again: true,
             text: <>Your game data is {days === 1 ? 'a day' : `${days} days`} old. Import again for today&apos;s numbers.</>,
         });
     }
@@ -212,6 +216,7 @@ export default function ProfileHome() {
                             <span className="home-now-icon" aria-hidden="true">{r.icon}</span>
                             <span className="home-now-text">{r.text}</span>
                             {r.tab && <a className="home-now-link" href={TAB_PATHS[r.tab]} onClick={open(r.tab)}>{r.link}</a>}
+                            {r.again && <button type="button" className="home-now-link home-now-btn" onClick={askImport}>⬆ Import again</button>}
                         </li>
                     ))}
                 </ul>

@@ -29,6 +29,19 @@ describe('the route, checked against the question', () => {
         expect(readRoute(json({ tool: 'none' }), 'What tier am I on?').tool).toBe('none');
     });
 
+    // A player report (2026-11-13): went to the notes, and the 8B made up the price.
+    it('sends what workshop upgrades cost to What If, both of a family when asked', () => {
+        const both = readRoute(json({ tool: 'guide', search: 'Enemy level skip' }),
+            'How many coins will it cost to max out both of my Enemy level skips in my workshop?');
+        expect(both.tool).toBe('what_if');
+        expect(both.changes).toEqual([{ upgrade: 'Enemy Atk Level Skip', level: 'max' }, { upgrade: 'Enemy HP Level Skip', level: 'max' }]);
+        const one = readRoute(json({ tool: 'none' }), 'How much does it cost to get Enemy HP Level Skip to level 600?');
+        expect(one.changes).toEqual([{ upgrade: 'Enemy HP Level Skip', level: '600' }]);
+        // Not a price, or a lab: left alone.
+        expect(readRoute(json({ tool: 'none' }), 'What is enemy level skip?').tool).toBe('guide');
+        expect(readRoute(json({ tool: 'upgrades', currency: 'coins' }), 'What should I spend my coins on next?').tool).toBe('upgrades');
+    });
+
     it('sends module shards alone to the shard plan, and lab boosts to their own', () => {
         expect(readRoute(json({ tool: 'upgrades', currency: 'shards' }), 'best use of my module shards').tool).toBe('shard_plan');
         expect(readRoute(json({ tool: 'upgrades', currency: 'research' }), 'what boost should my labs run at').tool).toBe('lab_boosts');

@@ -194,7 +194,7 @@ public class MainActivity extends Activity {
                     line = s == 0 ? "Found your export from " + DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
                             .format(new Date(reader.modified() * 1000)) + ". Turn on Auto in the game to keep it fresh."
                             : s == 1 ? "The Tower isn't installed on this phone, or hasn't been opened yet."
-                            : s == 2 ? "No export yet. In The Tower: Settings → External Tools Export, then export — or "
+                            : s == 2 ? "No export yet. In The Tower: Settings → tap your player ID 5 times → External Tools Export, then export — or "
                             + "choose Auto so the game exports every time it saves."
                             : "Found the export but couldn't read it. Export again in the game.";
                 } catch (Exception e) {
