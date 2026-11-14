@@ -343,8 +343,9 @@
 
     .home-now li {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        gap: 12px;
+        gap: 8px 12px;
         padding: 11px 16px;
         font-size: 15px;
     }
@@ -359,7 +360,7 @@
 }
 
 .home-now-text {
-    flex: 1;
+    flex: 1 1 200px;     /* on a phone, a row's buttons wrap under its words */
     min-width: 0;
     color: var(--text);
 }
@@ -381,6 +382,87 @@
         text-decoration: underline;
     }
 
+/* This week (engine/thisWeek.ts): the last 7 days as tiles, under the dials. */
+.home-week {
+    margin: 14px 0 4px;
+}
+
+.home-week-title {
+    margin: 0 0 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-bright);
+}
+
+.home-week-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+}
+
+.home-week-link {
+    text-decoration: none;
+    color: inherit;
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+
+    .home-week-link:hover {
+        border-color: var(--accent);
+    }
+
+/* "Add TowerForge to your home screen" (InstallHint): one quiet line. */
+.home-install {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-top: 12px;
+    padding: 10px 40px 10px 12px;     /* room for the ✕ in the corner */
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text);
+    border: 1px dashed color-mix(in srgb, var(--accent) 40%, var(--border));
+    border-radius: var(--radius-md);
+}
+
+.home-install-icon {
+    font-size: 18px;
+}
+
+.home-install-text {
+    flex: 1;
+    min-width: 200px;
+}
+
+    .home-install-text strong {
+        color: var(--text-bright);
+    }
+
+.home-install-how {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-dim);
+}
+
+.home-install-close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    padding: 4px 8px;
+    font-size: 14px;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.home-now-note {
+    flex-basis: 100%;
+    font-size: 13px;
+    color: var(--text-dim);
+}
+
 /* "Import again": a small pill, since it does the import rather than open a page. */
 .home-now-btn {
     padding: 4px 11px;
@@ -394,6 +476,11 @@
     .home-now-btn:hover {
         text-decoration: none;
         background: color-mix(in srgb, var(--accent) 22%, transparent);
+    }
+
+    .home-now-btn.on {
+        color: var(--text-bright);
+        background: color-mix(in srgb, var(--accent) 28%, transparent);
     }
 
 @media (prefers-reduced-motion: reduce) {

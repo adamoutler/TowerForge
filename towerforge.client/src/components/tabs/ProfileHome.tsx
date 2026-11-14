@@ -19,6 +19,10 @@ import { accountMeters, farthestPoint, labsTicking } from '../../engine/accountP
 import type { Meter } from '../../engine/accountProgress';
 import type { TabName } from '../../types/gameTypes';
 import { askImport } from '../../importNav';
+import { thisWeek, tourneyDayText } from '../../engine/thisWeek';
+import { formatGameNumber } from '../../engine/gameNumbers';
+import InstallHint from '../common/InstallHint';
+import { remindersSupported, turnOffReminders, turnOnReminders, useRemindersOn } from '../common/labReminders';
 import { useExampleOn } from '../../store/exampleAccount';
 
 // Enemies walking in to the range ring and dying on it, in the game's
@@ -129,7 +133,8 @@ export default function ProfileHome() {
     const tourneyRecords = useGameStore(s => s.tourneyRecords);
     const incomeLog = useGameStore(s => s.incomeLog);
     const liveRun = useGameStore(s => s.liveRun);
-    const hasRuns = useGameStore(s => s.importedBattles.length > 0);
+    const importedBattles = useGameStore(s => s.importedBattles);
+    const hasRuns = importedBattles.length > 0;
     const setActiveTab = useGameStore(s => s.setActiveTab);
     // Set on opening the page, like Run in Progress.
     const [now] = useState(() => Date.now());
@@ -141,6 +146,7 @@ export default function ProfileHome() {
     const far = farthestPoint(tierWaves);
     const labs = labsTicking(labsRunning, now);
     const example = useExampleOn();
+    const week = useMemo(() => thisWeek(importedBattles, tourneyRecords, now), [importedBattles, tourneyRecords, now]);
     const importedAt = Math.max(incomeLog.at(-1)?.t ?? 0, liveRun?.at ?? 0, ...labsRunning.map(l => l.exportedAt ?? 0));
     const lastTourney = [...tourneyRecords].sort((a, b) => b.date - a.date)[0];
 
@@ -154,7 +160,7 @@ export default function ProfileHome() {
     };
 
     const facts = [profile.league && `${profile.league} league`, profile.build && `${profile.build} build`].filter(Boolean).join(', ');
-    const rows: { icon: string; text: ReactNode; tab?: TabName; link?: string; again?: boolean }[] = [];
+    const rows: { icon: string; text: ReactNode; tab?: TabName; link?: string; again?: boolean; remind?: boolean }[] = [];
     // "Import again" rows are about the player's own data, not the made-up example.
     if (labs.finished.length && !example) {
         const names = labs.finished.map(l => l.lab ?? `Lab #${l.labIndex}`).join(', ');
@@ -167,7 +173,7 @@ export default function ProfileHome() {
         const { lab, at } = labs.next;
         const stillRunning = labs.running - labs.finished.length;
         rows.push({
-            icon: '⏳', tab: 'labs', link: 'Labs',
+            icon: '⏳', tab: 'labs', link: 'Labs', remind: !example,
             text: <><strong>{lab.lab ?? `Lab #${lab.labIndex}`}{lab.toLevel ? ` Lv ${lab.toLevel}` : ''}</strong> finishes in {span(at - now)}{stillRunning > 1 ? `, the first of ${stillRunning} labs researching` : ''}.</>,
         });
     }
@@ -209,6 +215,37 @@ export default function ProfileHome() {
                 </nav>
             )}
 
+            {(week.runs > 0 || week.nextTourney !== null) && (
+                <section className="home-week" aria-labelledby="home-week-title">
+                    <h3 id="home-week-title" className="home-week-title">This week</h3>
+                    <div className="home-week-tiles">
+                        <div className="stat-pill" title="Runs in the last 7 days, from your imports">
+                            <span className="stat-pill-label">Runs</span>
+                            <span className="stat-pill-val">{week.runs}</span>
+                        </div>
+                        {week.best && (
+                            <div className="stat-pill">
+                                <span className="stat-pill-label">Best run</span>
+                                <span className="stat-pill-val">W{week.best.wave.toLocaleString()} · T{week.best.tier}</span>
+                            </div>
+                        )}
+                        {week.runs > 0 && (
+                            <div className="stat-pill">
+                                <span className="stat-pill-label">Coins earned</span>
+                                <span className="stat-pill-val">{formatGameNumber(week.coins)}</span>
+                            </div>
+                        )}
+                        {week.nextTourney !== null && (
+                            <a className="stat-pill home-week-link" href={TAB_PATHS.tournament} onClick={open('tournament')}
+                                title="From the days your past tournaments fell on">
+                                <span className="stat-pill-label">Next tournament</span>
+                                <span className="stat-pill-val">{tourneyDayText(week.nextTourney, now)}</span>
+                            </a>
+                        )}
+                    </div>
+                </section>
+            )}
+
             {rows.length > 0 && (
                 <ul className="home-now">
                     {rows.map((r, i) => (
@@ -217,10 +254,41 @@ export default function ProfileHome() {
                             <span className="home-now-text">{r.text}</span>
                             {r.tab && <a className="home-now-link" href={TAB_PATHS[r.tab]} onClick={open(r.tab)}>{r.link}</a>}
                             {r.again && <button type="button" className="home-now-link home-now-btn" onClick={askImport}>⬆ Import again</button>}
+                            {r.remind && <RemindButton />}
                         </li>
                     ))}
                 </ul>
             )}
+
+            {!example && <InstallHint />}
+        </>
+    );
+}
+
+// "Remind me": a notification when each lab finishes (labReminders.ts).
+function RemindButton() {
+    const on = useRemindersOn();
+    const [busy, setBusy] = useState(false);
+    const [note, setNote] = useState<string | null>(null);
+    if (!remindersSupported()) return null;
+    const click = async () => {
+        setBusy(true);
+        setNote(null);
+        if (on) await turnOffReminders();
+        else {
+            const r = await turnOnReminders();
+            if (r === 'denied') setNote('Notifications are blocked for TowerForge in this browser’s settings.');
+            else if (r === 'failed') setNote('Reminders couldn’t be turned on here.');
+        }
+        setBusy(false);
+    };
+    return (
+        <>
+            <button type="button" className={`home-now-link home-now-btn ${on ? 'on' : ''}`} onClick={() => void click()} disabled={busy}
+                title={on ? 'You’ll get a notification when each lab finishes. Click to stop.' : 'Get a notification when each lab finishes'}>
+                {on ? '🔔 Reminders on' : '🔔 Remind me'}
+            </button>
+            {note && <span className="home-now-note" role="status">{note}</span>}
         </>
     );
 }

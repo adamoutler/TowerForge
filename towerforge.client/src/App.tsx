@@ -22,6 +22,7 @@ import ImportSheet from './components/ImportSheet';
 import { fileImportWorkedHere, linkImportWorkedHere, rememberFileImport, rememberLinkImport, thisImportDevice } from './components/common/importDevice';
 import { IMPORT_EVENT, offerAutoImport } from './importNav';
 import { openGuide } from './guideNav';
+import { ROUTE_META, pageTitle } from './routeMeta';
 import LinkSourcePicker from './components/LinkSourcePicker';
 import AutoImport from './components/common/AutoImport';
 import ThemePicker from './components/common/ThemePicker';
@@ -148,10 +149,8 @@ const isFooterTab = (tab: TabName) => !!groupOf(tab).tabs.find(t => t.id === tab
 // The tab a section returns to, after opening `tab` (footer pages aren't kept).
 const remember = (last: Record<string, TabName>, tab: TabName) => (isFooterTab(tab) ? last : { ...last, [groupOf(tab).id]: tab });
 
-const HOME_TITLE = 'TowerForge — The Tower Companion';
-const titleOf = (tab: TabName) => (tab === 'profile'
-    ? HOME_TITLE
-    : `${(t => t?.title ?? t?.label)(groupOf(tab).tabs.find(t => t.id === tab)) ?? tab} — TowerForge`);
+// Page titles and descriptions: routeMeta.ts (the build writes them into each page's HTML too).
+const titleOf = pageTitle;
 
 // A plain click opens the tab here; Ctrl / ⌘ / Shift / middle click do
 // what they do on any link (new tab or window).
@@ -235,6 +234,8 @@ export default function App() {
             else window.history.replaceState(null, '', path + search + hash);
         }
         document.title = titleOf(activeTab);
+        // The same description the page's own HTML file has (routeMeta.ts), for search engines that run the app.
+        document.querySelector('meta[name="description"]')?.setAttribute('content', ROUTE_META[activeTab].description);
     }, [activeTab, shareCode]);
 
     // A preview tab this account can't see (once the account is known)

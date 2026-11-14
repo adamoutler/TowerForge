@@ -7,11 +7,19 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b0812" />
+    <!-- Installable as an app (public/manifest.webmanifest; icons: scripts/app-icons.ps1). -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="TowerForge" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <!-- The player's theme (components/common/ThemePicker.tsx) before the page paints. -->
     <script>try { var t = localStorage.getItem('tc_theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) { }</script>
     <title>TowerForge — The Tower Companion</title>
     <meta name="description" content="Companion for The Tower (idle tower defense): import your account and see what to upgrade next, ranked by the waves and coins each upgrade gives for what it costs." />
-    <!-- Link previews (Discord, Reddit, X…). The image: scripts/og-image.ps1. -->
+    <link rel="canonical" href="https://towerforge.net/" />
+    <!-- Link previews (Discord, Reddit, X…). The image: scripts/og-image.ps1. Each page gets its own title and description at build (routePagesPlugin.ts). -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="TowerForge" />
     <meta property="og:title" content="TowerForge — The Tower Companion" />

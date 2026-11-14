@@ -84,6 +84,23 @@ public sealed class AppDb
             );
 
             CREATE INDEX IF NOT EXISTS ix_ai_reports_created ON ai_reports(created_at);
+
+            -- Lab reminders waiting to be sent (Push/ReminderStore.cs): a
+            -- browser's push address and keys, the words, the page and when.
+            CREATE TABLE IF NOT EXISTS push_reminders (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                endpoint   TEXT    NOT NULL,
+                p256dh     TEXT    NOT NULL,
+                auth       TEXT    NOT NULL,
+                title      TEXT    NOT NULL,
+                body       TEXT    NOT NULL,
+                url        TEXT    NOT NULL,
+                due_at     INTEGER NOT NULL,
+                created_at INTEGER NOT NULL
+            );
+
+            CREATE INDEX IF NOT EXISTS ix_push_reminders_due ON push_reminders(due_at);
+            CREATE INDEX IF NOT EXISTS ix_push_reminders_endpoint ON push_reminders(endpoint);
             """;
         cmd.ExecuteNonQuery();
     }

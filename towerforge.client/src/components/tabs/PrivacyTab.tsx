@@ -27,7 +27,7 @@ export default function PrivacyTab() {
             <div className="lgl-short">
                 <h3>The short version</h3>
                 <ul>
-                    <li>What you enter or import stays in your browser, unless you make an account, make a share link or send an Ask AI answer.</li>
+                    <li>What you enter or import stays in your browser, unless you make an account, make a share link, send an Ask AI answer or turn on lab reminders.</li>
                     <li>No ads. TowerForge never sells or shares your data, and sets no tracking cookies.</li>
                     <li>A normal visit loads nothing from other companies: the site, its fonts and its visitor counter all come from towerforge.net.</li>
                     <li>Visits are counted without cookies, and IP addresses aren&apos;t kept with the counts.</li>
@@ -81,6 +81,17 @@ export default function PrivacyTab() {
                 Discord.
             </p>
 
+            <h3>Lab reminders (only if you turn them on)</h3>
+            <p>
+                When you tap <strong>🔔 Remind me</strong> and your browser asks to allow notifications, your browser gives
+                TowerForge a push address at its own push service (Google, Apple, Mozilla or Microsoft, depending on the
+                browser). TowerForge&apos;s server keeps that address, with the names and finish times of the labs you were
+                researching at your last import, and sends a notification when each one finishes. The notification is
+                encrypted, so the push service only carries it and can&apos;t read it. Each reminder is deleted once it&apos;s
+                sent; turning reminders off (the same button) deletes the rest, and anything left is deleted after 45 days.
+                No account and nothing else about you.
+            </p>
+
             <h3>Visit counts</h3>
             <p>
                 TowerForge counts visits with <a href="https://umami.is" target="_blank" rel="noopener noreferrer">Umami</a>,
@@ -88,7 +99,7 @@ export default function PrivacyTab() {
                 visit it records the page, the page you came from, your browser, system, device type, screen size and
                 language, and your country, region and city, worked out from your IP address. The IP address itself
                 isn&apos;t kept. It also counts a few actions, without anything you typed: importing, TowerForge Link
-                steps, which way in the import help you pick, trying the example account, the theme you pick, copying a creator code, opening a creator&apos;s channel or stream or the charity event&apos;s links, and the kind of each Ask AI question. These counts
+                steps, which way in the import help you pick, trying the example account, adding the site to your home screen, turning lab reminders on or off, the theme you pick, copying a creator code, opening a creator&apos;s channel or stream or the charity event&apos;s links, and the kind of each Ask AI question. These counts
                 show which pages people use and what breaks; they&apos;re kept as statistics and can&apos;t be tied to
                 you.
             </p>
@@ -106,6 +117,7 @@ export default function PrivacyTab() {
             <ul>
                 <li><strong>Ask AI&apos;s download:</strong> your browser fetches the AI from Hugging Face and its small program from GitHub, the way any download works. They see your IP address and the file, nothing more.</li>
                 <li><strong>TowerForge Link:</strong> the Windows app downloads Google&apos;s adb from Google when you press <em>Get Google&apos;s adb</em>.</li>
+                <li><strong>Lab reminders</strong> (if you turn them on): your browser&apos;s push service delivers them, encrypted (above).</li>
                 <li><strong>Links</strong> to Discord, YouTube, Twitch, Tiltify (the charity event), the game&apos;s webstore and other community sites: their own privacy policies apply once you open them.</li>
             </ul>
             <p>
@@ -131,7 +143,7 @@ export default function PrivacyTab() {
 
             <h3>Where it&apos;s kept and how it&apos;s protected</h3>
             <p>
-                Accounts, share links, sent answers, visit counts and logs are on TowerForge&apos;s server in the United
+                Accounts, share links, sent answers, lab reminders, visit counts and logs are on TowerForge&apos;s server in the United
                 States (OVHcloud, Virginia). If you live elsewhere, making an account or a share link sends that data to
                 the US. The site is HTTPS-only, passwords and recovery codes are hashed, and only the person who runs
                 TowerForge can reach the server.
@@ -153,7 +165,7 @@ export default function PrivacyTab() {
                 <li><strong>Anything else</strong> — a question, a share link or sent answer to remove, or a request about your data: ask on <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">TowerForge&apos;s Discord</a>. You&apos;ll get an answer within 30 days.</li>
             </ul>
             <p>
-                <strong>In the EU, the UK and Switzerland</strong>, TowerForge keeps account and share data to give you
+                <strong>In the EU, the UK and Switzerland</strong>, TowerForge keeps account, share and reminder data to give you
                 what you asked for, sent answers because you chose to send them, and visit counts and logs for its
                 legitimate interest in keeping the site working and safe. You may object to any of it, and you can
                 complain to your data protection authority.

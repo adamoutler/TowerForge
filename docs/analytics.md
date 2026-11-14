@@ -32,7 +32,10 @@ server. Set up 2026-10-16 with Umami v3.4.0.
   `Example account` with `step` `try`, `leave`, or `import` (their own data replaced it — the
   number to watch), 2026-11-13. `Import game data (auto)` once a visit when Auto import brings
   data in (before, auto imports weren't counted at all), and `Auto import on` with `from: offer`
-  when it was turned on from the one-time offer after a first Link import.
+  when it was turned on from the one-time offer after a first Link import. `Install app` (`step`
+  `shown` once a visit, `how`, `not now`, `accepted` / `dismissed` from Chrome's prompt,
+  `installed`) and `Lab reminders` (`on`, `off`, `denied`), 2026-11-13. An installed app opens
+  at `/?source=app`, so app visits show in the address.
 - `ai-answer` (Ask AI, 2026-10-29): one per answer, with no question, answer
   or account in it — `tool` (the data it used), `picked` (wording, model or
   keywords), `flagged` (a number that isn't TowerForge's: yes/no), `time`

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using TowerForge.Server.Data;
 using TowerForge.Server.LiveStreams;
+using TowerForge.Server.Push;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,6 +70,14 @@ builder.Services.AddSingleton(sp => new LiveStreamService(
     Path.Combine(dataDir, "youtube-channels.json")));
 builder.Services.AddHostedService(sp => sp.GetRequiredService<LiveStreamService>());
 
+// ── Lab reminders (Web Push) ───────────────────────────────────
+// The push key pair is made on first start and kept in the data
+// directory (push-keys.json), never in the repo.
+builder.Services.AddSingleton<ReminderStore>();
+builder.Services.AddSingleton(sp => new PushKeys(Path.Combine(dataDir, "push-keys.json"), sp.GetRequiredService<ILogger<PushKeys>>()));
+builder.Services.AddHttpClient(ReminderService.HttpClientName, c => c.Timeout = TimeSpan.FromSeconds(20));
+builder.Services.AddHostedService<ReminderService>();
+
 // Persist keys so sign-in cookies survive restarts and deploys.
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(dataDir, "keys")))
@@ -112,6 +121,7 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy("share-create", ctx => PerIp(ctx, permitsPerMinute: 20));
     options.AddPolicy("save", ctx => PerIp(ctx, permitsPerMinute: 60));
     options.AddPolicy("ai-report", ctx => PerIp(ctx, permitsPerMinute: 10));
+    options.AddPolicy("reminders", ctx => PerIp(ctx, permitsPerMinute: 30));
 });
 
 builder.Services.AddControllers();

@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <Compile Include="..\TowerForge.Server\LiveStreams\StreamCheck.cs" Link="LiveStreams\StreamCheck.cs" />
+    <Compile Include="..\TowerForge.Server\Push\WebPush.cs" Link="Push\WebPush.cs" />
   </ItemGroup>
 
 </Project>

@@ -22,6 +22,8 @@ commit.**
 | Sign-in cookie `tf_session` | browser | 30 days, sliding | HttpOnly, Secure, SameSite Strict; the only cookie |
 | Share links: the picked sections | SQLite `shares` | 90 days (`ShareStore.Lifetime`) | never the username or in-game name |
 | Ask AI reports (only on Send) | SQLite `ai_reports` | 1 year (`AiReportStore.Lifetime`) | username if signed in |
+| Lab reminders (only after "Remind me" and the browser's permission) | SQLite `push_reminders` | each until sent; all on "Reminders on" → off; 45 days at most (`ReminderStore.Lifetime`) | the browser's push address and keys, lab names and finish times; no account, no IP. Delivered by the browser's push service (Google, Apple, Mozilla, Microsoft), encrypted end to end (RFC 8291), so the service can't read it |
+| TowerForge's push key pair | `push-keys.json` in `/var/lib/towerforge` | kept | made on first start; signs reminders (VAPID); never in the repo |
 | Visit counts (Umami) | PostgreSQL `umami` | kept as statistics | no cookies, no IP stored; session row holds browser, OS, device, screen, language, country/region/city; skips Do Not Track (`data-do-not-track`) |
 | nginx access log: IP, time, request, user agent, referrer | `/var/log/nginx` | 14 days (logrotate daily, rotate 14) | the API's own logs hold no IPs |
 | Rate limits per IP | API memory | a minute | never written down |
@@ -49,6 +51,11 @@ Only on a player's own action: Ask AI's download (Hugging Face, GitHub), Link
 downloading Google's adb (the dialog links Google's Android SDK terms), and
 links out (Discord, YouTube, Twitch, the webstore, community sites).
 
+Installing the site as an app (2026-11-13: `manifest.webmanifest`, icons)
+loads nothing from others. The service worker (`public/sw.js`) is registered
+only when a player turns on lab reminders; it shows the notifications and
+caches nothing.
+
 Creator Codes' LIVE badges (2026-11-09) keep it that way: the browser asks
 towerforge.net (`GET /api/creators/live`, every 2 minutes while a page is
 open), and the server asks Twitch and YouTube, sending only the creators'
@@ -68,6 +75,7 @@ Terms link YouTube's Terms of Service.
 | Trademark and copyright (Tech Tree Games) | game names and art | Tech Tree Games has given TowerForge a written OK to use the art (owner, 2026-11-08); "not affiliated, used with permission" line in the footer and Terms, and the licenses file |
 | Open-source licenses (MIT, Apache-2.0, OFL) | bundled code, fonts and TheTowerSDK data | `third-party-licenses.txt`, written at build by `towerforge.client/licensesPlugin.ts` |
 | EU AI Act art. 50 (from 2 Aug 2026) | Ask AI is a chatbot | the page says it's an AI and how it works |
+| ePrivacy / GDPR consent for notifications | lab reminders use the browser's push service | only after the player taps Remind me and the browser's own permission prompt; off deletes them |
 | YouTube API Services Developer Policies | the LIVE badges use the YouTube Data API | Privacy: uses YouTube API Services + Google Privacy Policy link (III.A.2); Terms: YouTube Terms of Service link and agreement (III.A.1); "Live on YouTube" on each stream (III.F.2); channel ids refreshed within 30 days (III.E.4) |
 
 Not needed for now: a cookie banner (nothing to consent to), a DMCA agent
