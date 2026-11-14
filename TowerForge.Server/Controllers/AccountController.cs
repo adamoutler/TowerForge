@@ -18,6 +18,7 @@ namespace TowerForge.Server.Controllers;
 //  Forgotten passwords: a recovery code (UserStore) sets a new one;
 //  the player gets a code with the account and can make a new one
 //  while signed in, and can change the password.
+//  Deleting an account removes it and everything tied to it.
 // ============================================================
 [ApiController]
 [Route("api/account")]
@@ -46,6 +47,7 @@ public class AccountController : ControllerBase
     public record LoginRequest(string Username, string Password);
     public record ResetRequest(string Username, string RecoveryCode, string NewPassword);
     public record PasswordRequest(string CurrentPassword, string NewPassword);
+    public record DeleteRequest(string Password);
 
     private static bool PasswordOk(string? password) =>
         (password?.Length ?? 0) >= MinPasswordLength && password!.Length <= MaxPasswordLength;
@@ -126,6 +128,20 @@ public class AccountController : ControllerBase
         return await _users.ChangePasswordAsync(CurrentUserId(), req.CurrentPassword ?? "", req.NewPassword)
             ? NoContent()
             : BadRequest(new { error = "Your current password isn’t right." });
+    }
+
+    // POST /api/account/delete — deletes the signed-in account and
+    // everything tied to it (UserStore.DeleteAccountAsync), then signs out.
+    // The password is asked again so a device left signed in can't do it.
+    [Authorize]
+    [HttpPost("delete")]
+    [EnableRateLimiting("auth")]
+    public async Task<IActionResult> DeleteAccount([FromBody] DeleteRequest req)
+    {
+        if (!await _users.DeleteAccountAsync(CurrentUserId(), req.Password ?? ""))
+            return BadRequest(new { error = "Your password isn’t right." });
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return NoContent();
     }
 
     // POST /api/account/login — returns the account's saved stats so the

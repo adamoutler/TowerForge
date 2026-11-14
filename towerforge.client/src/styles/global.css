@@ -4,7 +4,7 @@
    No component styles live here.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import './fonts.css';
 @import './variables.css';
 
 *,
@@ -147,6 +147,19 @@ input[type='checkbox'] {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* Phones: a narrower box (four digits still fit) with wider − and +,
+   so rows leave room for their names. */
+@media (max-width: 600px) {
+    .num-input {
+        width: 96px;
+    }
+
+    .num-btn {
+        width: 28px;
+        padding: 0;
+    }
 }
 
 .num-btn:hover:not(:disabled) {

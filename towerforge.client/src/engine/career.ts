@@ -326,3 +326,55 @@ export function runRecords(runs: BattleReport[]): RunRecord[] {
         return best ? [best] : [];
     });
 }
+
+// ── A year in the game's recap, for its share picture ─────────
+// The headline numbers of one WrappedStats row (Career → Year in Review):
+// the most-used Ultimate Weapon by times used (Golden Tower and Spotlight
+// have no count in the recap) and the enemy type that ended the most runs.
+const YEAR_UWS: [string, string][] = [
+    ['Chain Lightning', 'ChainLightningAmount'], ['Smart Missiles', 'SmartMissilesAmount'], ['Death Wave', 'DeathWaveAmount'],
+    ['Inner Land Mines', 'InnerLandMinesAmount'], ['Poison Swamp', 'PoisonSwampAmount'], ['Black Hole', 'BlackHoleAmount'],
+    ['Chrono Field', 'ChronoFieldAmount'],
+];
+const YEAR_ENEMIES: [string, string][] = [
+    ['Basic', 'Basic'], ['Fast', 'Fast'], ['Tank', 'Tank'], ['Ranged', 'Ranged'], ['Boss', 'Boss'], ['Protector', 'Protector'],
+    ['Vampire', 'Vampire'], ['Ray', 'Ray'], ['Scatter', 'ScatterMain'], ['Scatter split', 'ScatterChild'], ['Saboteur', 'Saboteur'],
+    ['Commander', 'Commander'], ['Overcharge', 'Overcharge'],
+];
+
+export interface YearHighlights {
+    year: number;
+    battles: number;
+    waves: number;           // GameWavesCleared
+    battleMs: number;        // GameTimeInBattle (game time)
+    tournaments: number;
+    bestLeague: number;      // TournamentHighestLeague: the game's league number
+    promotions: number;
+    enemies: number;         // every enemy type destroyed, added up
+    cardsPulled: number;
+    modulesEarned: number;
+    missions: number;        // daily + event
+    favoriteUw: { name: string; uses: number } | null;
+    endedMostBy: string | null;
+}
+
+export function yearHighlights(y: CareerYear): YearHighlights {
+    const v = (k: string) => y[k] ?? 0;
+    const fav = YEAR_UWS.map(([name, key]) => ({ name, uses: v(key) })).sort((a, b) => b.uses - a.uses)[0];
+    const ender = YEAR_ENEMIES.map(([name, key]) => ({ name, n: v(`DiedTo${key}`) })).sort((a, b) => b.n - a.n)[0];
+    return {
+        year: y.Year,
+        battles: v('GameBattlesStarted'),
+        waves: v('GameWavesCleared'),
+        battleMs: v('GameTimeInBattle'),
+        tournaments: v('TournamentAmount'),
+        bestLeague: v('TournamentHighestLeague'),
+        promotions: v('TournamentPromotionsAmount'),
+        enemies: YEAR_ENEMIES.reduce((s, [, key]) => s + v(`Killed${key}`), 0),
+        cardsPulled: v('CardsPulledAmount'),
+        modulesEarned: v('ModulesEarnedAmount'),
+        missions: v('DailyMissionsCompleted') + v('EventMissionsCompleted'),
+        favoriteUw: fav && fav.uses > 0 ? fav : null,
+        endedMostBy: ender && ender.n > 0 ? ender.name : null,
+    };
+}

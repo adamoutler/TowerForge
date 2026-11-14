@@ -446,6 +446,81 @@ over the last 10, best 12), and on the mid account (an eHP build in Gold,
 where TowerForge doesn't score tournament waves) it padded the answer with
 levels from the summary and called Legend a "tier".
 
+**2–4. Three reports sent on 2026-11-09** (copied as bench questions by
+the owner). Each went to the wrong data; the fixes are in code
+(`checked`, `wordsOf`) and in the notes, checked on the bench accounts
+without the model (`aiAssistant.test.ts`, `aiTools*.test.ts`):
+
+- *"How do I get a permanent Black Hole in tournaments without perks and
+  the Galaxy Compressor?"* — routed `none`, so the model answered from its
+  own memory. The notes didn't say it either: `ultimate-weapons.md` now has
+  a "Permanent Black Hole" paragraph (38s against 50s; what closes the 12s:
+  the perk, Galaxy Compressor, or Core module BH Duration / Cooldown
+  substats on the main and assist slots; not Multiverse Nexus). A `none`
+  that asks how to do something with a game thing by name (a UW, UW+,
+  unique module, perks, labs, cards…) now goes to the notes, which find
+  the Black Hole section first. Bench `bh-permanent`.
+- *"Could you recommend a total build set to maximize coins per hour?"* —
+  routed `none`. Earning coins said any way ("maximize coins", "coins per
+  hour") is now the coin picks, and coins *an hour* or farming also gets
+  which tier to farm. Bench `coins-build`.
+- *"My coin/wave workshop is maxed out so it gave the wrong information. I
+  am asking specifically on the research lab…"* — a follow-up. Two causes:
+  "coin/wave lab" matched the workshop's Coin/Wave (its name has "coin",
+  the lab's "Coins"), so the first answer was about the workshop; and this
+  question got the coin picks. Words now read one and many the same
+  (`wordsOf`), and a lab named in full, when the question isn't asking what
+  to buy, gets What If on that lab. Bench `coin-wave-lab`. On the bench
+  accounts maxing the Coins/Wave Lab shows +0 coins: its gain scales the
+  share of coins a run measured from Coins/Wave, and the made-up runs have
+  none; a real export has it.
+
+What the reports themselves showed (the owner sent the answers too):
+
+- The Black Hole answer took 87 s to route and 185 s in all on that
+  player's GPU, and said "it's not possible" from Cooldown 16/16 alone.
+- The coins question never ran: `ModelNotLoadedError` in 0.0 s on the 8B.
+  When the graphics card drops the model (sleep, a driver reset) WebLLM
+  unloads it in the worker while the page still reads "ready", so every
+  question failed at once. Now that error loads the model again and asks
+  once more ("The model stopped — loading it again…"); checked by
+  unloading the model under a ready page: it reloaded in 5 s and answered
+  once, with no duplicate message. Its bench line's `none` was only the
+  missing route.
+- The Coins/Wave answer said "the Coin/Wave Lab is already maxed (99/99)":
+  the summary lists the Coins/**Kill** Lab, which was 99/99. With What If
+  on the right lab the 4B still said "maxed" — the question says the
+  workshop's is — until the headline led with where the upgrade is ("Coins/
+  Wave Lab is level 21 of 99 now, not maxed.") and a rule said maxed means
+  both numbers equal. A coins-only What If's headline is now coins, not
+  "+0.00% damage and +0.00% survival".
+
+Rerun on Qwen3 4B (2026-11-09, the three questions plus the What If,
+farm-tier and more-coins questions on mid and late; 26 asks over two runs):
+route 100%, headline 100%. Read by hand: Coins/Wave now "not maxed (21 of
+99)" with its cost; the coins build gives the coin picks and the best
+tier; the Black Hole answer leads with the two Core modules and "avoid
+Multiverse Nexus", but the 4B still adds "use the Black Hole perk" though
+the question rules it out, and one answer invented a page link. The 4B
+picked the tier comparison for the coins build (`farm_tier`), so a
+`farm_tier` route for a question that never says "tier" now gets the coin
+picks with the tiers.
+
+**5. "How many coins will it cost to max out both of my Enemy level skips in
+my workshop?"** (2026-11-13, v2.11.0, the 8B; 40 s.) Routed to the notes
+(`guide · "Enemy level skip"`), so the model had no prices and made one up
+(3.72B each, 7.44B together); the note: "The cost is totally wrong". What If
+already prices this right from the cost tables (on the late bench account:
+Enemy Atk Level Skip 88.20Q, Enemy HP Level Skip 88.10Q, 176.31Q in all).
+A question asking a price ("cost", "how much … to max / level / buy") that
+names workshop upgrades now goes to What If (`checked`, `namedWorkshop`):
+names in full, or with "both / all my …" every name sharing all but its own
+word, so "both of my Enemy level skips" is both; "to level 600" keeps that
+level. Not for labs, research or enhancements (their own names). Bench
+`skip-cost`; route test in `aiAssistant.test.ts`. The same week showed Ask
+AI was working: no answers had been counted Nov 7–13 because few asked
+(the owner's question on Nov 14 was counted).
+
 ## Download size
 
 The two WebLLM scripts (the worker and the page's copy) are ~6 MB each.

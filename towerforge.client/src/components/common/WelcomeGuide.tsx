@@ -5,13 +5,21 @@
 //  runs imported) or hides it; hidden is remembered per browser
 //  (localStorage tc_welcome). Waits for a signed-in account to load,
 //  so its saved stats don't flash the guide.
-//  The game's export (29.1.3+): Settings → External Tools Export, saved
+//  The game's export (29.1.3+): Settings → tap the player ID 5 times →
+//  External Tools Export (ExportHowTo shows where), saved
 //  as tool_export.json in the game's app folder (docs/towerforge-link.md).
-//  Each way in links to its part of the Import Guide.
+//  "Try it with an example account" (store/exampleAccount.ts) lets a
+//  visitor look around with a made-up player before importing.
+//  Step 2 shows the ways in that work on this device first
+//  (ImportWays, as in the Import help), each linking to its part of
+//  the Import Guide.
 // ============================================================
 
 import { useState } from 'react';
 import type { ChangeEvent, MouseEvent } from 'react';
+import ImportWays from './ImportWays';
+import ExportHowTo from './ExportHowTo';
+import type { ImportDevice } from './importDevice';
 import { useGameStore } from '../../store/useGameStore';
 import { useAccountStore } from '../../store/useAccountStore';
 import { TAB_PATHS } from '../../routes';
@@ -33,12 +41,15 @@ const TOOLS: { tab: TabName; name: string; what: string }[] = [
 ];
 
 interface Props {
+    device: ImportDevice;
+    signedIn: boolean;
     onImportFile: (e: ChangeEvent<HTMLInputElement>) => void;
-    onEmulator: () => void;
-    emulatorBusy: boolean;
+    onLink: () => void;
+    onSignIn: () => void;
+    onExample?: () => void;     // the example account (signed out only: it's never saved to an account)
 }
 
-export default function WelcomeGuide({ onImportFile, onEmulator, emulatorBusy }: Props) {
+export default function WelcomeGuide({ device, signedIn, onImportFile, onLink, onSignIn, onExample }: Props) {
     const [hidden, setHidden] = useState(wasHidden);
     const hasData = useGameStore(s => s.importedBattles.length > 0 || !!s.profile.highestTier);
     const accountLoading = useAccountStore(s => s.status === 'loading');
@@ -72,6 +83,17 @@ export default function WelcomeGuide({ onImportFile, onEmulator, emulatorBusy }:
                         A companion for The Tower. Bring in your account and TowerForge works out your damage, how far
                         your runs get and your coins — then ranks every upgrade by what it gives for what it costs.
                     </p>
+                    {onExample && (
+                        <div className="wlc-try">
+                            <button type="button" className="btn btn-primary wlc-try-btn" onClick={onExample}>
+                                👀 Try it with an example account
+                            </button>
+                            <span>
+                                A made-up player fills every page, so you can look around first. Your own data replaces
+                                it when you bring it in.
+                            </span>
+                        </div>
+                    )}
                 </div>
                 <button className="btn btn-dim wlc-hide" onClick={hide} title="Hide this guide">Hide</button>
             </div>
@@ -88,41 +110,27 @@ export default function WelcomeGuide({ onImportFile, onEmulator, emulatorBusy }:
             <h3 className="wlc-sub">Get your game data in</h3>
             <ol className="wlc-steps">
                 <li>
-                    <strong>Export it from the game.</strong> In The Tower (update 29.1.3 or later): Settings →
-                    External Tools Export. The game saves your data as <code>tool_export.json</code>.
+                    <strong>Export it from the game.</strong> In The Tower (update 29.1.3 or later), open Settings and
+                    tap your player ID (bottom left) 5 times to bring up <strong>External Tools Export</strong>, then
+                    export — or turn on Auto. The game saves your data as <code>tool_export.json</code>.
+                    <ExportHowTo />
                 </li>
                 <li>
-                    <strong>Bring the file here.</strong>
+                    <strong>Bring it here.</strong> Workshop, labs, cards, UWs, modules, bots, relics, Guardian, your
+                    recent runs and tournaments all fill in at once.
+                    <ImportWays
+                        device={device}
+                        signedIn={signedIn}
+                        onImportFile={onImportFile}
+                        onLink={onLink}
+                        onGuide={openGuide}
+                        onSignIn={onSignIn}
+                        foot={false}
+                    />
                     <span className="wlc-way">
-                        <em>On a PC with an emulator, or an Android phone on the same Wi-Fi:</em> Get from emulator or
-                        phone reads it for you (TowerForge Link, a one-time setup), and Auto import keeps the site up to
-                        date while you play. {guideLink('emulator', 'How to set it up')}
-                    </span>
-                    <button className="btn btn-dim lnk-btn wlc-btn" onClick={onEmulator} disabled={emulatorBusy}>
-                        🖥 Get from emulator or phone
-                    </button>
-                    <span className="wlc-way">
-                        <em>On an Android phone, no PC:</em> the game keeps the file in its own app folder, which other
-                        apps can&apos;t open. TowerForge Link for Android (with the free Shizuku app) brings it into the
-                        site on the phone — a one-time setup. {guideLink('android-phone', 'Step-by-step guide')}
-                    </span>
-                    <span className="wlc-way">
-                        <em>iPhone:</em> iOS keeps the file to itself, but a backup of the iPhone to a Windows PC includes
-                        it — TowerForge Link reads it from there. On the iPhone alone it can&apos;t be imported
-                        yet. {guideLink('iphone', 'How it works')}
-                    </span>
-                    <span className="wlc-way">
-                        Stuck, or not sure which is you? The {guideLink('igd-top', 'Import Guide')} walks through every way,
+                        On another device, or stuck? The {guideLink('igd-top', 'Import Guide')} walks through every way,
                         screen by screen.
                     </span>
-                </li>
-                <li>
-                    <strong>Import it.</strong> Workshop, labs, cards, UWs, modules, bots, relics, Guardian, your
-                    recent runs and tournaments all fill in.
-                    <label className="btn btn-gold wlc-btn">
-                        ⬆ Import Game Data
-                        <input type="file" accept=".json,application/json,.pdf,application/pdf" hidden onChange={onImportFile} />
-                    </label>
                 </li>
             </ol>
 

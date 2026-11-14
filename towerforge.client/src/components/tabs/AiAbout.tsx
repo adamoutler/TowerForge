@@ -201,7 +201,7 @@ export function AiAbout({ id, panelRef }: { id: string; panelRef: RefObject<HTML
                     <li><strong>Remove download</strong>, under Model, deletes the AI from your browser.</li>
                     <li><strong>Clear the log</strong>, in the Debug log, deletes your saved questions and 👍/👎.</li>
                     <li>Clearing your browser&apos;s data for towerforge.net removes all of it at once.</li>
-                    <li>To have an answer you sent deleted, ask on the <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">TowerForge Discord</a>.</li>
+                    <li>To have an answer you sent deleted, ask on the <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">TowerForge Discord</a>. Deleting your TowerForge account (Player → Account) deletes the ones you sent while signed in.</li>
                 </ul>
 
                 <h4>Questions people ask</h4>

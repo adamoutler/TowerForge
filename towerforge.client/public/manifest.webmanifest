@@ -1,0 +1,21 @@
+{
+  "id": "/",
+  "name": "TowerForge — The Tower Companion",
+  "short_name": "TowerForge",
+  "description": "Companion for The Tower: import your account and see what to upgrade next, ranked by the waves and coins each upgrade gives for what it costs.",
+  "start_url": "/?source=app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b0812",
+  "theme_color": "#0b0812",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Optimizer", "url": "/optimizer?source=app", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Labs", "url": "/labs?source=app", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Tournament", "url": "/tournament?source=app", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

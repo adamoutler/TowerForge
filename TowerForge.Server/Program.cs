@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using TowerForge.Server.Data;
+using TowerForge.Server.LiveStreams;
+using TowerForge.Server.Push;
+using TowerForge.Server.ShareCards;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,11 +48,38 @@ if (args.Length >= 1 && args[0] == "--recovery-code")
 
 builder.Services.AddSingleton(new AppDb(dataDir));
 builder.Services.AddSingleton<ShareStore>();
+// Share links' preview cards (/s/CODE/card.png), drawn from pictures built into the server.
+builder.Services.AddSingleton(_ => ShareCardRenderer.FromAssembly());
 builder.Services.AddSingleton<UserStore>();
 builder.Services.AddSingleton<AiReportStore>();
 // Parts of the site only some accounts see while they're tried out.
 builder.Services.AddSingleton(sp => new PreviewFeatures(
     Path.Combine(dataDir, "features.json"), sp.GetRequiredService<ILogger<PreviewFeatures>>()));
+
+// ── Creators live on Twitch / YouTube (Creator Codes) ──────────
+// The API keys are in the data directory, never in the repo
+// (LiveStreams/LiveStreamService.cs has the file's shape).
+builder.Configuration.AddJsonFile(Path.Combine(Path.GetFullPath(dataDir), "stream-keys.json"), optional: true, reloadOnChange: true);
+builder.Services.AddHttpClient(LiveStreamService.HttpClientName, c =>
+{
+    c.Timeout = TimeSpan.FromSeconds(20);
+    c.DefaultRequestHeaders.UserAgent.ParseAdd("TowerForge/1.0 (+https://towerforge.net)");
+});
+builder.Services.AddSingleton(sp => new LiveStreamService(
+    sp.GetRequiredService<IHttpClientFactory>(),
+    sp.GetRequiredService<IConfiguration>(),
+    sp.GetRequiredService<ILogger<LiveStreamService>>(),
+    Path.Combine(builder.Environment.ContentRootPath, "creator-channels.json"),
+    Path.Combine(dataDir, "youtube-channels.json")));
+builder.Services.AddHostedService(sp => sp.GetRequiredService<LiveStreamService>());
+
+// ── Lab reminders (Web Push) ───────────────────────────────────
+// The push key pair is made on first start and kept in the data
+// directory (push-keys.json), never in the repo.
+builder.Services.AddSingleton<ReminderStore>();
+builder.Services.AddSingleton(sp => new PushKeys(Path.Combine(dataDir, "push-keys.json"), sp.GetRequiredService<ILogger<PushKeys>>()));
+builder.Services.AddHttpClient(ReminderService.HttpClientName, c => c.Timeout = TimeSpan.FromSeconds(20));
+builder.Services.AddHostedService<ReminderService>();
 
 // Persist keys so sign-in cookies survive restarts and deploys.
 builder.Services.AddDataProtection()
@@ -94,6 +124,8 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy("share-create", ctx => PerIp(ctx, permitsPerMinute: 20));
     options.AddPolicy("save", ctx => PerIp(ctx, permitsPerMinute: 60));
     options.AddPolicy("ai-report", ctx => PerIp(ctx, permitsPerMinute: 10));
+    options.AddPolicy("reminders", ctx => PerIp(ctx, permitsPerMinute: 30));
+    options.AddPolicy("share-page", ctx => PerIp(ctx, permitsPerMinute: 120));
 });
 
 builder.Services.AddControllers();

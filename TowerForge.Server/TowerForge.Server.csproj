@@ -27,6 +27,13 @@
     <Folder Include="Controllers\" />
   </ItemGroup>
 
+  <!-- Share links' preview card: the background and letters drawn by
+       towerforge.client/scripts/share-card.ps1 (ShareCards/ShareCard.cs). -->
+  <ItemGroup>
+    <EmbeddedResource Include="ShareCards\card-base.png;ShareCards\glyphs.png;ShareCards\glyphs.json" LogicalName="ShareCards.%(Filename)%(Extension)" />
+    <Content Remove="ShareCards\glyphs.json" />
+  </ItemGroup>
+
   <!-- Local dev database, keys and shares — never ship them. -->
   <ItemGroup>
     <Content Remove="App_Data\**" />

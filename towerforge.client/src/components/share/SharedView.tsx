@@ -1,6 +1,7 @@
 // ============================================================
 //  TowerForge Companion — Shared Stats Viewer
-//  Full-page, read-only view opened from a ?share= link.
+//  Full-page, read-only view opened from a share link (/s/CODE, or
+//  an older ?share=CODE).
 //  Replaces the app shell, so it never touches the viewer's data.
 //  Each section is drawn to fit the screen (phones included); Export
 //  Image saves it as the fixed-width poster kept off-screen next to
@@ -9,10 +10,13 @@
 //  Cards, Bots, Modules, Workshop and Guardian switch between the
 //  sender's presets, like their tabs. Cards, UWs, Guardian and Vault are
 //  drawn like the game's own screens. Sections show in the order of
-//  SHARE_SECTIONS; older shares just have fewer of them.
+//  SHARE_SECTIONS; older shares just have fewer of them. A viewer with
+//  their own account in this browser gets Compare with my tower at the
+//  top (engine/compare.ts, read in the browser only), with a picture to
+//  post; one without is asked to import theirs.
 // ============================================================
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { fetchShare } from '../../engine/shareApi';
 import type { SharePayload } from '../../engine/shareApi';
@@ -29,6 +33,14 @@ import { SHARE_OFFSCREEN_STYLE } from './shareTheme';
 import { openExportDialog } from './exportImages';
 import { BOTS_CONFIG, botsForPreset, getPresetBots, isBotEntryOwned } from '../../constants/botData';
 import { presetLabel } from '../../constants/gameData';
+import SiteFooter from '../common/SiteFooter';
+import { useGameStore } from '../../store/useGameStore';
+import { COMPARE_KEY, hasOwnAccount, sharePayloadFrom } from '../../store/sharePayload';
+import { useExampleOn } from '../../store/exampleAccount';
+import { compareAccounts } from '../../engine/compare';
+import { ComparePicture } from './RecapPictures';
+import { useSharePicture } from './useSharePicture';
+import { trackEvent } from '../../analytics';
 
 interface Props {
     code: string;
@@ -95,6 +107,67 @@ function StatsSection({ title, subtitle, groups, file, empty, controls, columns 
         >
             <StatsShareCard title={title} subtitle={subtitle} groups={groups} empty={empty} />
         </ShareSection>
+    );
+}
+
+// Compare with my tower: the viewer's own account (this browser's data,
+// never sent) against the share, section by section.
+function CompareSection({ payload, code }: { payload: SharePayload; code: string }) {
+    const own = useGameStore(s => hasOwnAccount(s));
+    const example = useExampleOn();
+    const mine = useMemo(() => (own && !example ? sharePayloadFrom(useGameStore.getState()) : null), [own, example]);
+    const c = useMemo(() => (mine ? compareAccounts(payload, mine) : null), [payload, mine]);
+    const { share, offscreen } = useSharePicture();
+    useEffect(() => {
+        trackEvent('Compare', { step: c ? 'shown' : 'no account' });
+        try {
+            if (c) localStorage.removeItem(COMPARE_KEY);
+            else localStorage.setItem(COMPARE_KEY, code.toUpperCase());
+        } catch { /* not offered back */ }
+    }, [c, code]);
+
+    if (!c) {
+        return (
+            <section className="cmp">
+                <h3 className="cmp-title">How does your tower compare?</h3>
+                <p className="cmp-note">
+                    Import your own game data on TowerForge to see who&apos;s ahead, section by section — your Profile will link back here.
+                    {' '}<a href="/import-guide">How to import</a>
+                </p>
+            </section>
+        );
+    }
+    if (!c.rows.length) return null;
+    const shareCompare = () => {
+        share(<ComparePicture c={c} now={Date.now()} />, 'towerforge-me-vs-a-friend', 'Me vs a friend');
+        trackEvent('Compare', { step: 'share' });
+    };
+    return (
+        <section className="cmp">
+            <div className="cmp-head">
+                <h3 className="cmp-title">Compare with my tower</h3>
+                <button type="button" className="btn btn-accent" onClick={shareCompare}>📸 Share picture</button>
+            </div>
+            <p className="cmp-note">
+                You&apos;re ahead on <strong>{c.meAhead}</strong> of {c.rows.length}{c.themAhead ? <>, behind on <strong>{c.themAhead}</strong></> : null}.
+                Your numbers come from this browser and aren&apos;t sent anywhere.
+            </p>
+            <table className="cmp-table">
+                <thead>
+                    <tr><th scope="col"><span className="sr-only">Stat</span></th><th scope="col">Them</th><th scope="col">You</th></tr>
+                </thead>
+                <tbody>
+                    {c.rows.map(r => (
+                        <tr key={r.label}>
+                            <th scope="row">{r.label}</th>
+                            <td className={r.them > r.me ? 'ahead' : ''}>{r.themText}</td>
+                            <td className={r.me > r.them ? 'ahead' : ''}>{r.meText}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+            {offscreen}
+        </section>
     );
 }
 
@@ -195,6 +268,8 @@ export default function SharedView({ code }: Props) {
 
                 {!error && !payload && <p className="shr-loading">Loading shared stats…</p>}
 
+                {payload && <CompareSection payload={payload} code={code} />}
+
                 {payload?.profile && (
                     <StatsSection title="Profile" file="profile"
                         subtitle={[payload.profile.build, payload.profile.highestTier ? `T${payload.profile.highestTier}` : ''].filter(Boolean).join(' · ') || 'Account'}
@@ -293,6 +368,7 @@ export default function SharedView({ code }: Props) {
                     </ShareSection>
                 )}
             </main>
+            <SiteFooter />
         </div>
     );
 }

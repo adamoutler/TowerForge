@@ -4,8 +4,8 @@
 // any of their saved T18 runs earned.
 
 import { beforeEach, describe, expect, it } from 'vitest';
-import { addIncomePoint, incomeSummary, labsByMonth, parseCareer, parseIncomePoint, runRecords } from './career';
-import type { IncomePoint } from './career';
+import { addIncomePoint, incomeSummary, labsByMonth, parseCareer, parseIncomePoint, runRecords, yearHighlights } from './career';
+import type { CareerYear, IncomePoint } from './career';
 import { SUBSTAT_NUMBERS } from '../constants/gameExportMaps';
 import { parseGameExport } from './gameExport';
 import { accountSummary } from '../ai/aiTools';
@@ -297,5 +297,20 @@ describe('Ask AI', () => {
         expect(accountSummary(useGameStore.getState())).not.toMatch(/Earned per day/);
         useGameStore.getState().applyGameImport(parseGameExport(file({ TotalStonesEarned: 600, TotalCoinsEarned: 3e20 }, AT + 2 * DAY)));
         expect(accountSummary(useGameStore.getState())).toMatch(/Earned per day over the last 2\.0 d \(the game's counters between imports\): .*Stones 50\./);
+    });
+});
+
+describe('a year for its picture', () => {
+    it('picks the headline numbers, the most-used UW and what ended the most runs', () => {
+        const y = yearHighlights({
+            Year: 2025, GameBattlesStarted: 2204, GameWavesCleared: 162849, GameTimeInBattle: 4.89e9, TournamentAmount: 96,
+            TournamentHighestLeague: 5, TournamentPromotionsAmount: 4, KilledBasic: 1e8, KilledBoss: 2e5, CardsPulledAmount: 300,
+            ModulesEarnedAmount: 50, DailyMissionsCompleted: 900, EventMissionsCompleted: 100,
+            ChainLightningAmount: 10, BlackHoleAmount: 9000, DiedToBoss: 700, DiedToRay: 900,
+        } as CareerYear);
+        expect(y).toMatchObject({ year: 2025, battles: 2204, waves: 162849, enemies: 1e8 + 2e5, missions: 1000, bestLeague: 5 });
+        expect(y.favoriteUw).toEqual({ name: 'Black Hole', uses: 9000 });
+        expect(y.endedMostBy).toBe('Ray');
+        expect(yearHighlights({ Year: 2024 } as CareerYear)).toMatchObject({ favoriteUw: null, endedMostBy: null, battles: 0 });
     });
 });

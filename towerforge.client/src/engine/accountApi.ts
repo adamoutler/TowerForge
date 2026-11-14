@@ -75,6 +75,15 @@ export function newRecoveryCode() {
     return apiRequest<NewCode>(`${BASE}/recovery-code`, { method: 'POST' }, 'Could not make a recovery code.');
 }
 
+// Deletes the signed-in account and everything tied to it (saved stats,
+// recovery code, share links, Ask AI answers sent), then signs out.
+export function deleteAccount(password: string) {
+    return apiRequest<void>(`${BASE}/delete`, {
+        method: 'POST',
+        body: JSON.stringify({ password }),
+    }, 'Could not delete the account.');
+}
+
 export function changePassword(currentPassword: string, newPassword: string) {
     return apiRequest<void>(`${BASE}/password`, {
         method: 'POST',

@@ -55,6 +55,14 @@ describe('upgrades named in words', () => {
         expect(labels('damage lab')).toEqual(['Damage Lab']);
     });
 
+    // A player report (2026-11-09): "coin/wave lab" read as the workshop's Coin/Wave.
+    it('reads one and many the same ("coin/wave lab" is the Coins/Wave Lab)', () => {
+        expect(labels('coin/wave lab')).toEqual(['Coins/Wave Lab']);
+        expect(labels('coins per wave lab')).toEqual(['Coins/Wave Lab']);
+        expect(labels('coin/wave')).toEqual(['Coin/Wave']);
+        expect(findTargets(targets, 'coin/wave')[0].kind).toBe('workshop');
+    });
+
     it('finds nothing for words that match nothing', () => {
         expect(findTargets(targets, 'banana')).toEqual([]);
     });
@@ -85,7 +93,7 @@ describe('what the assistant reads', () => {
     it('works out What If for named upgrades, with costs and waves', () => {
         const r = whatIfChanges(account(), [{ upgrade: 'CL damage', level: '+5' }]);
         expect(r.text).toContain('Chain Lightning — Damage: 10 → 15 (max 32), costs');
-        expect(r.text).toMatch(/^Headline: CL damage \+5 levels gives about \+[\d.]+ waves \(runs end around W[\d,]+ now, W[\d,]+ after\)\. It costs [\d,]+ stones\./);
+        expect(r.text).toMatch(/^Headline: Chain Lightning — Damage is level 10 of 32 now, not maxed\. CL damage \+5 levels gives about \+[\d.]+ waves \(runs end around W[\d,]+ now, W[\d,]+ after\)\. It costs [\d,]+ stones\./);
         expect(r.text).toContain('Total cost:');
         expect(whatIfChanges(account(), [{ upgrade: 'banana', level: 'max' }]).text).toContain('Couldn\'t find "banana"');
     });
@@ -244,6 +252,13 @@ describe('game notes search', () => {
     it('finds a battle condition by name', () => {
         const hits = searchNotes('How does Fast’s Ultimate work?');
         expect(hits[0].heading).toBe('Fast’s Ultimate');
+    });
+
+    // A player report (2026-11-09); the answer is in the Black Hole notes.
+    it('finds Black Hole first for a permanent Black Hole', () => {
+        const hits = searchNotes('How do I get a permanent Black Hole in tournaments without perks and the Galaxy Compressor?');
+        expect(hits[0].heading).toMatch(/Black Hole \(BH\)$/);
+        expect(hits[0].text).toMatch(/Permanent Black Hole/);
     });
 
     it('finds UW notes and stays within the budget', () => {

@@ -8,6 +8,9 @@ server. Set up 2026-10-16 with Umami v3.4.0.
 
 - Every page load (towerforge.net and share links), with referrer, country,
   device, browser and OS — Umami's standard, anonymous counts.
+- Not from browsers that send Do Not Track (`data-do-not-track="true"` on the
+  tag, since 2026-11-08; the live script reads it). The Privacy page
+  (`/privacy`, docs/privacy.md) says what's counted; change it with this list.
 - **Tab views**: since 2026-10-20 every tab has its own address
   (`towerforge.net/creators`, `/what-if`… — `src/routes.ts`), and the tracker
   counts each address change as a page view by itself (it wraps
@@ -18,7 +21,28 @@ server. Set up 2026-10-16 with Umami v3.4.0.
   export imports; `Emulator link …` when Get from emulator or phone fails; `Link download` (the setup dialog's download; `Link download (Android)` for the Android app there, and `Link download (guide)` / `Link download (Android, guide)` from the Import Guide, 2026-10-23) and `Link phone: adb / pair / connect / forget` (`… failed` when it didn't work, 2026-10-23);
   `Auto import on` / `off`; `Theme` with the theme picked (header picker,
   since 2026-10-22); `Open Discord` (the header's Discord link, since
-  v1.26.1); `Copy creator code` and `Open creator link` on Creator Codes.
+  v1.26.1); `Copy creator code` and `Open creator link` on Creator Codes (`live: 1` for a live stream);
+  `Open charity link` (`donate` / `fundraiser`) and `Copy creator code` (`from: charity`) on the
+  charity event banner (2026-11-09 to 11-15). Import help (2026-11-13): `Import help` with
+  `step` (`open`, `file`, `link`, `account`, `guide`) and `device` (`windows`, `mac`, `android`,
+  `ios`, `other`; `from: link` when the file came from the Link dialog; `example` for "Just
+  looking?"), and `Emulator link: started` when Link starts while its dialog is open and the site
+  reads the export by itself. `Emulator link: opened the site` when TowerForge Link (0.5+,
+  `?link=import`) or the Android app (`?link=android`) opened the site and it imported on load.
+  `Example account` with `step` `try`, `leave`, or `import` (their own data replaced it — the
+  number to watch), 2026-11-13. `Import game data (auto)` once a visit when Auto import brings
+  data in (before, auto imports weren't counted at all), and `Auto import on` with `from: offer`
+  when it was turned on from the one-time offer after a first Link import. `Install app` (`step`
+  `shown` once a visit, `how`, `not now`, `accepted` / `dismissed` from Chrome's prompt,
+  `installed`) and `Lab reminders` (`on`, `off`, `denied`), 2026-11-13. An installed app opens
+  at `/?source=app`, so app visits show in the address. 2026-11-14: `Tournament reminders`
+  (`on`, `off`, `denied`); `Moment` with `step` `found` (one per moment an import found) or
+  `share` (Share picture pressed) and its `kind` (`promoted`, `rank`, `tier`, `tourneyWave`,
+  `wave`, `uwPlus`, `uw`); `Whats new` with `step` `shown` (once a visit) or `closed` and the
+  `version`. `My week`, `Year picture` (`year`), `Trophy shelf` (`trophies`: how many) with
+  `step: share` when their picture is made; `Compare` on a share link: `shown` (the viewer has an
+  account here), `no account`, `share`. Share links' previews are fetched from `/s/CODE` by Discord, Reddit and the like —
+  those don't run the counter (the nginx log has them).
 - `ai-answer` (Ask AI, 2026-10-29): one per answer, with no question, answer
   or account in it — `tool` (the data it used), `picked` (wording, model or
   keywords), `flagged` (a number that isn't TowerForge's: yes/no), `time`

@@ -343,8 +343,9 @@
 
     .home-now li {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        gap: 12px;
+        gap: 8px 12px;
         padding: 11px 16px;
         font-size: 15px;
     }
@@ -359,7 +360,7 @@
 }
 
 .home-now-text {
-    flex: 1;
+    flex: 1 1 200px;     /* on a phone, a row's buttons wrap under its words */
     min-width: 0;
     color: var(--text);
 }
@@ -379,6 +380,306 @@
 
     .home-now-link:hover {
         text-decoration: underline;
+    }
+
+/* This week (engine/thisWeek.ts): the last 7 days as tiles, under the dials. */
+.home-week {
+    margin: 14px 0 4px;
+}
+
+.home-week-title {
+    margin: 0 0 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-bright);
+}
+
+.home-week-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+}
+
+.home-week-link {
+    text-decoration: none;
+    color: inherit;
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+
+    .home-week-link:hover {
+        border-color: var(--accent);
+    }
+
+/* This week's "Remind me on tournament days", under the tiles. */
+.home-week-remind {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin-top: 10px;
+}
+
+/* Moments (common/Moments.tsx): what the last imports did, with Share picture.
+   The newest gets the game's wave counter; the others a line each. */
+.mom {
+    position: relative;
+    margin-top: 14px;
+    padding: 14px 16px;
+    border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--border));
+    border-radius: var(--radius-md);
+    background:
+        radial-gradient(ellipse 60% 90% at 0% 0%, color-mix(in srgb, var(--gold) 12%, transparent), transparent 70%),
+        color-mix(in srgb, var(--accent-2) 6%, var(--bg2));
+}
+
+.mom-main {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mom-title {
+    padding-right: 28px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-bright);
+}
+
+.mom-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+}
+
+.mom-counter {
+    min-width: 110px;
+    text-align: center;
+}
+
+    .mom-counter .home-counter-label {
+        white-space: nowrap;
+    }
+
+.mom-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.mom-detail {
+    font-size: 13px;
+    color: var(--text-dim);
+}
+
+.mom-close {
+    position: absolute;
+    top: 8px;
+    right: 6px;
+}
+
+.mom-more {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 10px 0 0;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+    .mom-more li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--text);
+    }
+
+.mom-more-text {
+    flex: 1;
+    min-width: 0;
+}
+
+    .mom-more-text strong {
+        color: var(--text-bright);
+    }
+
+/* Trophy shelf (common/TrophyShelf.tsx): trophies in a wrapping grid,
+   then the moments the imports found. */
+.trophy {
+    margin: 16px 0;
+}
+
+.trophy-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.trophy-grid {
+    list-style: none;
+    margin: 10px 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+    gap: 8px;
+}
+
+.trophy-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: linear-gradient(180deg, var(--bg3), var(--bg2));
+}
+
+.trophy-icon {
+    font-size: 22px;
+}
+
+.trophy-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.trophy-value {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-bright);
+    font-variant-numeric: tabular-nums;
+}
+
+.trophy-title {
+    font-size: 13px;
+    color: var(--text);
+}
+
+.trophy-note {
+    font-size: 13px;
+    color: var(--text-dim);
+}
+
+.trophy-sub {
+    margin: 14px 0 6px;
+    font-size: 14px;
+    color: var(--text-bright);
+}
+
+.trophy-moments {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+    .trophy-moments li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--text);
+    }
+
+.trophy-moment-text {
+    flex: 1;
+    min-width: 0;
+}
+
+    .trophy-moment-text strong {
+        color: var(--text-bright);
+    }
+
+.trophy-all {
+    margin-top: 6px;
+    padding: 4px 0;
+    font: inherit;
+    font-size: 13px;
+    color: var(--accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* "Add TowerForge to your home screen" (InstallHint): one quiet line. */
+.home-install {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-top: 12px;
+    padding: 10px 40px 10px 12px;     /* room for the ✕ in the corner */
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text);
+    border: 1px dashed color-mix(in srgb, var(--accent) 40%, var(--border));
+    border-radius: var(--radius-md);
+}
+
+.home-install-icon {
+    font-size: 18px;
+}
+
+.home-install-text {
+    flex: 1;
+    min-width: 200px;
+}
+
+    .home-install-text strong {
+        color: var(--text-bright);
+    }
+
+.home-install-how {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-dim);
+}
+
+.home-install-close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    padding: 4px 8px;
+    font-size: 14px;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.home-now-note {
+    flex-basis: 100%;
+    font-size: 13px;
+    color: var(--text-dim);
+}
+
+/* "Import again": a small pill, since it does the import rather than open a page. */
+.home-now-btn {
+    padding: 4px 11px;
+    font-family: var(--font-ui);
+    background: var(--accent-glow);
+    border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+    .home-now-btn:hover {
+        text-decoration: none;
+        background: color-mix(in srgb, var(--accent) 22%, transparent);
+    }
+
+    .home-now-btn.on {
+        color: var(--text-bright);
+        background: color-mix(in srgb, var(--accent) 28%, transparent);
     }
 
 @media (prefers-reduced-motion: reduce) {
@@ -697,6 +998,12 @@
     gap: 10px;
 }
 
+/* A level row's Max button (Workshop, Labs). */
+.btn-max {
+    font-size: 12px;
+    padding: 2px 7px;
+}
+
 .pbar-wrap {
     flex: 1;
     max-width: 160px;
@@ -708,6 +1015,35 @@
     color: var(--text-dim);
     text-align: right;
     margin-top: 2px;
+}
+
+/* Phones (2026-11-09): the name gets the room. A level row keeps its
+   box, Max and the lab's "3/99"; the bar goes, and Workshop's "40%"
+   too (its max is under the name). Max is a thumb's height. */
+@media (max-width: 600px) {
+    .field-row,
+    .ws-stat-input {
+        gap: 8px;
+    }
+
+    .btn-max {
+        padding: 7px 6px;
+        letter-spacing: 0;
+    }
+
+    .pbar-wrap {
+        flex: 0 0 auto;
+    }
+
+        .pbar-wrap .pbar,
+        .ws-stat-input .pbar-wrap {
+            display: none;
+        }
+
+    .pbar-pct {
+        margin-top: 0;
+        word-spacing: -3px;
+    }
 }
 
 .enh-row {
@@ -3557,8 +3893,21 @@ button.gcard {
 }
 
 /* ── Creator Codes Tab ───────────────────────────────────────── */
+.cc-note p {
+    margin: 0;
+}
+
 .cc-note a {
     color: var(--accent);
+}
+
+/* What a code earns, as three tiles: in the game, webstore, how long. */
+.cc-terms {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    max-width: 420px;
+    margin-top: 10px;
 }
 
 .cc-count {
@@ -3634,6 +3983,21 @@ button.gcard {
     border-color: var(--accent);
     box-shadow: 0 0 0 1px var(--accent-glow);
 }
+
+/* The maker's charity pledge on their card (CHARITY_EVENT, until it ends). */
+.cc-pledge {
+    margin-top: 6px;
+    padding: 6px 9px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--text);
+    background: color-mix(in srgb, var(--accent) 9%, var(--bg3));
+    border-radius: var(--radius-sm);
+}
+
+    .cc-pledge span {
+        color: var(--accent);
+    }
 
 .cc-ours-tag {
     align-self: flex-start;
@@ -3809,6 +4173,139 @@ button.gcard {
 
     .cc-link[data-site="youtube"] { --site: var(--yt); }
     .cc-link[data-site="twitch"] { --site: #9146ff; }
+
+/* Live now: a red tag with a breathing dot, and the stream itself as one
+   link in the platform's color ("Live on YouTube" names the source, as
+   YouTube's API rules ask). */
+.cc-page {
+    --live: #ff3b3b;
+}
+
+.cc-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+
+    .cc-tags .cc-ours-tag {
+        margin-bottom: 0;
+    }
+
+.cc-live-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 1px 9px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: #fff;
+    background: var(--live);
+    border-radius: 999px;
+}
+
+.cc-live-dot {
+    flex-shrink: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: cc-breathe 1.6s ease-in-out infinite;
+}
+
+@keyframes cc-breathe {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .3; }
+}
+
+.cc-card.cc-is-live:not(.cc-ours) {
+    border-color: color-mix(in srgb, var(--live) 55%, var(--border));
+}
+
+.cc-stream {
+    --site: var(--live);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 8px;
+    padding: 9px 10px;
+    color: var(--text);
+    background: color-mix(in srgb, var(--site) 9%, var(--bg3));
+    border: 1px solid color-mix(in srgb, var(--site) 40%, var(--border));
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: border-color var(--transition-fast);
+}
+
+    .cc-stream[data-site="youtube"] { --site: var(--yt); }
+    .cc-stream[data-site="twitch"] { --site: #9146ff; }
+
+    .cc-stream:hover,
+    .cc-stream:focus-visible {
+        border-color: var(--site);
+    }
+
+    .cc-stream:focus-visible {
+        outline: 2px solid var(--site);
+        outline-offset: 2px;
+    }
+
+.cc-stream-where {
+    font-size: 13px;
+    font-weight: 700;
+    color: color-mix(in srgb, var(--site) 55%, var(--text-bright));
+}
+
+.cc-stream-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--text-bright);
+    overflow-wrap: anywhere;
+}
+
+.cc-stream-watch {
+    align-self: flex-start;
+    margin-top: 2px;
+    padding: 5px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--site);
+    border-radius: 999px;
+}
+
+.cc-live-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--live);
+    background: color-mix(in srgb, var(--live) 8%, var(--bg3));
+    border: 1px solid color-mix(in srgb, var(--live) 50%, var(--border));
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+    .cc-live-filter[aria-pressed="true"] {
+        color: #fff;
+        background: var(--live);
+        border-color: var(--live);
+    }
+
+@media (prefers-reduced-motion: reduce) {
+    .cc-live-dot {
+        animation: none;
+    }
+}
     .cc-link[data-site="kick"] { --site: #53fc18; }
     .cc-link[data-site="tiktok"] { --site: #25f4ee; }
     .cc-link[data-site="discord"] { --site: #5865f2; }
@@ -4622,6 +5119,336 @@ button.gcard {
     margin-top: 12px;
 }
 
+/* Links in the setup steps read in the accent (the Import Guide, how-tos). */
+.lnk-steps a:not(.btn) {
+    color: var(--accent);
+}
+
+/* After the first import through Link: Auto import offers itself once,
+   as a card at the foot of the screen (the header may be folded away). */
+.lnk-offer {
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    z-index: 900;
+    width: min(440px, calc(100% - 32px));
+    transform: translateX(-50%);
+    padding: 14px 16px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text);
+    background: var(--bg2);
+    border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+}
+
+    .lnk-offer p {
+        margin: 0 0 10px;
+    }
+
+    .lnk-offer strong {
+        color: var(--text-bright);
+    }
+
+.lnk-offer-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+    .lnk-offer-actions .btn {
+        cursor: pointer;
+    }
+
+/* Link isn't running: the file itself, one step away. */
+.lnk-alt {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border: 1px dashed color-mix(in srgb, var(--accent) 45%, var(--border));
+    border-radius: var(--radius-md);
+}
+
+.lnk-file {
+    cursor: pointer;
+}
+
+/* ── Import help (ImportSheet, ImportWays, the welcome guide) ─────
+   This device's ways in as a short stack of cards: the best one tinted
+   in the accent, the account option dashed. */
+.imp-modal {
+    max-width: 560px;
+}
+
+.imp-ways {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.imp-way {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+    .imp-way p {
+        margin: 0;
+    }
+
+    .imp-way strong {
+        color: var(--text-bright);
+    }
+
+    .imp-way a,
+    .imp-foot a {
+        color: var(--accent);
+    }
+
+.imp-best {
+    background: color-mix(in srgb, var(--accent) 7%, var(--bg3));
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.imp-account {
+    background: transparent;
+    border-style: dashed;
+}
+
+.imp-btn {
+    padding: 9px 16px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.imp-list {
+    margin: 0;
+    padding-left: 18px;
+}
+
+    .imp-list li + li {
+        margin-top: 4px;
+    }
+
+.imp-cmd {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 6px;
+    padding: 6px 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+    .imp-cmd code {
+        flex: 1;
+        min-width: 0;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: var(--text-bright);
+        overflow-wrap: anywhere;
+        user-select: all;
+    }
+
+.imp-copy {
+    flex-shrink: 0;
+    padding: 2px 10px;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    background: none;
+    border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+    .imp-copy:hover {
+        background: var(--accent-glow);
+    }
+
+.imp-foot {
+    margin: 2px 0 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-dim);
+}
+
+    .imp-foot p {
+        margin: 0;
+    }
+
+/* Where the game's export is (ExportHowTo): the Settings screen with the
+   player ID ringed; folded under "Show me where", or open in the guide. */
+.exp-how {
+    margin-top: 6px;
+    font-size: 13px;
+}
+
+    .exp-how summary {
+        width: fit-content;
+        font-weight: 700;
+        color: var(--accent);
+        cursor: pointer;
+    }
+
+.exp-fig {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    margin: 10px 0 4px;
+}
+
+    .exp-fig img {
+        display: block;
+        width: 196px;
+        max-width: 100%;
+        height: auto;
+        border-radius: var(--radius-md);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    }
+
+    .exp-fig figcaption {
+        flex: 1;
+        min-width: 160px;
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--text-dim);
+    }
+
+/* "Just looking?": the example account, as a quiet line under the ways in. */
+.imp-try {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-dim);
+}
+
+    .imp-try strong {
+        color: var(--text);
+    }
+
+.imp-try-btn {
+    padding: 0;
+    font: inherit;
+    font-weight: 700;
+    color: var(--accent);
+    background: none;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* ── Example account (ExampleBar, the welcome guide's offer) ─────
+   The bar sits under the page tabs and never folds away: a made-up
+   player must never pass for the visitor's own. */
+.exa-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px 14px;
+    padding: 7px 16px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--text);
+    background: color-mix(in srgb, var(--accent-2) 14%, var(--bg2));
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-2) 40%, transparent);
+    flex-shrink: 0;
+}
+
+    .exa-bar strong {
+        color: var(--text-bright);
+    }
+
+.exa-actions {
+    display: inline-flex;
+    gap: 8px;
+}
+
+.exa-short {
+    display: none;
+}
+
+.exa-btn {
+    padding: 5px 12px;
+    cursor: pointer;
+}
+
+.wlc-try {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin-top: 12px;
+}
+
+    .wlc-try span {
+        flex: 1;
+        min-width: 220px;
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--text-dim);
+    }
+
+.wlc-try-btn {
+    padding: 9px 16px;
+    cursor: pointer;
+}
+
+@media (max-width: 600px) {
+    .exa-bar {
+        gap: 4px 10px;
+        padding: 5px 12px 6px;
+        text-align: center;
+    }
+
+    .exa-long {
+        display: none;
+    }
+
+    .exa-short {
+        display: inline;
+    }
+
+    .exa-btn {
+        padding: 4px 10px;
+    }
+
+    .wlc-try-btn {
+        width: 100%;
+    }
+}
+
+/* Phones: full-width buttons, easy to hit. */
+@media (max-width: 600px) {
+    .imp-way {
+        align-items: stretch;
+    }
+
+    .imp-btn {
+        justify-content: center;
+        text-align: center;
+    }
+}
+
 /* Import from…: each emulator, phone or backup Link found, picked like a radio. */
 .lnk-src-list {
     display: flex;
@@ -5089,6 +5916,460 @@ button.gcard {
         color: var(--text-dim);
     }
 
+/* "This is a copy" note (OfficialSiteNote): above the header on a copy
+   of the site hosted anywhere but towerforge.net. Gold like the site's
+   other heads-ups, calm rather than alarming. */
+.ofc-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    padding: 8px 16px;
+    background: color-mix(in srgb, var(--gold) 13%, var(--bg2));
+    border-bottom: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--text);
+    text-align: center;
+}
+
+    .ofc-note strong {
+        color: var(--gold);
+        font-weight: 600;
+    }
+
+.ofc-link {
+    color: var(--gold);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Charity event banner (CharityBanner.tsx): a soft band in the theme's
+   two accents across the top of every page, one clear Donate button,
+   no motion. Folds to one line. */
+.chr-bar {
+    position: relative;
+    color: var(--text);
+    background: linear-gradient(100deg,
+        color-mix(in srgb, var(--accent) 13%, var(--bg2)),
+        color-mix(in srgb, var(--accent-2) 13%, var(--bg2)));
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.chr-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px 28px;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 12px 56px 12px 20px;
+}
+
+.chr-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+    .chr-main p {
+        margin: 0;
+    }
+
+.chr-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-bright);
+}
+
+.chr-heart {
+    margin-right: 8px;
+    color: var(--accent);
+}
+
+.chr-until {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dim);
+}
+
+.chr-text strong {
+    color: var(--text-bright);
+}
+
+.chr-main .chr-pledge {
+    margin-top: 5px;
+    padding-top: 6px;
+    border-top: 1px dashed color-mix(in srgb, var(--accent) 30%, transparent);
+    font-size: 13px;
+    color: var(--text-dim);
+}
+
+    .chr-pledge strong {
+        color: var(--accent);
+        font-weight: 700;
+    }
+
+.chr-code {
+    padding: 0 6px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--text-bright);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    user-select: all;
+}
+
+.chr-copy {
+    padding: 1px 10px;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    background: none;
+    border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+    .chr-copy:hover {
+        background: var(--accent-glow);
+    }
+
+.chr-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.chr-donate,
+.chr-page {
+    padding: 9px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.chr-donate {
+    color: var(--on-accent);
+    background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--accent-2)));
+    box-shadow: var(--glow-sm);
+}
+
+    .chr-donate:hover {
+        filter: brightness(1.08);
+        box-shadow: var(--glow-md);
+    }
+
+.chr-page {
+    color: var(--text-bright);
+    background: color-mix(in srgb, var(--bg) 35%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+    .chr-page:hover {
+        border-color: var(--accent);
+    }
+
+.chr-close {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    width: 36px;
+    height: 36px;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+    .chr-close:hover {
+        color: var(--text-bright);
+        background: color-mix(in srgb, var(--text) 10%, transparent);
+    }
+
+.chr-bar a:focus-visible,
+.chr-bar button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Folded: one quiet sentence with the Donate link, flowing like text. */
+.chr-folded {
+    padding: 6px 16px;
+    font-size: 13px;
+    text-align: center;
+}
+
+    .chr-folded .chr-heart {
+        margin-right: 6px;
+    }
+
+.chr-inline {
+    margin-left: 10px;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.chr-toggle {
+    margin-left: 6px;
+    padding: 2px 4px;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+@media (max-width: 700px) {
+    .chr-bar {
+        line-height: 1.4;
+    }
+
+    .chr-inner {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding: 8px 14px 10px;
+    }
+
+    .chr-title {
+        padding-right: 34px;   /* room for the fold button */
+        font-size: 15px;
+    }
+
+    .chr-until {
+        font-size: 13px;
+    }
+
+    .chr-main .chr-pledge {
+        margin-top: 3px;
+        padding-top: 4px;
+    }
+
+    .chr-actions {
+        flex-direction: row;
+    }
+
+        .chr-actions a {
+            flex: 1;
+            padding: 8px 10px;
+            white-space: normal;
+        }
+
+    .chr-close {
+        top: 4px;
+        right: 4px;
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* Privacy and Terms (PrivacyTab, TermsTab): one readable column of
+   text, like a letter rather than a dashboard. */
+.lgl-page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 4px 4px 8px;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--text);
+}
+
+    .lgl-page h2 {
+        font-size: 24px;
+        margin-bottom: 2px;
+    }
+
+    .lgl-page h3 {
+        font-size: 17px;
+        margin: 26px 0 6px;
+        color: var(--text);
+    }
+
+    .lgl-page p,
+    .lgl-page ul {
+        margin-bottom: 10px;
+    }
+
+    .lgl-page ul {
+        padding-left: 22px;
+    }
+
+    .lgl-page li {
+        margin-bottom: 4px;
+    }
+
+    .lgl-page a {
+        color: var(--accent);
+    }
+
+    .lgl-page code {
+        font-family: var(--font-mono);
+        font-size: 13px;
+    }
+
+.lgl-date {
+    font-size: 13px;
+    color: var(--text-dim);
+}
+
+.lgl-short {
+    margin: 16px 0 8px;
+    padding: 12px 16px 4px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+    .lgl-short h3 {
+        margin-top: 0;
+    }
+
+.lgl-inline-btn {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: var(--accent);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.lgl-foot {
+    margin-top: 26px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--text-dim);
+}
+
+/* Site footer (SiteFooter): at the end of every page and shared link. */
+.site-foot {
+    max-width: var(--page-max);
+    margin: 32px auto 0;
+    padding: 14px 16px 18px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    text-align: center;
+}
+
+    .site-foot p {
+        max-width: 640px;
+        margin: 0 auto 8px;
+    }
+
+    .site-foot nav {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 6px 18px;
+    }
+
+    .site-foot a {
+        color: var(--text-dim);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+        .site-foot a:hover {
+            color: var(--accent);
+        }
+
+/* "What's new": a button that reads like the links beside it. */
+.site-foot-news {
+    padding: 0;
+    font: inherit;
+    color: var(--text-dim);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+    .site-foot-news:hover {
+        color: var(--accent);
+    }
+
+/* What's new (common/WhatsNew.tsx): the card on Profile and the footer's list. */
+.wnew {
+    margin-bottom: 14px;
+    padding: 12px 16px;
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--accent) 5%, var(--bg2));
+}
+
+.wnew-title {
+    margin: 0 0 6px;
+    font-size: 15px;
+    color: var(--text-bright);
+}
+
+.wnew-entry + .wnew-entry {
+    margin-top: 12px;
+}
+
+.wnew-ver {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+}
+
+.wnew-items {
+    margin: 4px 0 0;
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--text);
+}
+
+    .wnew-items li + li {
+        margin-top: 4px;
+    }
+
+    .wnew-items a {
+        color: var(--accent);
+    }
+
+.wnew-actions {
+    margin-top: 10px;
+}
+
+.site-foot-ver {
+    font-family: var(--font-mono);
+}
+
+/* Phones: links a thumb can hit. */
+@media (max-width: 600px) {
+    .site-foot nav {
+        gap: 0 4px;
+    }
+
+    .site-foot nav > * {
+        padding: 8px 6px;
+    }
+}
+
 /* Discord link (header): Discord's own blurple in every theme, so it
    reads as Discord. */
 .dsc-btn {
@@ -5121,6 +6402,7 @@ button.gcard {
     display: none;
 }
 
+/* Phones: "Discord" (the header shows the logo alone: styles/app.css). */
 @media (max-width: 600px) {
     .dsc-long {
         display: none;
@@ -5822,6 +7104,91 @@ button.grdg-chip {
     display: flex;
     flex-direction: column;
     gap: 28px;
+}
+
+/* Compare with my tower (SharedView CompareSection): who's ahead. */
+.cmp {
+    padding: 14px 16px;
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--accent) 5%, var(--bg2));
+}
+
+.cmp-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+}
+
+.cmp-title {
+    margin: 0;
+    font-size: 17px;
+    color: var(--text-bright);
+}
+
+.cmp-note {
+    margin: 8px 0 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--text-dim);
+}
+
+    .cmp-note strong {
+        color: var(--text-bright);
+    }
+
+    .cmp-note a {
+        color: var(--accent);
+    }
+
+.cmp-table {
+    width: 100%;
+    max-width: 560px;
+    margin-top: 10px;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+    .cmp-table th,
+    .cmp-table td {
+        padding: 7px 8px;
+        border-top: 1px solid var(--border);
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .cmp-table thead th {
+        border-top: none;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-dim);
+    }
+
+    .cmp-table tbody th {
+        text-align: left;
+        font-weight: 500;
+        color: var(--text);
+    }
+
+    .cmp-table td {
+        color: var(--text);
+    }
+
+        .cmp-table td.ahead {
+            font-weight: 800;
+            color: var(--gold);
+        }
+
+/* For screen readers only. */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
 }
 
 .shr-loading {
@@ -8128,6 +9495,11 @@ p.ehpl-note {
         font-style: normal;
         color: var(--text-dim);
     }
+
+/* Year in Review's "Share my 2025" (RecapPictures YearPicture). */
+.car-share {
+    margin-bottom: 12px;
+}
 
 .car-years {
     display: flex;

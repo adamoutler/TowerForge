@@ -8,10 +8,10 @@
 import { useState } from 'react';
 import { useGameStore } from '../../store/useGameStore';
 import { createShare, shareUrl } from '../../engine/shareApi';
-import type { SharePayload, ShareSectionKey } from '../../engine/shareApi';
+import type { ShareSectionKey } from '../../engine/shareApi';
 import { useAccountStore } from '../../store/useAccountStore';
 import MySharesList from '../share/MySharesList';
-import { activeLoadout } from '../../engine/statHelpers';
+import { sharePayloadFrom } from '../../store/sharePayload';
 
 type SectionKey = ShareSectionKey;
 
@@ -29,19 +29,6 @@ const SECTIONS: { key: SectionKey; label: string; hint: string }[] = [
 ];
 
 export default function ShareTab() {
-    const uwData = useGameStore(s => s.uwData);
-    const cardData = useGameStore(s => s.cardData);
-    const botData = useGameStore(s => s.botData);
-    const botLoadouts = useGameStore(s => s.botLoadouts);
-    const presetCount = useGameStore(s => s.profile.presets || 2);
-    const presetNames = useGameStore(s => s.profile.presetNames);
-    const moduleState = useGameStore(s => s.moduleState);
-    const profile = useGameStore(s => s.profile);
-    const tierWaves = useGameStore(s => s.tierWaves);
-    const wsData = useGameStore(s => s.wsData);
-    const enhData = useGameStore(s => s.enhData);
-    const labData = useGameStore(s => s.labData);
-    const relicData = useGameStore(s => s.relicData);
     const guardianData = useGameStore(s => s.guardianData);
     const vaultLevels = useGameStore(s => s.vaultLevels);
     const accountStatus = useAccountStore(s => s.status);
@@ -61,30 +48,7 @@ export default function ShareTab() {
     const hasVault = Object.values(vaultLevels ?? {}).some(v => v > 0);
 
     async function handleCreate() {
-        const payload: SharePayload = {};
-        if (selected.profile) {
-            payload.profile = {
-                build: profile.build, league: profile.league, currentLeague: profile.currentLeague,
-                highestTier: profile.highestTier, completedTier: profile.completedTier, tierWaves,
-            };
-        }
-        if (selected.uw) payload.uw = uwData;
-        if (selected.cards) payload.cards = { ...cardData, presetCount, presetNames };
-        if (selected.bots) payload.bots = { current: botData, loadouts: botLoadouts, presetCount, presetNames };
-        if (selected.modules) {
-            payload.modules = {
-                loadouts: moduleState.loadouts,
-                library: moduleState.library,
-                slotLevels: moduleState.slotLevels,
-                activeLoadout: activeLoadout(moduleState)?.id,
-                assistData: moduleState.assistData,
-            };
-        }
-        if (selected.workshop) payload.workshop = { presets: wsData.slice(0, presetCount), enh: enhData, presetCount, presetNames };
-        if (selected.labs) payload.labs = { levels: labData };
-        if (selected.relics) payload.relics = { totals: relicData };
-        if (selected.guardian && guardianData?.unlocked) payload.guardian = { guardian: guardianData, presetCount, presetNames };
-        if (selected.vault && hasVault) payload.vault = { levels: vaultLevels };
+        const payload = sharePayloadFrom(useGameStore.getState(), SECTIONS.filter(x => selected[x.key]).map(x => x.key));
 
         setBusy(true);
         setError(null);
@@ -97,6 +61,17 @@ export default function ShareTab() {
             setError(err instanceof Error ? err.message : 'Could not create the share link.');
         } finally {
             setBusy(false);
+        }
+    }
+
+    // Phones: the share menu (Discord, Reddit, Messages…) with the link.
+    const canShareLink = typeof navigator.share === 'function';
+    async function handleShareLink() {
+        if (!code) return;
+        try {
+            await navigator.share({ title: 'My The Tower build on TowerForge', url: shareUrl(code) });
+        } catch {
+            // Closed, or not allowed here: Copy Link still works.
         }
     }
 
@@ -113,7 +88,7 @@ export default function ShareTab() {
     function handleOpen() {
         const trimmed = openCode.trim();
         if (!trimmed) return;
-        window.location.href = `/?share=${encodeURIComponent(trimmed.toUpperCase())}`;
+        window.location.href = `/s/${encodeURIComponent(trimmed.toUpperCase())}`;
     }
 
     return (
@@ -177,7 +152,13 @@ export default function ShareTab() {
                                 <button className="btn btn-dim" onClick={handleCopy}>
                                     {copied ? '✓ Copied' : 'Copy Link'}
                                 </button>
+                                {canShareLink && <button className="btn btn-accent" onClick={() => void handleShareLink()}>📤 Share</button>}
                             </div>
+                            {selected.profile && (
+                                <p style={{ fontSize: '13px', color: 'var(--text-dim)', marginTop: '8px', lineHeight: 1.6 }}>
+                                    Posted in Discord or Reddit, the link shows your tier, best wave and league.
+                                </p>
+                            )}
                         </div>
                     )}
                 </div>

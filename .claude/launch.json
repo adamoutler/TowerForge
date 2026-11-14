@@ -40,7 +40,9 @@
         "--webroot",
         "../towerforge.client/dist",
         "--Data:Directory",
-        "bin/local-test-data"
+        "bin/local-test-data",
+        "--Site:Origin",
+        "http://localhost:5099"
       ],
       "port": 5099
     }

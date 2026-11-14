@@ -18,7 +18,9 @@ interface Umami {
     track(event: string, data?: Record<string, string | number>): void;
 }
 
-const umami = (): Umami | undefined => (window as unknown as { umami?: Umami }).umami;
+// No window in tests (or during a build): nothing to count.
+const umami = (): Umami | undefined =>
+    (typeof window === 'undefined' ? undefined : (window as unknown as { umami?: Umami }).umami);
 
 export function trackEvent(name: string, data?: Record<string, string | number>): void {
     umami()?.track(name, data);

@@ -229,6 +229,35 @@ public sealed class UserStore
         return true;
     }
 
+    // Deletes an account and everything tied to it, once its password
+    // checks out: the saved stats and recovery code (cascade), its share
+    // links and the Ask AI answers it sent. False when the password is
+    // wrong. Players have this right under privacy laws (GDPR erasure);
+    // the Privacy page promises it.
+    public async Task<bool> DeleteAccountAsync(long userId, string password)
+    {
+        var user = await FindByIdAsync(userId);
+        if (user is null) return false;
+        if (_hasher.VerifyHashedPassword(user.Username, user.PasswordHash, password) == PasswordVerificationResult.Failed)
+            return false;
+
+        await using var conn = await _db.OpenAsync();
+        await using var tx = (SqliteTransaction)await conn.BeginTransactionAsync();
+        await using (var cmd = conn.CreateCommand())
+        {
+            cmd.Transaction = tx;
+            cmd.CommandText = """
+                DELETE FROM shares WHERE owner_id = $id;
+                DELETE FROM ai_reports WHERE user_id = $id;
+                DELETE FROM users WHERE id = $id;
+                """;
+            cmd.Parameters.AddWithValue("$id", userId);
+            await cmd.ExecuteNonQueryAsync();
+        }
+        await tx.CommitAsync();
+        return true;
+    }
+
     public async Task<User?> FindByUsernameAsync(string username)
     {
         await using var conn = await _db.OpenAsync();

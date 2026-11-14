@@ -63,7 +63,7 @@ describe('What If for tournaments', () => {
     it('uses the tournament run and says so', () => {
         const r = whatIfChanges(load('late'), [{ upgrade: 'CL damage', level: 'max' }], { league: '', week: {}, recent: {} });
         expect(r.title).toBe('What If — tournament');
-        expect(r.text).toMatch(/^Headline: maxing CL damage gives about \+[\d.]+ tournament waves this week \(runs end around W4\d\d now/);
+        expect(r.text).toMatch(/^Headline: Chain Lightning — Damage is level \d+ of 32 now, not maxed\. Maxing CL damage gives about \+[\d.]+ tournament waves this week \(runs end around W4\d\d now/);
     });
 
     it('falls back to campaign runs without a tournament run', () => {
@@ -131,6 +131,22 @@ describe('a tournament question', () => {
         // "How will I do this week" isn't asking what to buy.
         expect(lookUp({ ...route, tool: 'tournament' }, "How will I do in this week's tournament?", { account, tourney }).map(x => x.title)).toEqual(['Tournament', 'Your runs — tournament']);
         expect(lookUp(route, q, { account, tourney })[1].text).toMatch(/doesn't know the rewards for each rank \(keys and the rest\)/);
+    });
+
+    // A player report (2026-11-09): the 4B said "the Coins/Wave Lab is maxed"
+    // from a headline about damage and survival.
+    it('heads a coins-only What If with coins and where the upgrade is now', () => {
+        const r = whatIfChanges(load('mid'), [{ upgrade: 'Coins/Wave Lab', level: 'max' }]);
+        expect(r.text).toMatch(/^Headline: Coins\/Wave Lab is level 21 of 99 now, not maxed\. Maxing Coins\/Wave Lab adds no coins an hour that TowerForge can measure \(33\.04T an hour now\), and it doesn't change damage or survival\. It costs 101\.69M coins, 865d 21h of research\./);
+    });
+
+    // A player report (2026-11-09): "a build to maximize coins per hour".
+    it('adds which tier to farm to the coin picks for coins an hour', { timeout: 20_000 }, () => {
+        const account = load('late');
+        const coins: RouteChoice = { ...route, goal: 'coins', runs: 'any' };
+        const titles = (q: string) => lookUp(coins, q, { account, tourney }).map(x => x.title.replace(/ \(.*/, ''));
+        expect(titles('Could you recommend a total build set to maximize coins per hour?')).toEqual(['Optimizer — stones, coins, lab research', 'Which tier to farm']);
+        expect(titles('How do I get more coins?')).toEqual(['Optimizer — stones, coins, lab research']);
     });
 
     it('sees the tournament build in the account summary', () => {

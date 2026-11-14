@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Tests for the server's pure parts. They compile the files they test
+       directly, so testing doesn't build the server (and with it the site). -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\TowerForge.Server\LiveStreams\StreamCheck.cs" Link="LiveStreams\StreamCheck.cs" />
+    <Compile Include="..\TowerForge.Server\Push\WebPush.cs" Link="Push\WebPush.cs" />
+    <Compile Include="..\TowerForge.Server\ShareCards\*.cs" LinkBase="ShareCards" />
+  </ItemGroup>
+
+</Project>

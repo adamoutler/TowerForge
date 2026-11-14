@@ -184,8 +184,8 @@ describe('UsbLinkModal Component & Linux udev Asset (TOWERFORGE-5)', () => {
         );
         expect(forgetBtn).toBeDefined();
 
-        // Also verify App.tsx retains untouched "🖥 Get from emulator or phone" alongside "🔌 Connect USB phone"
-        expect(appSourceRaw).toContain('🖥 Get from emulator or phone');
+        // Also verify App.tsx retains untouched "Get from emulator or phone" alongside "🔌 Connect USB phone"
+        expect(appSourceRaw).toContain('Get from emulator or phone');
         expect(appSourceRaw).toContain('🔌 Connect USB phone');
         expect(appSourceRaw).toContain('data-testid="connect-usb-phone-btn"');
     });

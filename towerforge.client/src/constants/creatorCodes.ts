@@ -2,10 +2,11 @@
 //  TowerForge Companion — Creator Codes
 //  The Tower's content creators: the code players enter to support
 //  them, the name they go by, what they're known for, and where to
-//  find their content. A creator gets 5% of in-app purchases and 8%
+//  find their content. A creator gets 3% of in-app purchases and 5%
 //  of webstore purchases made with their code, at no extra cost to
-//  the player; a code stays active for 30 days (wiki: Content
-//  Creator Page).
+//  the player (owner, 2026-11-09; the 5% / 8% shown before was
+//  wrong); a code stays active for 30 days (wiki: Content Creator
+//  Page).
 //
 //  Sources (all sent by the site owner, 2026-10-17):
 //    - Codes, player names and IDs: the creator code list. Codes keep
@@ -17,6 +18,9 @@
 //      as "·"). Every Discord invite was checked to be live.
 //    - Also kept from checking the creators' YouTube channels: jplays'
 //      Twitch and Zaerdin's X (both listed on their own channels).
+//    - Twitch for Spartan, Flipstar, Kohyal and Kryntos: each one's own
+//      YouTube stream descriptions link it ("Follow me on Twitch …",
+//      checked 2026-11-09); H3ll's is the owner's (2026-11-09).
 //  Only add a link that's confirmed — from the creator, or a page that
 //  clearly belongs to them. Profile pictures: scripts/fetch-creator-avatars.mjs.
 // ============================================================
@@ -58,6 +62,16 @@ export const creatorSlug = (code: string): string =>
 export const creatorLink = (creator: Creator, site: CreatorSite): string | undefined =>
     creator.links.find(l => l.site === site)?.url;
 
+// The channels the server checks for live streams: YouTube @handle and
+// Twitch login per creator. Saved as TowerForge.Server/creator-channels.json
+// by "npm run creator-channels" (a test fails until it's rerun).
+export interface CreatorChannels { code: string; youtube?: string; twitch?: string }
+export const creatorChannels = (creators: Creator[]): CreatorChannels[] => creators.flatMap(c => {
+    const youtube = creatorLink(c, 'youtube')?.match(/youtube\.com\/@([^/?#]+)/)?.[1];
+    const twitch = creatorLink(c, 'twitch')?.match(/twitch\.tv\/([^/?#]+)/)?.[1]?.toLowerCase();
+    return youtube || twitch ? [{ code: c.code, ...(youtube ? { youtube } : {}), ...(twitch ? { twitch } : {}) }] : [];
+});
+
 type L = [CreatorSite, string, string?];
 const c = (code: string, name: string, player: string, playerId: string | null, about: string | null, links: L[] = []): Creator => ({
     code, name, player,
@@ -67,14 +81,16 @@ const c = (code: string, name: string, player: string, playerId: string | null, 
 });
 
 const yt = (handle: string): L => ['youtube', `https://www.youtube.com/@${handle}`];
+const tw = (login: string): L => ['twitch', `https://www.twitch.tv/${login}`];
 const dc = (invite: string): L => ['discord', `https://discord.gg/${invite}`];
 
 export const CREATORS: Creator[] = [
     c('1410c', '1410c | Bubble Guard ♡', '1410c', '322BA26372C2A288', 'Moderating · Sheets & Tools'),
     c('250', 'spadace50', 'spadace50', '77D417A14B704EE4', null),
-    c('300', 'Spartan', 'spartontyler', '40283260A0DE5178', null, [yt('SpartanTheTower'), dc('3yjCH32pWc')]),
+    c('300', 'Spartan', 'spartontyler', '40283260A0DE5178', null,
+        [yt('SpartanTheTower'), tw('atspartangaming'), dc('3yjCH32pWc')]),
     c('AV8er', 'AV8er', 'av8er', 'F3BE4A63BCD60AC3', 'Legends tournament videos and guides',
-        [yt('iAV8er'), ['twitch', 'https://www.twitch.tv/av8er']]),
+        [yt('iAV8er'), tw('av8er')]),
     c('bilinz', 'bilinz', 'bilinz', '990A6EEA63FA8AD6', null),
     c('Bonzo', 'Bonzo', 'bonzo.samm', 'BB696E5B4936CA8A', null, [yt('BonzosTower')]),
     c('cloud', 'All Clouded', 'buffythetuffy', null, null, [yt('AllClouded')]),
@@ -87,9 +103,9 @@ export const CREATORS: Creator[] = [
         [yt('ebatstower'), dc('PqTSjkRhfv')]),
     c('EconSquirrel', 'quietfanta', 'quietfanta', '2FB4DB043F9F7B37', null),
     c('EthanDX', 'EthanDX🌴', 'ethandx', '2BD4ADBB9A560204', null, [yt('EthanDX'), dc('FGk8TpACER')]),
-    c('flipstar', 'Flipstar', 'mrflipstar', '188EAC641A3EBC7A', null, [yt('MrFlipstar')]),
+    c('flipstar', 'Flipstar', 'mrflipstar', '188EAC641A3EBC7A', null, [yt('MrFlipstar'), tw('mrflipstarstower')]),
     c('Greeny', 'Greeny', 'Greeny', 'CE2B716E1DEB338C', 'Making YouTube videos for The Tower', [yt('GreenyTower')]),
-    c('H3ll', 'h3llxspawnerx', 'h3llxspawnerx', '7DA5D423F1CF6B75', null),
+    c('H3ll', 'h3llxspawnerx', 'h3llxspawnerx', '7DA5D423F1CF6B75', null, [tw('h3llxspawnerx')]),
     c('hiro29', 'hiro29', 'heren4185', null, 'Tower write-ups on note',
         [['website', 'https://note.com/hiro29_tower', 'Blog']]),
     c('IceQuasars', 'IceQuasars', 'icequasars', 'D9C208F3AC83DA84', 'Discord Moderator & Mentor'),
@@ -106,16 +122,16 @@ export const CREATORS: Creator[] = [
     c('JGU', 'Taggz', '_taggz', '184C7DE105306865', 'I dunno, I\'m just guessing.', [yt('taggzJGU'), dc('FHejXjWa9Z')]),
     c('JP978', 'JP978', 'beyond882001', '8F9EC4F8D06525FC', 'Known fish connoisseur.', [yt('Jp978gaming')]),
     c('jplays', 'J Plays', 'JPlays', 'A714DA83E2F3826A', null, [
-        yt('JPlays1'), ['twitch', 'https://www.twitch.tv/jplaysone'], dc('qb4PdSE6vA'),
+        yt('JPlays1'), tw('jplaysone'), dc('qb4PdSE6vA'),
         ['website', 'https://the-tower.notion.site', 'Tower Knowledge Hub'],
     ]),
-    c('Kohyal', 'Kohyal', 'kohyal', 'B489726B4AD50A72', null, [yt('KohyalStudios'), dc('qXrYMTEVUX')]),
+    c('Kohyal', 'Kohyal', 'kohyal', 'B489726B4AD50A72', null, [yt('KohyalStudios'), tw('kohyal_studios'), dc('qXrYMTEVUX')]),
     c('Milamber33', 'Milamber33', 'Milamber33', '4A98A60A5D9E4E25', 'Moderating'),
     c('minion', 'minionek247', 'minionek247', 'C5BA98964102874D',
         'Guides and infographics on the Tower Knowledge Hub (Lab Tier List, perk trade-off advice)'),
     c('NanaSeiYuri', 'NanaSeiYuri', 'NanaSeiYuri', 'A0710535553C4FA8', 'Moderating · Making Sheets & Infographics'),
     c('NERD', 'Kryntos', 'kryntos', 'DFD247A4D7729ECF',
-        'Ultimate Coin Farming Guide, Disco Guides for Average EHP Tower & Tower Roasts', [yt('KryntosGames')]),
+        'Ultimate Coin Farming Guide, Disco Guides for Average EHP Tower & Tower Roasts', [yt('KryntosGames'), tw('kryntos')]),
     c('nickavii', 'nick_avii ♂', 'nick_avii', null, 'Moderating'),
     c('Panda', 'Tequila Man', 'tequilaman007', '55DFD12DDC7BA40B', 'Just a panda man playing some games', [yt('tequilaman7')]),
     c('pandu', 'pandu.eth', 'pandu.eth', 'C934EE0BE5BF437B', null),
@@ -146,5 +162,5 @@ export const CREATORS: Creator[] = [
     c('Zeus', 'Zeus-Hail Coin Gun-Little fishy', 'insomnia115', '2F89EA7FCEC47530', 'Mod Mentor'),
 ];
 
-// The official webstore, where a code also counts (8% there).
+// The official webstore, where a code also counts (5% there).
 export const WEBSTORE_URL = 'https://store.techtreegames.com/thetower/';

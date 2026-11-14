@@ -29,6 +29,19 @@ describe('the route, checked against the question', () => {
         expect(readRoute(json({ tool: 'none' }), 'What tier am I on?').tool).toBe('none');
     });
 
+    // A player report (2026-11-13): went to the notes, and the 8B made up the price.
+    it('sends what workshop upgrades cost to What If, both of a family when asked', () => {
+        const both = readRoute(json({ tool: 'guide', search: 'Enemy level skip' }),
+            'How many coins will it cost to max out both of my Enemy level skips in my workshop?');
+        expect(both.tool).toBe('what_if');
+        expect(both.changes).toEqual([{ upgrade: 'Enemy Atk Level Skip', level: 'max' }, { upgrade: 'Enemy HP Level Skip', level: 'max' }]);
+        const one = readRoute(json({ tool: 'none' }), 'How much does it cost to get Enemy HP Level Skip to level 600?');
+        expect(one.changes).toEqual([{ upgrade: 'Enemy HP Level Skip', level: '600' }]);
+        // Not a price, or a lab: left alone.
+        expect(readRoute(json({ tool: 'none' }), 'What is enemy level skip?').tool).toBe('guide');
+        expect(readRoute(json({ tool: 'upgrades', currency: 'coins' }), 'What should I spend my coins on next?').tool).toBe('upgrades');
+    });
+
     it('sends module shards alone to the shard plan, and lab boosts to their own', () => {
         expect(readRoute(json({ tool: 'upgrades', currency: 'shards' }), 'best use of my module shards').tool).toBe('shard_plan');
         expect(readRoute(json({ tool: 'upgrades', currency: 'research' }), 'what boost should my labs run at').tool).toBe('lab_boosts');
@@ -66,6 +79,31 @@ describe('the route, checked against the question', () => {
 
     it('falls back to keywords when the JSON can\'t be read', () => {
         expect(readRoute('not json', 'How do I get more coins?')).toMatchObject({ tool: 'upgrades', goal: 'coins', guessed: true });
+        expect(readRoute('not json', 'a build to maximize coins per hour')).toMatchObject({ tool: 'upgrades', goal: 'coins' });
+    });
+
+    // Player reports, 2026-11-09: the routes the model gave, and what they become.
+    it('sends how-to questions about a game thing to the notes, not the model\'s memory', () => {
+        const q = 'How do I get a permanent Black Hole in tournaments without perks and the Galaxy Compressor?';
+        expect(readRoute(json({ tool: 'none' }), q)).toMatchObject({ tool: 'guide', search: q });
+        expect(readRoute(json({ tool: 'none' }), 'hi').tool).toBe('none');
+        expect(readRoute(json({ tool: 'none' }), 'Write me a poem about towers').tool).toBe('none');
+    });
+
+    it('reads earning coins said any way as the coin picks', () => {
+        const q = 'Could you recommend a total build set to maximize coins per hour?';
+        expect(readRoute(json({ tool: 'none' }), q)).toMatchObject({ tool: 'upgrades', goal: 'coins', currency: 'any' });
+        // The 4B's own pick on the bench: the tiers alone, for a question that never says tier.
+        expect(readRoute(json({ tool: 'farm_tier' }), q)).toMatchObject({ tool: 'upgrades', goal: 'coins' });
+        expect(readRoute(json({ tool: 'farm_tier' }), 'Which tier should I farm for the most coins per hour?').tool).toBe('farm_tier');
+    });
+
+    it('sends a lab named in full to What If on that lab, unless it asks what to buy', () => {
+        const q = 'My coin/wave workshop is maxed out so it gave the wrong information. I am asking specifically on the research lab not the workshop now anser';
+        const r = readRoute(json({ tool: 'upgrades', currency: 'coins', goal: 'coins' }), q);
+        expect([r.tool, r.changes]).toEqual(['what_if', [{ upgrade: 'Coins/Wave Lab', level: 'max' }]]);
+        expect(readRoute(json({ tool: 'upgrades', currency: 'research' }), 'Should I research the coins/wave lab or the cash/wave lab next?').tool).toBe('upgrades');
+        expect(readRoute(json({ tool: 'upgrades' }), 'How do I get more damage from labs?').tool).toBe('upgrades');
     });
 });
 

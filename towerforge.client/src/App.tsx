@@ -18,14 +18,24 @@ import CurrencyBar from './components/common/CurrencyBar';
 // ── Tab Components (stubs for now — filled in one by one) ────
 import ProfileTab from './components/tabs/ProfileTab';
 import LinkModal from './components/LinkModal';
-import UsbLinkModal, { type UsbModalMode } from './components/UsbLinkModal';
+import UsbLinkModal, { type UsbModalMode, saveLastUsbConnectState } from './components/UsbLinkModal';
+import ImportSheet from './components/ImportSheet';
+import { fileImportWorkedHere, linkImportWorkedHere, rememberFileImport, rememberLinkImport, thisImportDevice } from './components/common/importDevice';
+import { IMPORT_EVENT, offerAutoImport } from './importNav';
+import { openGuide } from './guideNav';
+import { ROUTE_META, pageTitle } from './routeMeta';
 import LinkSourcePicker from './components/LinkSourcePicker';
 import AutoImport, { setAutoImportOn } from './components/common/AutoImport';
-import { saveLastUsbConnectState } from './components/UsbLinkModal';
 import ThemePicker from './components/common/ThemePicker';
 import DiscordLink from './components/common/DiscordLink';
+import OfficialSiteNote from './components/common/OfficialSiteNote';
+import SiteFooter from './components/common/SiteFooter';
 import WelcomeGuide from './components/common/WelcomeGuide';
-import { exportAge, linkExport, linkSources, phoneLinkRemembered, rememberedSource, rememberSource } from './engine/linkClient';
+import { exportAge, linkExport, linkSources, openedByLink, phoneLinkRemembered, rememberedSource, rememberSource } from './engine/linkClient';
+import { endExampleForImport, tryExample, useExampleOn } from './store/exampleAccount';
+import { importWithMoments } from './store/moments';
+import { shareCodeFrom } from './engine/shareApi';
+import ExampleBar from './components/common/ExampleBar';
 import type { LinkSource } from './engine/linkClient';
 import PerksTab from './components/tabs/PerksTab';
 import TiersTab from './components/tabs/TiersTab';
@@ -44,6 +54,8 @@ import AccountTab from './components/tabs/AccountTab';
 import { useAccountStore } from './store/useAccountStore';
 import SharedView from './components/share/SharedView';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import { useLiveCreators } from './components/common/liveCreators';
+import CharityBanner from './components/common/CharityBanner';
 
 import './styles/app.css';
 
@@ -59,6 +71,8 @@ const TournamentTab = lazy(() => import('./components/tabs/TournamentTab'));
 const TourneyHistoryTab = lazy(() => import('./components/tabs/TourneyHistoryTab'));
 const AiTab = lazy(() => import('./components/tabs/AiTab'));
 const ImportGuideTab = lazy(() => import('./components/tabs/ImportGuideTab'));
+const PrivacyTab = lazy(() => import('./components/tabs/PrivacyTab'));
+const TermsTab = lazy(() => import('./components/tabs/TermsTab'));
 
 // ── Tab Definitions ───────────────────────────────────────────
 // The tabs, grouped into sections so the menu fits a phone: the top row
@@ -66,13 +80,15 @@ const ImportGuideTab = lazy(() => import('./components/tabs/ImportGuideTab'));
 // for a section with one tab). A section with a long name has a short one
 // for phones, and an icon (on phones the icon sits over the name). A
 // preview section shows only for the accounts the server lists for it
-// (features.json), and always in development.
+// (features.json), and always in development. Privacy and Terms open from
+// the site footer: their tab shows only while one is open, and going back
+// to the section doesn't return to it.
 interface TabGroup {
     id: string;
     label: string;
     icon: string;
     short?: string;
-    tabs: { id: TabName; label: string; title?: string }[];   // title: the page title, when the label needs its section
+    tabs: { id: TabName; label: string; title?: string; footer?: boolean }[];   // title: the page title, when the label needs its section
     preview?: string;
 }
 const TAB_GROUPS: TabGroup[] = [
@@ -84,6 +100,8 @@ const TAB_GROUPS: TabGroup[] = [
             { id: 'share', label: 'Share' },
             { id: 'account', label: 'Account' },
             { id: 'importguide', label: 'Import Guide' },
+            { id: 'privacy', label: 'Privacy', footer: true },
+            { id: 'terms', label: 'Terms', title: 'Terms of use', footer: true },
         ],
     },
     {
@@ -130,11 +148,12 @@ const TAB_GROUPS: TabGroup[] = [
 ];
 
 const groupOf = (tab: TabName): TabGroup => TAB_GROUPS.find(g => g.tabs.some(t => t.id === tab)) ?? TAB_GROUPS[0];
+const isFooterTab = (tab: TabName) => !!groupOf(tab).tabs.find(t => t.id === tab)?.footer;
+// The tab a section returns to, after opening `tab` (footer pages aren't kept).
+const remember = (last: Record<string, TabName>, tab: TabName) => (isFooterTab(tab) ? last : { ...last, [groupOf(tab).id]: tab });
 
-const HOME_TITLE = 'TowerForge — The Tower Companion';
-const titleOf = (tab: TabName) => (tab === 'profile'
-    ? HOME_TITLE
-    : `${(t => t?.title ?? t?.label)(groupOf(tab).tabs.find(t => t.id === tab)) ?? tab} — TowerForge`);
+// Page titles and descriptions: routeMeta.ts (the build writes them into each page's HTML too).
+const titleOf = pageTitle;
 
 // A plain click opens the tab here; Ctrl / ⌘ / Shift / middle click do
 // what they do on any link (new tab or window).
@@ -146,14 +165,21 @@ export default function App() {
     const [linkBusy, setLinkBusy] = useState(false);
     const [linkModal, setLinkModal] = useState<{ problem: string | null } | null>(null);
     const [usbModalOpen, setUsbModalOpen] = useState<UsbModalMode | null>(null);
+    // ⬆ Import: the import help (ways in for this device) until a file
+    // import has worked here, then straight to the file picker.
+    const [importHelp, setImportHelp] = useState(false);
+    const [importDevice] = useState(thisImportDevice);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const exampleOn = useExampleOn();
+    // Any game data here yet (the example offer is for empty pages only).
+    const hasOwnData = useGameStore(s => s.importedBattles.length > 0 || !!s.profile.highestTier);
     const [linkChoices, setLinkChoices] = useState<LinkSource[] | null>(null);
     // The tab last opened in each section, so going back to a section returns to it.
     const [lastInGroup, setLastInGroup] = useState<Record<string, TabName>>(() => {
-        const tab = useGameStore.getState().activeTab;
-        return { [groupOf(tab).id]: tab };
+        return remember({}, useGameStore.getState().activeTab);
     });
-    // ?share=CODE opens the read-only viewer instead of the app shell.
-    const [shareCode] = useState(() => new URLSearchParams(window.location.search).get('share'));
+    // /s/CODE (or an older ?share=CODE) opens the read-only viewer instead of the app shell.
+    const [shareCode] = useState(() => shareCodeFrom(window.location.pathname, window.location.search));
     const activeTab = useGameStore(s => s.activeTab);
 
     // The header and currency bar fold away once a page is scrolled, and
@@ -163,6 +189,8 @@ export default function App() {
     // A new page opens at its top.
     const mainRef = useRef<HTMLElement>(null);
     const [compact, setCompact] = useState(false);
+    // Creators streaming The Tower now: a dot on the Creators tab.
+    const liveCreators = new Set(useLiveCreators().map(s => s.code)).size;
     const onMainScroll = useCallback(() => {
         const el = mainRef.current;
         if (!el) return;
@@ -176,7 +204,6 @@ export default function App() {
     const profile = useGameStore(s => s.profile);
     const uwData = useGameStore(s => s.uwData);
     const labData = useGameStore(s => s.labData);
-    const applyGameImport = useGameStore(s => s.applyGameImport);
     const importData = useGameStore(s => s.importData);
 
     const accountUsername = useAccountStore(s => s.username);
@@ -210,6 +237,8 @@ export default function App() {
             else window.history.replaceState(null, '', path + search + hash);
         }
         document.title = titleOf(activeTab);
+        // The same description the page's own HTML file has (routeMeta.ts), for search engines that run the app.
+        document.querySelector('meta[name="description"]')?.setAttribute('content', ROUTE_META[activeTab].description);
     }, [activeTab, shareCode]);
 
     // A preview tab this account can't see (once the account is known)
@@ -226,7 +255,7 @@ export default function App() {
         const onPop = () => {
             const tab = tabFromPath(window.location.pathname) ?? 'profile';
             setActiveTab(tab);
-            setLastInGroup(last => ({ ...last, [groupOf(tab).id]: tab }));
+            setLastInGroup(last => remember(last, tab));
         };
         window.addEventListener('popstate', onPop);
         return () => window.removeEventListener('popstate', onPop);
@@ -330,12 +359,61 @@ export default function App() {
         }
     }
 
+    // Opened by TowerForge Link (0.5+, ?link=import) or the Android app's
+    // "Open towerforge.net" (?link=android): bring the data in right away,
+    // once a signed-in account has loaded (its stats mustn't land on top).
+    const openedByLinkRef = useRef(openedByLink());
+    const fromLinkRef = useRef(getFromEmulator);
+    useEffect(() => { fromLinkRef.current = getFromEmulator; });
+    useEffect(() => {
+        if (!openedByLinkRef.current || accountStatus === 'loading') return;
+        openedByLinkRef.current = false;
+        const url = new URL(window.location.href);
+        if (url.searchParams.get('link') === 'import') {
+            url.searchParams.delete('link');
+            window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+        }
+        trackEvent('Emulator link: opened the site');
+        void fromLinkRef.current();
+    }, [accountStatus]);
+
+    // "Import again" from a page (Profile): the quickest way on this device.
+    const quickImportRef = useRef<() => void>(() => {});
+    useEffect(() => {
+        quickImportRef.current = () => { if (linkImportWorkedHere()) void getFromEmulator(); else openImport(); };
+    });
+    useEffect(() => {
+        const onAsk = () => quickImportRef.current();
+        window.addEventListener(IMPORT_EVENT, onAsk);
+        return () => window.removeEventListener(IMPORT_EVENT, onAsk);
+    }, []);
+
+    // ⬆ Import: the import help the first times, the file picker once a
+    // file import has worked on this device.
+    function openImport() {
+        if (fileImportWorkedHere()) {
+            fileInputRef.current?.click();
+            return;
+        }
+        trackEvent('Import help', { step: 'open', device: importDevice });
+        setImportHelp(true);
+    }
+
+    // TowerForge Link from the import help: read it now on a PC (the setup
+    // dialog opens if Link isn't running); on a phone, the Android app's setup.
+    function importLink() {
+        if (importDevice === 'windows') void getFromEmulator();
+        else setLinkModal({ problem: null });
+    }
+
     // Imports parsed data: the game's export, else a TowerForge backup.
     function importJson(json: unknown, text: string, source: 'json' | 'pdf' | 'link', note?: string) {
         if (isGameExport(json)) {
             const imp = parseGameExport(json);
-            applyGameImport(imp);
+            importWithMoments(imp);
             trackEvent(source === 'pdf' ? 'Import game data (PDF)' : source === 'link' ? 'Import game data (emulator)' : 'Import game data');
+            if (source !== 'link') rememberFileImport();
+            else rememberLinkImport();
             const lines = [
                 '✓ Imported from your game data:',
                 '• Currencies',
@@ -382,9 +460,12 @@ export default function App() {
                 ...(note ? ['', note] : []),
             ];
             alert(lines.join('\n'));
+            // Worked through Link: keeping up by itself is one tap away (once).
+            if (source === 'link') offerAutoImport();
             return;
         }
 
+        if (exampleOn) endExampleForImport();
         if (!importData(text)) alert('Import failed — this isn’t a game data export or a TowerForge backup.');
     }
 
@@ -393,7 +474,7 @@ export default function App() {
     const activeGroup = groupOf(activeTab);
     function openTab(tab: TabName) {
         setActiveTab(tab);
-        setLastInGroup(last => ({ ...last, [groupOf(tab).id]: tab }));
+        setLastInGroup(last => remember(last, tab));
     }
 
     // ── Active tab renderer ──────────────────────────────────────
@@ -401,7 +482,14 @@ export default function App() {
         switch (activeTab) {
             case 'profile': return (
                 <>
-                    <WelcomeGuide onImportFile={handleImport} onEmulator={() => void getFromEmulator()} emulatorBusy={linkBusy} />
+                    <WelcomeGuide
+                        device={importDevice}
+                        signedIn={accountStatus === 'signedIn'}
+                        onImportFile={handleImport}
+                        onLink={importLink}
+                        onSignIn={() => openTab('account')}
+                        onExample={accountStatus === 'signedIn' ? undefined : () => void tryExample()}
+                    />
                     <ProfileTab />
                 </>
             );
@@ -429,6 +517,8 @@ export default function App() {
             case 'share': return <ShareTab />;
             case 'account': return <AccountTab />;
             case 'importguide': return <ImportGuideTab />;
+            case 'privacy': return <PrivacyTab />;
+            case 'terms': return <TermsTab />;
             case 'ai': return hiddenTab ? null : <AiTab />;
             default: return null;
         }
@@ -445,6 +535,8 @@ export default function App() {
             {/* ── Header and currencies (fold away while a page is scrolled) ── */}
             <div className="app-top-full" inert={compact}>
                 <div className="app-top-inner">
+                    <OfficialSiteNote />
+                    <CharityBanner />
                     <header className="app-header">
                         <div className="app-logo">
                             Tower<span className="logo-forge">Forge</span>
@@ -462,7 +554,7 @@ export default function App() {
                                     disabled={linkBusy}
                                     title="Copy the game's data export straight from an emulator on this PC, or an Android phone on the same Wi-Fi (TowerForge Link)"
                                 >
-                                    🖥 Get from emulator or phone
+                                    🖥 <span className="hdr-long">Get from emulator or phone</span><span className="hdr-short">Get from phone</span>
                                 </button>
                                 <button
                                     className="btn btn-dim lnk-btn lnk-gear"
@@ -483,7 +575,7 @@ export default function App() {
                                 🔌 Connect USB phone
                             </button>
                             <AutoImport
-                                onImport={raw => applyGameImport(parseGameExport(raw))}
+                                onImport={raw => importWithMoments(parseGameExport(raw))}
                                 onNeedsLink={() => {
                                     if (rememberedSource()?.startsWith('webusb:')) {
                                         setUsbModalOpen('webusb');
@@ -492,15 +584,17 @@ export default function App() {
                                     }
                                 }}
                             />
-                            <label className="btn btn-gold" style={{ cursor: 'pointer' }} title="Import the data export from The Tower (tool_export.json)">
-                                ⬆ Import Game Data
-                                <input
-                                    type="file"
-                                    accept=".json,application/json,.pdf,application/pdf"
-                                    style={{ display: 'none' }}
-                                    onChange={handleImport}
-                                />
-                            </label>
+                            <button type="button" className="btn btn-gold" onClick={openImport}
+                                title="Import the data export from The Tower (tool_export.json)">
+                                ⬆ <span className="hdr-long">Import Game Data</span><span className="hdr-short">Import</span>
+                            </button>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".json,application/json,.pdf,application/pdf"
+                                style={{ display: 'none' }}
+                                onChange={handleImport}
+                            />
                         </div>
 
                         <div className="summary-bar">
@@ -538,17 +632,22 @@ export default function App() {
             <nav className="tab-bar" aria-label="Sections">
                 {TAB_GROUPS.filter(canSee).map(group => {
                     const tab = lastInGroup[group.id] ?? group.tabs[0].id;
+                    const live = group.id === 'creators' && liveCreators > 0;
+                    const label = live ? `${group.label}: ${liveCreators} live now` : group.label;
                     return (
                         <a
                             key={group.id}
                             href={TAB_PATHS[tab]}
                             className={`tab-btn tab-group ${activeGroup.id === group.id ? 'active' : ''}`}
                             aria-current={activeGroup.id === group.id ? 'true' : undefined}
-                            aria-label={group.label}
-                            title={group.label}
+                            aria-label={label}
+                            title={label}
                             onClick={e => { if (plainClick(e)) { e.preventDefault(); openTab(tab); } }}
                         >
-                            <span className="tab-icon" aria-hidden="true">{group.icon}</span>
+                            <span className="tab-icon" aria-hidden="true">
+                                {group.icon}
+                                {live && <span className="tab-live-dot" />}
+                            </span>
                             {group.short
                                 ? <><span className="tab-long">{group.label}</span><span className="tab-short">{group.short}</span></>
                                 : <span>{group.label}</span>}
@@ -558,7 +657,7 @@ export default function App() {
             </nav>
             {activeGroup.tabs.length > 1 && (
                 <nav className="tab-subbar" aria-label={activeGroup.label}>
-                    {activeGroup.tabs.map(tab => (
+                    {activeGroup.tabs.filter(tab => !tab.footer || tab.id === activeTab).map(tab => (
                         <a
                             key={tab.id}
                             href={TAB_PATHS[tab.id]}
@@ -572,11 +671,14 @@ export default function App() {
                 </nav>
             )}
 
+            <ExampleBar onImport={openImport} />
+
             {/* ── Content ── */}
             <main className="tab-content" ref={mainRef} onScroll={onMainScroll}>
                 <ErrorBoundary key={activeTab}>
                     <Suspense fallback={null}>{renderTab()}</Suspense>
                 </ErrorBoundary>
+                <SiteFooter onOpen={openTab} />
             </main>
 
             {linkChoices && (
@@ -596,6 +698,7 @@ export default function App() {
                     problem={linkModal.problem}
                     busy={linkBusy}
                     onRetry={() => void getFromEmulator()}
+                    onImportFile={e => { setLinkModal(null); handleImport(e); }}
                     onClose={() => setLinkModal(null)}
                     onSwitchMode={mode => {
                         setLinkModal(null);
@@ -623,6 +726,19 @@ export default function App() {
                         importJson(json, rawJson, 'json', 'Read directly from your USB-connected Android phone. Export again in the game whenever you want fresh data.');
                     }}
                     onClose={() => setUsbModalOpen(null)}
+                />
+            )}
+
+            {importHelp && (
+                <ImportSheet
+                    device={importDevice}
+                    signedIn={accountStatus === 'signedIn'}
+                    onImportFile={handleImport}
+                    onLink={importLink}
+                    onGuide={openGuide}
+                    onSignIn={() => openTab('account')}
+                    onExample={hasOwnData || exampleOn || accountStatus === 'signedIn' ? undefined : () => void tryExample()}
+                    onClose={() => setImportHelp(false)}
                 />
             )}
 

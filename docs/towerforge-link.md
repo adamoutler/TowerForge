@@ -87,7 +87,8 @@ phone asking to allow USB debugging.
 ## Auto import (2026-10-21, Link 0.2)
 
 The game (29.1.3+) can export by itself every time it saves (Settings →
-External Tools Export → Auto). The header's **⟳ Auto import** toggle
+tap the player ID 5 times → External Tools Export → Auto; the option stays
+hidden until those taps). The header's **⟳ Auto import** toggle
 (`components/common/AutoImport.tsx`, off until the player turns it on,
 remembered per browser) keeps the site in step while it's open:
 
@@ -104,6 +105,32 @@ remembered per browser) keeps the site in step while it's open:
   load first, so a signed-in account's saved stats don't land on top of it.
 - If Link isn't running when it's turned on, the setup dialog opens; later
   the button turns gold and its tooltip says why.
+
+**Link opens the site (0.5, 2026-11-13).** When Link starts and no towerforge.net
+page asks it anything within 6 seconds (the setup dialog asks every 4 s), it
+opens `https://towerforge.net/?link=import` in the default browser, and the site
+imports on load (after a signed-in account has loaded): starting Link is the
+whole job. A page that is asking means the site is open, so Link doesn't open
+another tab and that page brings the data in. Started again while a copy runs,
+it opens the site instead of only saying so, then closes. `--no-browser` turns
+it off; `--site <url>` opens another address (testing). The Android app's
+"Open towerforge.net" (`?link=android`) imports on load the same way. Checked
+2026-11-13: a test copy on port 47999 with a site page asking every second
+logged "towerforge.net is open and asking" and opened nothing; the site at
+`?link=import` asked Link at once (with two sources it showed "Import from…")
+and tidied the address. Opening the browser itself wasn't run on the owner's
+PC (it would open a tab there); it's Windows' standard open-this-address call.
+
+The setup dialog itself (`components/LinkModal.tsx`, 2026-11-13: half the PC
+players who met "Link isn't running" left without importing, Umami, 30 days):
+it asks Link for its status every 4 s, and when Link goes from not running to
+running it reads the export by itself (event `Emulator link: started`), so
+starting Link is the only step. While Link isn't running it also offers the
+file itself ("Skip Link: Choose the file"). On a Mac or Linux it shows the
+ways that work there (the Mac Terminal line, the Import Guide) instead of the
+Windows download, and on an iPhone or iPad the computer-backup ways instead of
+the Android app. Checked in the preview with Link's answers blocked, then let
+through: the dialog asked for `/sources` and `/export` by itself.
 
 Checked 2026-10-21 against a stand-in Link with a made-up export: first
 import on turning it on, a mid-run save skipped, a finished run imported at

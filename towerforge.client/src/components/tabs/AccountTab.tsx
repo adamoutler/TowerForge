@@ -4,13 +4,15 @@
 //  codes, and passwords: a recovery code (shown once when it's made)
 //  sets a new password when the old one is forgotten — accounts have
 //  no email. Players without a code ask in the Discord; the site owner
-//  can issue one (docs/accounts.md).
+//  can issue one (docs/accounts.md). Players can download their data
+//  and delete the account with everything tied to it (Privacy page).
 // ============================================================
 
 import { useState } from 'react';
 import { useAccountStore } from '../../store/useAccountStore';
 import MySharesList from '../share/MySharesList';
 import { DISCORD_URL } from '../../constants/community';
+import { downloadBackup } from '../common/downloadBackup';
 
 type Mode = 'register' | 'signin' | 'reset';
 
@@ -66,6 +68,7 @@ export default function AccountTab() {
     const changePassword = useAccountStore(s => s.changePassword);
     const recoveryCodeSaved = useAccountStore(s => s.recoveryCodeSaved);
     const logout = useAccountStore(s => s.logout);
+    const deleteAccount = useAccountStore(s => s.deleteAccount);
 
     const [mode, setMode] = useState<Mode>('register');
     const [user, setUser] = useState('');
@@ -79,6 +82,9 @@ export default function AccountTab() {
     const [next, setNext] = useState('');
     const [nextAgain, setNextAgain] = useState('');
     const [pwMessage, setPwMessage] = useState<{ ok: boolean; text: string } | null>(null);
+    // Signed in: delete the account.
+    const [deletePassword, setDeletePassword] = useState('');
+    const [deleteError, setDeleteError] = useState<string | null>(null);
 
     const switchMode = (m: Mode) => { setMode(m); setError(null); setPassword(''); setConfirmPassword(''); };
 
@@ -146,6 +152,21 @@ export default function AccountTab() {
             setPwMessage({ ok: true, text: 'Password changed. Use the new one next time you sign in.' });
         } catch (err) {
             setPwMessage({ ok: false, text: errorText(err, 'Could not change the password.') });
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function handleDelete(e: React.FormEvent) {
+        e.preventDefault();
+        setDeleteError(null);
+        if (!confirm(`Delete the account ${username} for good? Its saved stats, recovery code, share links and any Ask AI answers it sent are deleted, and your stats are removed from this device. This can't be undone.`)) return;
+        setBusy(true);
+        try {
+            await deleteAccount(deletePassword);
+            setDeletePassword('');
+        } catch (err) {
+            setDeleteError(errorText(err, 'Could not delete the account.'));
         } finally {
             setBusy(false);
         }
@@ -228,10 +249,35 @@ export default function AccountTab() {
                     </div>
                 </div>
 
-                <div className="section">
+                <div className="section" style={{ marginBottom: '10px' }}>
                     <div className="section-head"><h3>My Share Codes</h3></div>
                     <div className="section-body" style={{ padding: '10px 14px' }}>
                         <MySharesList />
+                    </div>
+                </div>
+
+                <div className="section">
+                    <div className="section-head"><h3>Delete account</h3></div>
+                    <div className="section-body acc-security">
+                        <p>
+                            Deletes your account and everything saved with it: your stats, your recovery code, your
+                            share links and any Ask AI answers you sent. Your stats are removed from this device too,
+                            so download them first if you want to keep them: Import Game Data takes the file back.
+                        </p>
+                        <div>
+                            <button type="button" className="btn btn-dim" onClick={downloadBackup}>⬇ Download my data</button>
+                        </div>
+                        <form onSubmit={handleDelete} className="acc-form">
+                            <label className="field-label">
+                                Your password
+                                <input type="password" value={deletePassword} onChange={e => setDeletePassword(e.target.value)}
+                                    autoComplete="current-password" required style={fieldStyle} />
+                            </label>
+                            {deleteError && <p className="acc-error">{deleteError}</p>}
+                            <div>
+                                <button type="submit" className="btn btn-danger" disabled={busy}>Delete my account</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>

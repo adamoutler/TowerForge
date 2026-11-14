@@ -9,11 +9,14 @@
 import { useMemo, useState } from 'react';
 import { useGameStore } from '../../store/useGameStore';
 import { formatGameNumber } from '../../engine/gameNumbers';
-import { EPIC_PITY_PULLS, GEMS_PER_PULL, incomeSummary, labsByMonth, runRecords } from '../../engine/career';
+import { EPIC_PITY_PULLS, GEMS_PER_PULL, incomeSummary, labsByMonth, runRecords, yearHighlights } from '../../engine/career';
 import type { Career, CareerYear } from '../../engine/career';
 import { GAME_LABS, GAME_LEAGUES } from '../../constants/gameExportMaps';
 import type { ModuleType } from '../../types/gameTypes';
 import MoreInfo from '../common/MoreInfo';
+import { YearPicture } from '../share/RecapPictures';
+import { useSharePicture } from '../share/useSharePicture';
+import { trackEvent } from '../../analytics';
 
 const big = (n: number): string => (n >= 1e4 ? formatGameNumber(n) : Math.round(n).toLocaleString());
 const days = (ms: number): string => `${Math.round(ms / 86400000).toLocaleString()} days`;
@@ -230,8 +233,14 @@ function YearRecap({ year }: { year: CareerYear }) {
 
 function Years({ career }: { career: Career }) {
     const [picked, setPicked] = useState<number | null>(null);
+    const { share, offscreen } = useSharePicture();
     if (!career.years.length) return null;
     const year = career.years.find(y => y.Year === picked) ?? career.years[career.years.length - 1];
+    // The picture to post: the year's headline numbers (engine/career yearHighlights).
+    const shareYear = () => {
+        share(<YearPicture y={yearHighlights(year)} current={year.Year === new Date().getFullYear()} />, `towerforge-${year.Year}`, `My ${year.Year}`);
+        trackEvent('Year picture', { step: 'share', year: year.Year });
+    };
     return (
         <div className="section">
             <div className="section-head">
@@ -242,7 +251,13 @@ function Years({ career }: { career: Career }) {
                     ))}
                 </div>
             </div>
-            <div className="section-body"><YearRecap year={year} /></div>
+            <div className="section-body">
+                <div className="car-share">
+                    <button type="button" className="btn btn-accent" onClick={shareYear}>📸 Share my {year.Year}</button>
+                </div>
+                <YearRecap year={year} />
+                {offscreen}
+            </div>
         </div>
     );
 }

@@ -156,6 +156,15 @@ export function deleteShare(code: string): Promise<void> {
         'Could not delete the share.');
 }
 
+// towerforge.net/s/CODE: the server fills in the link's preview with the
+// shared tier and best wave (SharePagesController). Older ?share=CODE
+// links still open (shareCodeFrom).
 export function shareUrl(code: string): string {
-    return `${window.location.origin}/?share=${code}`;
+    return `${window.location.origin}/s/${code}`;
+}
+
+// The share a page address opens: /s/CODE, or ?share=CODE.
+export function shareCodeFrom(pathname: string, search: string): string | null {
+    const m = /^\/s\/([A-Za-z0-9]{4,12})\/?$/.exec(pathname);
+    return m ? m[1].toUpperCase() : new URLSearchParams(search).get('share');
 }

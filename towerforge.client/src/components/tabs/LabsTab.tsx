@@ -256,8 +256,7 @@ export default function LabsTab() {
                                                     onChange={v => setLabLevel(labName, v)}
                                                 />
                                             <button
-                                                className="btn btn-dim"
-                                                style={{ fontSize: '12px', padding: '2px 7px' }}
+                                                className="btn btn-dim btn-max"
                                                 disabled={!isUnlocked || isMaxed}
                                                 title={`Max ${labName}`}
                                                 onClick={() => setLabLevel(labName, maxLv)}

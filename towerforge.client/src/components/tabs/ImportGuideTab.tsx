@@ -15,6 +15,8 @@ import type { ReactNode } from 'react';
 import { LINK_DOWNLOAD, LINK_DOWNLOAD_ANDROID } from '../../engine/linkClient';
 import { GUIDE_EVENT, takeGuideSection } from '../../guideNav';
 import { trackEvent } from '../../analytics';
+import { TAB_PATHS } from '../../routes';
+import { ExportPicture } from '../common/ExportHowTo';
 
 const SHIZUKU_PLAY = 'https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api';
 const SHIZUKU_GUIDE = 'https://shizuku.rikka.app/guide/setup/';
@@ -126,7 +128,11 @@ export default function ImportGuideTab() {
                 lead="TowerForge reads a file the game writes for tools like this one. Whatever device you use, start here.">
                 <Steps>
                     <li>Make sure The Tower is up to date (the export came with update <strong>29.1.3</strong>).</li>
-                    <li>In The Tower, open <strong>Settings</strong> and find <strong>External Tools Export</strong>.</li>
+                    <li>
+                        In The Tower, open <strong>Settings</strong> and tap your <strong>player ID</strong> at the bottom left
+                        <strong> 5 times</strong>. That brings up <strong>External Tools Export</strong> — it stays hidden until you do.
+                        <ExportPicture />
+                    </li>
                     <li>
                         <strong>Export your data now</strong>, or — better — turn on <strong>Auto</strong>: the game then writes
                         the file again every time it saves, so TowerForge always gets your newest numbers.
@@ -144,7 +150,11 @@ export default function ImportGuideTab() {
                 lead="If tool_export.json (or a PDF of it) is already on the device you’re using, this takes ten seconds.">
                 <Steps>
                     <li>Open towerforge.net on that device.</li>
-                    <li>Click or tap <strong>⬆ Import Game Data</strong> at the top of the page.</li>
+                    <li>
+                        Click <strong>⬆ Import Game Data</strong> at the top of the page (on a phone it’s the gold <strong>⬆ Import</strong>).
+                        It shows the ways in for your device; tap <strong>📄 Choose the file</strong>. (Once a file import has worked
+                        on that device, the button opens the file picker straight away.)
+                    </li>
                     <li>Pick <code>tool_export.json</code> (on a phone it’s usually in <em>Downloads</em>).</li>
                     <li>
                         A message lists everything that came in: <Says>✓ Imported from your game data:</Says> followed by
@@ -193,6 +203,10 @@ export default function ImportGuideTab() {
                             A black window titled <strong>TowerForge Link</strong> opens and lists what it found, for example
                             <Says>Found BlueStacks (running) — Android Debug Bridge on</Says>. <strong>Leave this window open</strong>
                             while you use the site — you can minimize it. Closing it stops Link.
+                        </li>
+                        <li>
+                            A few seconds later Link (0.5 and newer) opens towerforge.net and your data comes straight in. Was the
+                            site already open, asking for Link? Then it brings the data in there instead.
                         </li>
                     </Steps>
                     <Box kind="why">
@@ -253,7 +267,7 @@ export default function ImportGuideTab() {
 
                 <Part title="Part 4 — Let it keep up by itself (optional)">
                     <Steps>
-                        <li>In the game, set External Tools Export to <strong>Auto</strong>.</li>
+                        <li>In the game, set External Tools Export to <strong>Auto</strong> (Settings → tap your player ID 5 times).</li>
                         <li>On the site, click <strong>⟳ Auto import off</strong> so it says <strong>⟳ Auto import on</strong>.</li>
                     </Steps>
                     <p>
@@ -264,8 +278,8 @@ export default function ImportGuideTab() {
                 </Part>
 
                 <Box kind="again">
-                    Start TowerForge Link (Part 1, step 4), then open the site and click <strong>Get from emulator or
-                    phone</strong> — or leave Auto import on.
+                    Export in the game, then start TowerForge Link: it opens towerforge.net and brings your data in (Link 0.5 and
+                    newer). Already running? Click <strong>Get from emulator or phone</strong> — or leave Auto import on.
                 </Box>
             </Section>
 
@@ -352,8 +366,7 @@ export default function ImportGuideTab() {
                         <li><strong>Start Shizuku</strong> — already done in Part 2.</li>
                         <li><strong>Allow TowerForge Link in Shizuku</strong> — tap <strong>Allow</strong>. Shizuku asks <Says>Allow TowerForge Link to access Shizuku?</Says> — tap <strong>Allow all the time</strong>.</li>
                         <li>
-                            <strong>Export your data in The Tower</strong> — tap <strong>Open The Tower</strong>, then Settings →
-                            External Tools Export → <strong>Auto</strong>. Back in TowerForge Link it says
+                            <strong>Export your data in The Tower</strong> — tap <strong>Open The Tower</strong>, then Settings → tap your player ID 5 times → External Tools Export → <strong>Auto</strong>. Back in TowerForge Link it says
                             <Says>Found your export from …</Says>
                         </li>
                         <li>
@@ -361,18 +374,18 @@ export default function ImportGuideTab() {
                             A notification <Says>TowerForge Link is on</Says> stays while it runs.
                         </li>
                     </Steps>
-                    <p>Then tap <strong>Open towerforge.net</strong> at the bottom of the app.</p>
+                    <p>Then tap <strong>Open towerforge.net</strong> at the bottom of the app: the site opens and brings your data in right away.</p>
                 </Part>
 
                 <Part title="Part 5 — Import on the site">
                     <Steps>
                         <li>
-                            The site opens in your browser with two buttons at the top: <strong>Get from emulator or
-                            phone</strong> and <strong>⟳ Auto import</strong>. (They show on phones that opened the site from the app.)
+                            The site opens in your browser and reads your export straight away. The first time, the browser asks to let
+                            towerforge.net <Says>access other apps and services on this device</Says> — tap <strong>Allow</strong>.
                         </li>
                         <li>
-                            Tap <strong>Get from emulator or phone</strong>. The first time, the browser asks to let towerforge.net
-                            <Says>access other apps and services on this device</Says> — tap <strong>Allow</strong>.
+                            Later, <strong>Get from emulator or phone</strong> at the top reads it again, and <strong>⟳ Auto
+                            import</strong> keeps up by itself. (Those buttons show on phones that opened the site from the app.)
                         </li>
                         <li>
                             Turn on <strong>⟳ Auto import</strong>: from then on, each time you switch from the game to the
@@ -463,7 +476,7 @@ export default function ImportGuideTab() {
                     <li>Export in the game (<Go to="export">step 0</Go>).</li>
                     <li>In your file manager, open <code>Android → data → com.TechTreeGames.TheTower → files</code>.</li>
                     <li>Copy <code>tool_export.json</code> to <strong>Downloads</strong>.</li>
-                    <li>On towerforge.net tap <strong>⬆ Import Game Data</strong> and pick it from Downloads.</li>
+                    <li>On towerforge.net tap <strong>⬆ Import</strong> at the top → <strong>📄 Choose the file</strong>, and pick it from Downloads.</li>
                 </Steps>
                 <Box kind="warn">
                     Android 11 and newer block most file managers from that folder. If yours can’t open it, use
@@ -767,7 +780,7 @@ python3 towerforge-link.pyz install-udev`}</pre>
                             Paste this line and press Return — it copies the export to your Desktop:
                             <pre className="igd-code">cp &quot;$(find ~/Library/Containers -name tool_export.json 2&gt;/dev/null | head -1)&quot; ~/Desktop/</pre>
                         </li>
-                        <li>On towerforge.net click <strong>⬆ Import Game Data</strong> and pick <code>tool_export.json</code> on your Desktop.</li>
+                        <li>On towerforge.net click <strong>⬆ Import Game Data</strong> → <strong>📄 Choose the file</strong>, and pick <code>tool_export.json</code> on your Desktop. (The ⬆ Import help on a Mac shows this Terminal line with a Copy button.)</li>
                     </Steps>
                 </Part>
                 <Part title="An iPhone with a Mac">
@@ -790,7 +803,7 @@ python3 towerforge-link.pyz install-udev`}</pre>
                     <table className="igd-table">
                         <thead><tr><th>The site or Link says…</th><th>What to do</th></tr></thead>
                         <tbody>
-                            <tr><td><Says>TowerForge Link isn’t running on this PC</Says></td><td>Open <code>TowerForgeLink.exe</code> and leave its window open. Only one copy can run at a time.</td></tr>
+                            <tr><td><Says>TowerForge Link isn’t running on this PC</Says></td><td>Open <code>TowerForgeLink.exe</code> and leave its window open (only one copy can run at a time): with the dialog still open, the site sees Link start and reads your export by itself. Have the file already? <strong>Skip Link: 📄 Choose the file</strong> in the same dialog.</td></tr>
                             <tr><td>The page can’t reach Link although it’s running</td><td>The browser was told not to let the site talk to apps on this device. Click the icon left of the address (🔒 or ⓘ) → <strong>Site settings</strong> → allow <strong>Local network access</strong> (or “apps on device”), then reload.</td></tr>
                             <tr><td><Says>No Android emulator found on this PC</Says></td><td>Install or start your emulator — or, for a phone, see <Go to="android-pc">Android + PC</Go> or <Go to="iphone">iPhone</Go>. Installed in another folder or drive? Get TowerForge Link 0.4.2 or newer: it finds emulators wherever they're installed, and its window lists each one it found with its folder.</td></tr>
                             <tr><td><Says>Your emulator isn’t running</Says> / <Says>… is running but didn’t answer</Says></td><td>Start the emulator and wait until its home screen shows, then try again.</td></tr>
@@ -800,7 +813,7 @@ python3 towerforge-link.pyz install-udev`}</pre>
                             <tr><td><Says>MuMu Player is running but isn’t letting TowerForge Link connect</Says></td><td>Get TowerForge Link 0.4.1 or newer (it reads MuMu without ADB). Still there? MuMu → Settings → Developer options → <strong>ADB debug</strong> → Enable local connection, then close MuMu fully and reopen it. Just started? Wait a minute and try again.</td></tr>
                             <tr><td>It reads the wrong emulator (BlueStacks instead of MuMu…)</td><td>Get TowerForge Link 0.4 or newer: with more than one, it asks <Says>Import from…</Says>. An emulator listed but greyed out says why it can’t be read.</td></tr>
                             <tr><td><Says>The emulator or phone you picked isn’t answering</Says></td><td>Start it (or reconnect the phone), then try again — or click <strong>Get from emulator or phone</strong> and pick another.</td></tr>
-                            <tr><td><Says>… has no data export yet</Says> / <Says>The Tower hasn’t exported your data yet</Says></td><td>In the game: Settings → External Tools Export → export, or turn on Auto (<Go to="export">step 0</Go>).</td></tr>
+                            <tr><td><Says>… has no data export yet</Says> / <Says>The Tower hasn’t exported your data yet</Says></td><td>In the game: Settings → tap your player ID 5 times → External Tools Export → export, or turn on Auto (<Go to="export">step 0</Go>). Can’t find it? It only shows after those 5 taps on your ID.</td></tr>
                             <tr><td><Says>The Tower isn’t installed on …, or hasn’t been opened yet</Says></td><td>Open The Tower once on that device, then export.</td></tr>
                             <tr><td><Says>Your phone isn’t connected</Says></td><td>On the phone, turn Wireless debugging back on (it turns off after a restart or a Wi-Fi change), same Wi-Fi as the PC. Still nothing? Use <strong>Connect</strong> in the ⚙ setup (<Go to="android-pc">tip</Go>).</td></tr>
                             <tr><td><Says>The phone said the code was wrong</Says></td><td>Codes are single-use: tap <strong>Pair device with pairing code</strong> again and type the new code.</td></tr>
@@ -838,8 +851,10 @@ python3 towerforge-link.pyz install-udev`}</pre>
                 </Part>
                 <Part title="Where does my data go?">
                     <p>
-                        Into this browser only. If you create an account (Player → Account), your stats are saved with it so they
-                        follow you to other devices. Share links (Player → Share) only show what you choose to share.
+                        What you import stays in this browser. It only goes to TowerForge&apos;s server if you make an account
+                        (Player → Account), so your stats follow you to other devices, or a share link (Player → Share), which
+                        shows only what you pick. The site also counts visits, without cookies.
+                        The <a href={TAB_PATHS.privacy}>Privacy</a> page has the details.
                     </p>
                 </Part>
                 <Part title="Why does Android need Shizuku?">
@@ -854,7 +869,7 @@ python3 towerforge-link.pyz install-udev`}</pre>
                         <li><strong>Windows:</strong> close TowerForge Link and delete <code>TowerForgeLink.exe</code>; to remove Google’s adb and paired phones too, delete the folder <code>%LOCALAPPDATA%\TowerForgeLink</code>.</li>
                         <li><strong>Android:</strong> uninstall TowerForge Link and Shizuku, then turn off Wireless debugging (and Developer options, at the top of that page).</li>
                         <li><strong>iPhone:</strong> in Apple Devices, General → <strong>Manage Backups</strong> deletes old backups.</li>
-                        <li><strong>The site:</strong> Player → Account (signed in) or your browser’s site data for towerforge.net.</li>
+                        <li><strong>The site:</strong> clear your browser’s site data for towerforge.net; with an account, Player → Account → <strong>Delete account</strong> first.</li>
                     </ul>
                 </Part>
                 <Part title="Can I do it without any of this?">

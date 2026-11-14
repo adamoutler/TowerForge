@@ -188,6 +188,31 @@ Notion renders client-side, so both were read in a browser: on a fandom tab,
   tower damage; protectors don't reduce it). Size 30m → 70m, Duration 15s →
   38s (perk +12s), Cooldown 200s → 50s. Extra Black Hole lab adds a second
   hole opposite.
+- **Permanent Black Hole** (always up). Without the Black Hole perk or
+  Galaxy Compressor, the only way is the Black Hole substats on both Core
+  module slots: two Ancestral Core modules, each with Black Hole – Duration
+  and Black Hole – Cooldown, the second in the Core assist slot at 50%
+  Substat Efficiency or more (44s against 44s). No lab, card, relic or
+  Vault upgrade lengthens Black Hole or shortens its cooldown. Multiverse
+  Nexus doesn't help: it makes the cooldown longer. (2026-11-09, from a
+  player's question; TowerForge's arithmetic from the game's values, not
+  checked in the game.) Why:
+  - TowerForge counts its uptime as duration ÷ cooldown (`farming.ts`), so
+    it's permanent once the duration reaches the cooldown. The stats alone
+    stop at 38s against 50s, 12s short;
+  - the Black Hole perk adds 12s (38 + 12 = 50);
+  - Galaxy Compressor takes time off every UW cooldown as recovery packages
+    are collected;
+  - the Core substats: Black Hole – Duration +2 / +3 / +4s and Black Hole –
+    Cooldown −2 / −3 / −4s (Legendary / Mythic / Ancestral). One Ancestral
+    Core module with both: 42s against 46s, still 4s short. The assist slot
+    adds its module's substats at the slot's Substat Efficiency (up to
+    100%: 1% + 69 stone levels + 30 Assist Module lab levels);
+  - Multiverse Nexus: Death Wave, Golden Tower and Black Hole share the
+    average of their cooldowns (Golden Tower's is at least 100s), shifted
+    by −10s at Ancestral, so Black Hole's gets longer;
+  - the Extra Black Hole lab and Primordial Collapse add holes at the same
+    time, not a longer one.
 - **Consume (BH+)**: at the end of each activation, every enemy in it takes
   0.05× → 0.75× the current wave's HP.
 - Spotlight doesn't multiply it (health-based).

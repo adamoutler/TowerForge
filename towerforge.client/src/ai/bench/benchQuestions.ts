@@ -103,6 +103,19 @@ export const BENCH_QUESTIONS: BenchQuestion[] = [
     { id: 'guide-site', q: 'How does TowerForge work out the best upgrade?', accounts: ['late'], expect: { tool: 'guide' } },
     { id: 'guide-ps', q: 'is ps worth it', accounts: ['late'], expect: { tool: ['what_if', 'guide', 'levels'] }, mustNot: [/power stone/i] },
 
+    // ── Player reports, 2026-11-09 ───────────────────────────────
+    // Went to "none" and answered from the model's own memory: the notes
+    // say what closes Black Hole's 12s gap without the perk.
+    { id: 'bh-permanent', q: 'How do I get a permanent Black Hole in tournaments without perks and the Galaxy Compressor?', accounts: ['mid', 'late'], expect: { tool: 'guide' } },
+    // Went to "none": the coin picks (and which tier, for "per hour").
+    { id: 'coins-build', q: 'Could you recommend a total build set to maximize coins per hour?', expect: { tool: 'upgrades', goal: 'coins' } },
+    // Got the coin picks, and "coin/wave lab" matched the workshop's
+    // Coin/Wave: What If on the Coins/Wave Lab.
+    { id: 'coin-wave-lab', q: 'My coin/wave workshop is maxed out so it gave the wrong information. I am asking specifically on the research lab not the workshop now anser', accounts: ['mid', 'late'], expect: { tool: 'what_if', upgrades: ['coins?/wave lab'] } },
+
+    // Went to the notes and the 8B made up 3.72B each: What If on both skips.
+    { id: 'skip-cost', q: 'How many coins will it cost to max out both of my Enemy level skips in my workshop?', accounts: ['mid', 'late'], expect: { tool: 'what_if', upgrades: ['enemy atk level skip', 'enemy hp level skip'] } },
+
     // ── Not about the account ────────────────────────────────────
     { id: 'hello', q: 'hi', accounts: ['mid'], expect: { tool: 'none' } },
     { id: 'off-topic', q: 'Write me a poem about towers', accounts: ['mid'], expect: { tool: 'none' } },

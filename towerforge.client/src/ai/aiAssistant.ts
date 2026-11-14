@@ -29,7 +29,8 @@ import {
 import type { AiAccount, AiChangeAsk, AiCurrency, AiRunKind, AiTourneySettings, ToolResult } from './aiTools';
 import { budgetIn, wordsOf } from './aiTools';
 import { TAB_PATHS } from '../routes';
-import { UWS } from '../constants/gameData';
+import { LABS, UWS, WS_STATS } from '../constants/gameData';
+import { UNIQUE_MODULES } from '../constants/moduleData';
 import { notesText, searchNotes } from './aiKnowledge';
 import { unverifiedNumbers } from './aiCheck';
 import { addToLog } from './aiLog';
@@ -82,6 +83,10 @@ const MODEL_KEY = 'tc_ai_model';
 const readModel = () => { try { return localStorage.getItem(MODEL_KEY); } catch { return null; } };
 
 let engine: WebWorkerMLCEngine | null = null;
+// The model gone from the graphics card under a "ready" page (WebLLM's
+// errors), and whether it's being loaded again for a question.
+const MODEL_GONE = /ModelNotLoaded|Model not loaded|device (was |is )?lost|Instance reference no longer exists/i;
+let reloading = false;
 let worker: Worker | null = null;
 
 // ── Graphics card ─────────────────────────────────────────────
@@ -214,7 +219,7 @@ function guessRoute(q: string): Route {
     if (/what if|would .*(max|level)|\bmax(ing)?\b/.test(l)) return { ...base, tool: 'what_if', changes: [{ upgrade: q, level: 'max' }] };
     if (/\bboost/.test(l) && /\blabs?\b/.test(l)) return { ...base, tool: 'lab_boosts', search: q };
     if (/\bshards?\b/.test(l) && !/\bstones?\b|\bcoins?\b/.test(l)) return { ...base, tool: 'shard_plan', search: q };
-    if (/\b(more|earn|make)\b.*\bcoins?\b|\bincome\b/.test(l)) return { ...base, tool: 'upgrades', goal: 'coins' };
+    if (/\b(more|earn|make|maximi[sz]e|increase)\b.*\bcoins?\b|\bincome\b|\bcoins? (per|an) hour\b/.test(l)) return { ...base, tool: 'upgrades', goal: 'coins' };
     if (/surviv|stay alive|keep dying/.test(l)) return { ...base, tool: 'upgrades', goal: 'survival' };
     if (/\bmore\b.*\bcells?\b/.test(l)) return { ...base, tool: 'upgrades', goal: 'cells' };
     if (/what level|\blevel (is|of)\b|\bmy .+ level\b/.test(l)) return { ...base, tool: 'levels', search: q };
@@ -318,12 +323,94 @@ function checked(r: Route, q: string): Route {
     if (out.tool === 'upgrades' && out.currency === 'any' && !named && /\bresearch\b|\blabs?\b/i.test(q) && out.goal === 'default') {
         out.currency = 'research';
     }
+    // Earning coins, said any way ("a build to maximize coins per hour", a
+    // player report 2026-11-09, went to "none", and the 4B then picked the
+    // tier comparison): the coin picks, with the tiers for coins an hour.
+    if ((out.tool === 'none' || (out.tool === 'farm_tier' && !/\btiers?\b|\bt\d/i.test(q))) && COIN_WORDS.test(q) && !TOURNEY_WORDS.test(q)) {
+        out.tool = 'upgrades';
+        out.goal = 'coins';
+    }
+    // A lab named in full, not a spending question ("asking specifically on
+    // the coin/wave research lab", a player report 2026-11-09, got the coin
+    // picks): What If on that lab.
+    const lab = out.tool === 'upgrades' && !out.budget && !SPEND_WORDS.test(q) ? namedLab(q) : null;
+    if (lab) {
+        out.tool = 'what_if';
+        out.changes = [{ upgrade: lab, level: 'max' }];
+    }
+    // What named workshop upgrades cost ("How many coins will it cost to max
+    // out both of my Enemy level skips in my workshop?", a player report
+    // 2026-11-13: went to the notes, and the 8B made up 3.72B each): What If,
+    // which prices each one from the cost tables.
+    const costed = out.tool !== 'what_if' && COST_WORDS.test(q) && !SPEND_WORDS.test(q) ? namedWorkshop(q) : [];
+    if (costed.length) {
+        const to = /\bto (?:level |lv\.? ?)?(\d{1,4})\b/i.exec(q)?.[1];
+        out.tool = 'what_if';
+        out.changes = costed.map(upgrade => ({ upgrade, level: to ?? 'max' }));
+    }
     // "What is X?" about the game (not their account) goes to the notes.
     if (out.tool === 'none' && /^\s*(what|how|why)\s+(is|are|does|do)\b/i.test(q) && !/\b(i|my|me|am|i'm)\b/i.test(q)) {
         out.tool = 'guide';
         out.search ||= q;
     }
+    // "How do I get a permanent Black Hole without perks and the Galaxy
+    // Compressor?" (a player report, 2026-11-09): how to do something with
+    // a game thing goes to the notes too, not the model's own memory.
+    if (out.tool === 'none' && /^\s*(how|why|can|could|is (it|there)|what(?:'s| is) the (best )?way)\b/i.test(q) && GAME_THINGS.test(q)) {
+        out.tool = 'guide';
+        out.search ||= q;
+    }
     return out;
+}
+
+// Asking a price: "cost", or "how much / how many … to max / level / buy".
+const COST_WORDS = /\b(cost|costs|costing|price)\b|\bhow (much|many)\b[^.?!]*\b(to|for)\b[^.?!]*\b(max|level|upgrade|buy)/i;
+const COIN_WORDS = /\b(maximi[sz]e|maximum|more|most|earn|make|increase|boost|farm(ing)?)\b[^.?!]*\bcoins?\b|\bcoins? (per|an|a|\/) ?(hour|hr|run)\b|\bincome\b/i;
+const SPEND_WORDS = /\b(what|which|where) should\b|\bspend\b|\bbuy\b|\bnext\b|\bpriorit|\bbest\b|\brecommend/i;
+
+// The game's things by name: UWs (short names too), UW+, unique modules,
+// and the kinds of upgrade.
+const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const GAME_THINGS = new RegExp(`\\b(${[
+    ...UWS.flatMap(u => [u.n, u.a, u.up]),
+    ...Object.values(UNIQUE_MODULES).flat().map(([name]) => name),
+    'perks?', 'modules?', 'labs?', 'cards?', 'relics?', 'bots?', 'guardian', 'enhancements?', 'level skip', 'wave skip',
+].map(n => (/\?/.test(n) ? n : escape(n))).join('|')})\\b`, 'i');
+
+// A lab the question names in full with at least two words of its own
+// ("coin/wave … research lab" → Coins/Wave Lab); the longest name wins.
+const LAB_NAMES = LABS.flatMap(g => g.l.map(([name]) => name))
+    .map(name => ({ name, words: wordsOf(name).filter(w => w !== 'lab') }))
+    .filter(l => l.words.length >= 2);
+function namedLab(q: string): string | null {
+    const words = new Set(wordsOf(q));
+    if (!words.has('lab') && !words.has('research')) return null;
+    const hits = LAB_NAMES.filter(l => l.words.every(w => words.has(w))).sort((a, b) => b.words.length - a.words.length);
+    return hits[0]?.name ?? null;
+}
+
+// Workshop upgrades the question names in full ("Enemy HP Level Skip"), or
+// with "both / all my …" every one sharing all but its own word ("both of
+// my Enemy level skips" → Enemy Atk and Enemy HP Level Skip). Not when it
+// says lab, research or enhancement: those have names of their own.
+const WS_NAMES = Object.values(WS_STATS).flat().map(([name]) => ({ name, words: wordsOf(name) }));
+function namedWorkshop(q: string): string[] {
+    const words = new Set(wordsOf(q));
+    if (['lab', 'research', 'enhancement'].some(w => words.has(w))) return [];
+    const full = WS_NAMES.filter(n => n.words.length >= 2 && n.words.every(w => words.has(w)));
+    if (full.length) {
+        // The longest names only ("Enemy HP Level Skip", not a shorter name inside it).
+        return full.filter(n => !full.some(m => m !== n && m.words.length > n.words.length && n.words.every(w => m.words.includes(w))))
+            .map(n => n.name);
+    }
+    if (/\b(both|all|every|each)\b/i.test(q)) {
+        const family = WS_NAMES.filter(n => {
+            const shared = n.words.filter(w => words.has(w)).length;
+            return shared >= 2 && shared === n.words.length - 1;
+        });
+        if (family.length >= 2) return family.map(n => n.name);
+    }
+    return [];
 }
 
 const routeText = (r: RouteChoice) => [
@@ -351,11 +438,16 @@ const tourneyPicks = (route: Route, ctx: AiContext) => bestUpgrades(ctx.account,
 export function lookUp(route: Route, question: string, ctx: AiContext): ToolResult[] {
     const { account } = ctx;
     switch (route.tool) {
-        case 'upgrades':
+        case 'upgrades': {
             // A currency or an amount to spend asks for its picks alone.
             if (route.runs === 'tournament' && route.currency === 'any' && !route.budget) return [tourneyPicks(route, ctx), tournamentOutlook(account, ctx.tourney)];
-            return [bestUpgrades(account, route.currency, route.goal === 'default' ? ctx.goal : route.goal,
-                { budget: route.budget, runs: route.runs, tourney: ctx.tourney, goalAsked: route.goal !== 'default' })];
+            const picks = bestUpgrades(account, route.currency, route.goal === 'default' ? ctx.goal : route.goal,
+                { budget: route.budget, runs: route.runs, tourney: ctx.tourney, goalAsked: route.goal !== 'default' });
+            // Coins an hour or farming: which tier earns the most, too.
+            const farming = route.goal === 'coins' && route.currency === 'any' && !route.budget && route.runs !== 'tournament'
+                && /\b(hour|hr|farm(ing)?)\b/i.test(question);
+            return farming ? [picks, farmTiersReport(account)] : [picks];
+        }
         case 'what_if': {
             const asks = route.changes.length ? route.changes : [{ upgrade: question, level: 'max' }];
             // Each on its own when there are several (to compare), then together.
@@ -412,7 +504,7 @@ Rules:
 - Be brief and direct: answer first in a sentence or two, then a few short bullet points if they help.
 - If the data says an upgrade couldn't be found, or doesn't have the answer, say so plainly and don't guess.
 - Game notes are TowerForge's own notes: explain them in plain words and leave out code names and file names.
-- In the account, "Damage 13/32" is an upgrade's level (13 of 32), not damage dealt.
+- In the account, "Damage 13/32" is an upgrade's level (13 of 32), not damage dealt. Something is maxed only when its two numbers are equal (32/32); 13/32 isn't. Don't call an upgrade maxed because the question says another one is.
 - Big numbers use the game's letters, smallest to largest: K (thousand), M (million), B (billion), T (trillion), q (quadrillion), Q (quintillion), s, S, O, N, D, then aa, ab… So 61.00K is far less than 4.67Q, and q is less than Q. When the data lists picks "in order of cost, lowest first", use that to compare costs.
 - To point to a page, use these addresses exactly (no others): ${PAGE_LINKS}.`;
 
@@ -603,6 +695,26 @@ export const useAiStore = create<AiStore>((set, get) => {
                 finish(text, unchecked);
             } catch (e) {
                 const error = e instanceof Error ? e.message : String(e);
+                // The graphics card dropped the model (the PC slept, a driver
+                // reset): WebLLM unloads it in the worker while the page still
+                // reads "ready", and every question fails at once (a player
+                // report, 2026-11-03: ModelNotLoadedError in 0.0 s). Load it
+                // again and ask once more.
+                if (!reloading && MODEL_GONE.test(`${(e as Error)?.name ?? ''} ${error}`)) {
+                    reloading = true;
+                    try {
+                        patchLast({ status: 'The model stopped — loading it again…' });
+                        await get().stopModel();
+                        await get().start();
+                        if (engine && get().status === 'ready') {
+                            set(s => ({ messages: s.messages.slice(0, -2) }));
+                            await get().ask(question, ctx);
+                            return;
+                        }
+                    } finally {
+                        reloading = false;
+                    }
+                }
                 const text = `Something went wrong: ${error}`;
                 patchLast({ text, status: undefined, done: true });
                 finish(text, [], error);
