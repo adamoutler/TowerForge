@@ -35,6 +35,22 @@ export function phoneLinkRemembered(): boolean {
     }
 }
 
+// TowerForge Link (0.5+) opens the site with ?link=import when it starts
+// and no page is asking it yet; the Android app's "Open towerforge.net"
+// adds ?link=android. Either way the player wants their data in, so the
+// site imports on load (App.tsx). Read once, before phoneLinkRemembered()
+// tidies the address.
+const OPENED_BY_LINK = (() => {
+    try {
+        const v = new URLSearchParams(window.location.search).get('link');
+        return v === 'import' || v === 'android';
+    } catch {
+        return false;
+    }
+})();
+
+export const openedByLink = (): boolean => OPENED_BY_LINK;
+
 export function forgetPhoneLink(): void {
     try { localStorage.removeItem(PHONE_KEY); } catch { /* not remembered anyway */ }
     document.documentElement.classList.remove('tf-phone-link');

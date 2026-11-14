@@ -12,7 +12,7 @@ import { DISCORD_URL } from '../../constants/community';
 import { TAB_PATHS } from '../../routes';
 import { downloadBackup } from '../common/downloadBackup';
 
-export const PRIVACY_UPDATED = 'November 9, 2026';
+export const PRIVACY_UPDATED = 'November 13, 2026';
 
 export default function PrivacyTab() {
     return (
@@ -88,7 +88,7 @@ export default function PrivacyTab() {
                 visit it records the page, the page you came from, your browser, system, device type, screen size and
                 language, and your country, region and city, worked out from your IP address. The IP address itself
                 isn&apos;t kept. It also counts a few actions, without anything you typed: importing, TowerForge Link
-                steps, the theme you pick, copying a creator code, opening a creator&apos;s channel or stream or the charity event&apos;s links, and the kind of each Ask AI question. These counts
+                steps, which way in the import help you pick, trying the example account, the theme you pick, copying a creator code, opening a creator&apos;s channel or stream or the charity event&apos;s links, and the kind of each Ask AI question. These counts
                 show which pages people use and what breaks; they&apos;re kept as statistics and can&apos;t be tied to
                 you.
             </p>

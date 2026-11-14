@@ -19,10 +19,11 @@ interface Props {
     onLink: () => void;
     onGuide: (part: string) => void;
     onSignIn: () => void;
+    onExample?: () => void;
     onClose: () => void;
 }
 
-export default function ImportSheet({ onClose, onImportFile, onLink, onGuide, onSignIn, ...rest }: Props) {
+export default function ImportSheet({ onClose, onImportFile, onLink, onGuide, onSignIn, onExample, ...rest }: Props) {
     // Esc closes.
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -52,6 +53,7 @@ export default function ImportSheet({ onClose, onImportFile, onLink, onGuide, on
                         onLink={then(onLink)}
                         onGuide={then(onGuide)}
                         onSignIn={then(onSignIn)}
+                        onExample={onExample && then(onExample)}
                     />
                 </div>
             </div>

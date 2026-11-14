@@ -43,6 +43,13 @@ namespace TowerForge.Link;
 
 internal sealed class LinkServer(int port, Action<string> log)
 {
+    // When a towerforge.net page last asked anything (UTC ticks; 0: never).
+    // Program waits a few seconds after starting: a page already asking
+    // (the setup dialog checks every 4 s) means the site is open, so Link
+    // doesn't open another tab.
+    private long _lastSiteAsked;
+    public bool SiteAsked => Interlocked.Read(ref _lastSiteAsked) != 0;
+
     private static readonly HashSet<string> AllowedOrigins = new(StringComparer.OrdinalIgnoreCase)
     {
         "https://towerforge.net", "https://www.towerforge.net",
@@ -130,6 +137,7 @@ internal sealed class LinkServer(int port, Action<string> log)
         var cors = new Dictionary<string, string>();
         if (origin != null)
         {
+            Interlocked.Exchange(ref _lastSiteAsked, DateTime.UtcNow.Ticks);
             cors["Access-Control-Allow-Origin"] = origin;
             cors["Vary"] = "Origin";
             cors["Access-Control-Expose-Headers"] = "X-Export-Modified, X-Export-Source, X-Export-Source-Id";

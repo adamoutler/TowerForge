@@ -25,8 +25,12 @@ server. Set up 2026-10-16 with Umami v3.4.0.
   `Open charity link` (`donate` / `fundraiser`) and `Copy creator code` (`from: charity`) on the
   charity event banner (2026-11-09 to 11-15). Import help (2026-11-13): `Import help` with
   `step` (`open`, `file`, `link`, `account`, `guide`) and `device` (`windows`, `mac`, `android`,
-  `ios`, `other`; `from: link` when the file came from the Link dialog), and `Emulator link:
-  started` when Link starts while its dialog is open and the site reads the export by itself.
+  `ios`, `other`; `from: link` when the file came from the Link dialog; `example` for "Just
+  looking?"), and `Emulator link: started` when Link starts while its dialog is open and the site
+  reads the export by itself. `Emulator link: opened the site` when TowerForge Link (0.5+,
+  `?link=import`) or the Android app (`?link=android`) opened the site and it imported on load.
+  `Example account` with `step` `try`, `leave`, or `import` (their own data replaced it — the
+  number to watch), 2026-11-13.
 - `ai-answer` (Ask AI, 2026-10-29): one per answer, with no question, answer
   or account in it — `tool` (the data it used), `picked` (wording, model or
   keywords), `flagged` (a number that isn't TowerForge's: yes/no), `time`

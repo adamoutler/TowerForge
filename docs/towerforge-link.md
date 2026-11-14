@@ -105,6 +105,21 @@ remembered per browser) keeps the site in step while it's open:
 - If Link isn't running when it's turned on, the setup dialog opens; later
   the button turns gold and its tooltip says why.
 
+**Link opens the site (0.5, 2026-11-13).** When Link starts and no towerforge.net
+page asks it anything within 6 seconds (the setup dialog asks every 4 s), it
+opens `https://towerforge.net/?link=import` in the default browser, and the site
+imports on load (after a signed-in account has loaded): starting Link is the
+whole job. A page that is asking means the site is open, so Link doesn't open
+another tab and that page brings the data in. Started again while a copy runs,
+it opens the site instead of only saying so, then closes. `--no-browser` turns
+it off; `--site <url>` opens another address (testing). The Android app's
+"Open towerforge.net" (`?link=android`) imports on load the same way. Checked
+2026-11-13: a test copy on port 47999 with a site page asking every second
+logged "towerforge.net is open and asking" and opened nothing; the site at
+`?link=import` asked Link at once (with two sources it showed "Import from…")
+and tidied the address. Opening the browser itself wasn't run on the owner's
+PC (it would open a tab there); it's Windows' standard open-this-address call.
+
 The setup dialog itself (`components/LinkModal.tsx`, 2026-11-13: half the PC
 players who met "Link isn't running" left without importing, Umami, 30 days):
 it asks Link for its status every 4 s, and when Link goes from not running to

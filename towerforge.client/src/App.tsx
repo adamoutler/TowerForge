@@ -28,7 +28,9 @@ import DiscordLink from './components/common/DiscordLink';
 import OfficialSiteNote from './components/common/OfficialSiteNote';
 import SiteFooter from './components/common/SiteFooter';
 import WelcomeGuide from './components/common/WelcomeGuide';
-import { exportAge, linkExport, linkSources, phoneLinkRemembered, rememberSource } from './engine/linkClient';
+import { exportAge, linkExport, linkSources, openedByLink, phoneLinkRemembered, rememberSource } from './engine/linkClient';
+import { endExampleForImport, tryExample, useExampleOn } from './store/exampleAccount';
+import ExampleBar from './components/common/ExampleBar';
 import type { LinkSource } from './engine/linkClient';
 import PerksTab from './components/tabs/PerksTab';
 import TiersTab from './components/tabs/TiersTab';
@@ -164,6 +166,9 @@ export default function App() {
     const [importHelp, setImportHelp] = useState(false);
     const [importDevice] = useState(thisImportDevice);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const exampleOn = useExampleOn();
+    // Any game data here yet (the example offer is for empty pages only).
+    const hasOwnData = useGameStore(s => s.importedBattles.length > 0 || !!s.profile.highestTier);
     const [linkChoices, setLinkChoices] = useState<LinkSource[] | null>(null);
     // The tab last opened in each section, so going back to a section returns to it.
     const [lastInGroup, setLastInGroup] = useState<Record<string, TabName>>(() => {
@@ -345,6 +350,24 @@ export default function App() {
         }
     }
 
+    // Opened by TowerForge Link (0.5+, ?link=import) or the Android app's
+    // "Open towerforge.net" (?link=android): bring the data in right away,
+    // once a signed-in account has loaded (its stats mustn't land on top).
+    const openedByLinkRef = useRef(openedByLink());
+    const fromLinkRef = useRef(getFromEmulator);
+    useEffect(() => { fromLinkRef.current = getFromEmulator; });
+    useEffect(() => {
+        if (!openedByLinkRef.current || accountStatus === 'loading') return;
+        openedByLinkRef.current = false;
+        const url = new URL(window.location.href);
+        if (url.searchParams.get('link') === 'import') {
+            url.searchParams.delete('link');
+            window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+        }
+        trackEvent('Emulator link: opened the site');
+        void fromLinkRef.current();
+    }, [accountStatus]);
+
     // ⬆ Import: the import help the first times, the file picker once a
     // file import has worked on this device.
     function openImport() {
@@ -367,6 +390,7 @@ export default function App() {
     function importJson(json: unknown, text: string, source: 'json' | 'pdf' | 'link', note?: string) {
         if (isGameExport(json)) {
             const imp = parseGameExport(json);
+            endExampleForImport();
             applyGameImport(imp);
             trackEvent(source === 'pdf' ? 'Import game data (PDF)' : source === 'link' ? 'Import game data (emulator)' : 'Import game data');
             if (source !== 'link') rememberFileImport();
@@ -419,6 +443,7 @@ export default function App() {
             return;
         }
 
+        if (exampleOn) endExampleForImport();
         if (!importData(text)) alert('Import failed — this isn’t a game data export or a TowerForge backup.');
     }
 
@@ -441,6 +466,7 @@ export default function App() {
                         onImportFile={handleImport}
                         onLink={importLink}
                         onSignIn={() => openTab('account')}
+                        onExample={accountStatus === 'signedIn' ? undefined : () => void tryExample()}
                     />
                     <ProfileTab />
                 </>
@@ -518,7 +544,7 @@ export default function App() {
                                 </button>
                             </span>
                             <AutoImport
-                                onImport={raw => applyGameImport(parseGameExport(raw))}
+                                onImport={raw => { endExampleForImport(); applyGameImport(parseGameExport(raw)); }}
                                 onNeedsLink={() => setLinkModal({ problem: null })}
                             />
                             <button type="button" className="btn btn-gold" onClick={openImport}
@@ -608,6 +634,8 @@ export default function App() {
                 </nav>
             )}
 
+            <ExampleBar onImport={openImport} />
+
             {/* ── Content ── */}
             <main className="tab-content" ref={mainRef} onScroll={onMainScroll}>
                 <ErrorBoundary key={activeTab}>
@@ -646,6 +674,7 @@ export default function App() {
                     onLink={importLink}
                     onGuide={openGuide}
                     onSignIn={() => openTab('account')}
+                    onExample={hasOwnData || exampleOn || accountStatus === 'signedIn' ? undefined : () => void tryExample()}
                     onClose={() => setImportHelp(false)}
                 />
             )}

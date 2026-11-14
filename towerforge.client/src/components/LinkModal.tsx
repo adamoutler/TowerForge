@@ -331,7 +331,7 @@ export default function LinkModal({ problem, busy, onRetry, onImportFile, onClos
                                         says the download is uncommon, choose <em>Keep</em>.
                                     </span>
                                 </li>
-                                <li>Leave its window open while you use the site (you can minimize it).</li>
+                                <li>Leave its window open while you use the site (you can minimize it). This page notices it start and brings your data in.</li>
                                 <li>
                                     The first time, your browser asks to let towerforge.net talk to apps on this device —
                                     click <em>Allow</em>.

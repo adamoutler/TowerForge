@@ -30,11 +30,12 @@ interface Props {
     onGuide: (part: string) => void;    // the Import Guide, at that part
     onSignIn: () => void;
     foot?: boolean;                     // the "export first / Import Guide" line (the welcome guide has its own)
+    onExample?: () => void;             // "Just looking?": the example account (empty pages only)
 }
 
 const ACCEPT = '.json,application/json,.pdf,application/pdf';
 
-export default function ImportWays({ device, signedIn, onImportFile, onLink, onGuide, onSignIn, foot = true }: Props) {
+export default function ImportWays({ device, signedIn, onImportFile, onLink, onGuide, onSignIn, foot = true, onExample }: Props) {
     const [copied, setCopied] = useState(false);
     const count = (step: string) => trackEvent('Import help', { step, device });
 
@@ -142,6 +143,16 @@ export default function ImportWays({ device, signedIn, onImportFile, onLink, onG
                         👤 Sign in or make an account
                     </button>
                 </div>
+            )}
+
+            {onExample && (
+                <p className="imp-try">
+                    <strong>Just looking?</strong>{' '}
+                    <button type="button" className="imp-try-btn" onClick={() => { count('example'); onExample(); }}>
+                        Try an example account
+                    </button>{' '}
+                    first: a made-up player fills every page.
+                </p>
             )}
 
             {foot && (

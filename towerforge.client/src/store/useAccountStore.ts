@@ -9,6 +9,8 @@
 //     account — except unsynced edits made while signed in to it).
 //   • While signed in, every change is saved to the account.
 //   • Signing out removes the stats from this device.
+//   • The example account (exampleAccount.ts) is never uploaded: making an
+//     account waits until the player leaves it; signing in ends it.
 //   • A recovery code the server just made (new account, password reset,
 //     or "make a new one") is kept here until the player says it's saved —
 //     it can't be shown again.
@@ -20,6 +22,7 @@ import * as accountApi from '../engine/accountApi';
 import type { AccountSave } from '../engine/accountApi';
 import { ApiError } from '../engine/http';
 import { clearShareClaims, getShareClaims } from '../engine/shareApi';
+import { endExampleQuietly, exampleOn } from './exampleAccount';
 
 // Store slices that make up a player's saved stats (mirrors exportData()).
 const SYNCED_SLICES = [
@@ -151,6 +154,7 @@ function stopSync(): void {
 }
 
 function signedIn(username: string, features?: string[]): void {
+    endExampleQuietly();     // the account's stats have replaced the example account
     writeKey(LINKED_USER_KEY, username);
     useAccountStore.setState({ status: 'signedIn', username, notice: null, ...(features ? { features } : {}) });
     startSync();
@@ -224,6 +228,8 @@ export const useAccountStore = create<AccountStore>((set) => ({
     // Creating an account moves everything on this device into it,
     // including share codes made here before signing up.
     register: async (username, password) => {
+        // A new account uploads what's on this device: never the made-up player.
+        if (exampleOn()) throw new Error('You’re looking at the example account. Leave it first (“Leave example” at the top), then make your account, so the made-up player isn’t saved to it.');
         const res = await accountApi.register(username, password, currentSave(), getShareClaims());
         clearShareClaims();
         writeKey(DIRTY_KEY, null);

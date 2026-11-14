@@ -4833,6 +4833,110 @@ button.gcard {
     color: var(--text-dim);
 }
 
+/* "Just looking?": the example account, as a quiet line under the ways in. */
+.imp-try {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-dim);
+}
+
+    .imp-try strong {
+        color: var(--text);
+    }
+
+.imp-try-btn {
+    padding: 0;
+    font: inherit;
+    font-weight: 700;
+    color: var(--accent);
+    background: none;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* ── Example account (ExampleBar, the welcome guide's offer) ─────
+   The bar sits under the page tabs and never folds away: a made-up
+   player must never pass for the visitor's own. */
+.exa-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px 14px;
+    padding: 7px 16px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--text);
+    background: color-mix(in srgb, var(--accent-2) 14%, var(--bg2));
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-2) 40%, transparent);
+    flex-shrink: 0;
+}
+
+    .exa-bar strong {
+        color: var(--text-bright);
+    }
+
+.exa-actions {
+    display: inline-flex;
+    gap: 8px;
+}
+
+.exa-short {
+    display: none;
+}
+
+.exa-btn {
+    padding: 5px 12px;
+    cursor: pointer;
+}
+
+.wlc-try {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin-top: 12px;
+}
+
+    .wlc-try span {
+        flex: 1;
+        min-width: 220px;
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--text-dim);
+    }
+
+.wlc-try-btn {
+    padding: 9px 16px;
+    cursor: pointer;
+}
+
+@media (max-width: 600px) {
+    .exa-bar {
+        gap: 4px 10px;
+        padding: 5px 12px 6px;
+        text-align: center;
+    }
+
+    .exa-long {
+        display: none;
+    }
+
+    .exa-short {
+        display: inline;
+    }
+
+    .exa-btn {
+        padding: 4px 10px;
+    }
+
+    .wlc-try-btn {
+        width: 100%;
+    }
+}
+
 /* Phones: full-width buttons, easy to hit. */
 @media (max-width: 600px) {
     .imp-way {

@@ -7,6 +7,8 @@
 //  so its saved stats don't flash the guide.
 //  The game's export (29.1.3+): Settings → External Tools Export, saved
 //  as tool_export.json in the game's app folder (docs/towerforge-link.md).
+//  "Try it with an example account" (store/exampleAccount.ts) lets a
+//  visitor look around with a made-up player before importing.
 //  Step 2 shows the ways in that work on this device first
 //  (ImportWays, as in the Import help), each linking to its part of
 //  the Import Guide.
@@ -42,9 +44,10 @@ interface Props {
     onImportFile: (e: ChangeEvent<HTMLInputElement>) => void;
     onLink: () => void;
     onSignIn: () => void;
+    onExample?: () => void;     // the example account (signed out only: it's never saved to an account)
 }
 
-export default function WelcomeGuide({ device, signedIn, onImportFile, onLink, onSignIn }: Props) {
+export default function WelcomeGuide({ device, signedIn, onImportFile, onLink, onSignIn, onExample }: Props) {
     const [hidden, setHidden] = useState(wasHidden);
     const hasData = useGameStore(s => s.importedBattles.length > 0 || !!s.profile.highestTier);
     const accountLoading = useAccountStore(s => s.status === 'loading');
@@ -78,6 +81,17 @@ export default function WelcomeGuide({ device, signedIn, onImportFile, onLink, o
                         A companion for The Tower. Bring in your account and TowerForge works out your damage, how far
                         your runs get and your coins — then ranks every upgrade by what it gives for what it costs.
                     </p>
+                    {onExample && (
+                        <div className="wlc-try">
+                            <button type="button" className="btn btn-primary wlc-try-btn" onClick={onExample}>
+                                👀 Try it with an example account
+                            </button>
+                            <span>
+                                A made-up player fills every page, so you can look around first. Your own data replaces
+                                it when you bring it in.
+                            </span>
+                        </div>
+                    )}
                 </div>
                 <button className="btn btn-dim wlc-hide" onClick={hide} title="Hide this guide">Hide</button>
             </div>

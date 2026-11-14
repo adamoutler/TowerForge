@@ -194,6 +194,10 @@ export default function ImportGuideTab() {
                             <Says>Found BlueStacks (running) — Android Debug Bridge on</Says>. <strong>Leave this window open</strong>
                             while you use the site — you can minimize it. Closing it stops Link.
                         </li>
+                        <li>
+                            A few seconds later Link (0.5 and newer) opens towerforge.net and your data comes straight in. Was the
+                            site already open, asking for Link? Then it brings the data in there instead.
+                        </li>
                     </Steps>
                     <Box kind="why">
                         Windows shows that warning for any program without a paid publisher certificate, which TowerForge Link
@@ -264,8 +268,8 @@ export default function ImportGuideTab() {
                 </Part>
 
                 <Box kind="again">
-                    Start TowerForge Link (Part 1, step 4), then open the site and click <strong>Get from emulator or
-                    phone</strong> — or leave Auto import on.
+                    Export in the game, then start TowerForge Link: it opens towerforge.net and brings your data in (Link 0.5 and
+                    newer). Already running? Click <strong>Get from emulator or phone</strong> — or leave Auto import on.
                 </Box>
             </Section>
 
@@ -361,18 +365,18 @@ export default function ImportGuideTab() {
                             A notification <Says>TowerForge Link is on</Says> stays while it runs.
                         </li>
                     </Steps>
-                    <p>Then tap <strong>Open towerforge.net</strong> at the bottom of the app.</p>
+                    <p>Then tap <strong>Open towerforge.net</strong> at the bottom of the app: the site opens and brings your data in right away.</p>
                 </Part>
 
                 <Part title="Part 5 — Import on the site">
                     <Steps>
                         <li>
-                            The site opens in your browser with two buttons at the top: <strong>Get from emulator or
-                            phone</strong> and <strong>⟳ Auto import</strong>. (They show on phones that opened the site from the app.)
+                            The site opens in your browser and reads your export straight away. The first time, the browser asks to let
+                            towerforge.net <Says>access other apps and services on this device</Says> — tap <strong>Allow</strong>.
                         </li>
                         <li>
-                            Tap <strong>Get from emulator or phone</strong>. The first time, the browser asks to let towerforge.net
-                            <Says>access other apps and services on this device</Says> — tap <strong>Allow</strong>.
+                            Later, <strong>Get from emulator or phone</strong> at the top reads it again, and <strong>⟳ Auto
+                            import</strong> keeps up by itself. (Those buttons show on phones that opened the site from the app.)
                         </li>
                         <li>
                             Turn on <strong>⟳ Auto import</strong>: from then on, each time you switch from the game to the

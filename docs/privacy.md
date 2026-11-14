@@ -16,6 +16,7 @@ commit.**
 | What | Where | How long | Notes |
 |---|---|---|---|
 | Everything a player enters or imports, incl. the in-game `UserName` | browser `localStorage` (`tc_*`) | until cleared | never sent unless one of the rows below |
+| The example account's made-up player, and what the browser had before it | browser `localStorage` (`tf-example`, `tf-example-backup`) | until the player leaves the example or imports | made up (`store/exampleAccount.ts`); never uploaded — making an account waits until it's left |
 | Ask AI download, Debug log, 👍/👎 | browser (Cache Storage, localStorage) | until removed | `docs/ask-ai.md` |
 | Account: username, PBKDF2 password hash, created date, a copy of the stats, recovery code hash | SQLite `/var/lib/towerforge` | until the player deletes it | no email; `POST /api/account/delete` (password asked again) deletes the user, cascading saves and recovery code, plus their shares and AI reports |
 | Sign-in cookie `tf_session` | browser | 30 days, sliding | HttpOnly, Secure, SameSite Strict; the only cookie |
